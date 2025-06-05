@@ -9,11 +9,13 @@
     "call-bind-apply-helpers": "^1.0.2",
     "combined-stream": "^1.0.8",
     "delayed-stream": "^1.0.0",
+    "dotenv": "^16.5.0",
     "dunder-proto": "^1.0.1",
     "es-define-property": "^1.0.1",
     "es-errors": "^1.3.0",
     "es-object-atoms": "^1.1.1",
     "es-set-tostringtag": "^2.1.0",
+    "express": "^5.1.0",
     "follow-redirects": "^1.15.9",
     "form-data": "^4.0.2",
     "function-bind": "^1.1.2",
@@ -27,9 +29,13 @@
     "math-intrinsics": "^1.1.0",
     "mime-db": "^1.52.0",
     "mime-types": "^2.1.35",
+    "mssql": "^11.0.1",
     "proxy-from-env": "^1.1.0"
   },
   "devDependencies": {
+    "@types/dotenv": "^8.2.3",
+    "@types/express": "^5.0.2",
+    "@types/mssql": "^9.1.7",
     "@types/node": "^22.15.29",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.33.1",
@@ -45,10 +51,10 @@
     "typescript": "^5.8.3"
   },
   "scripts": {
-    "dev": "npx nodemon", //dùng để code
+    "dev": "npx nodemon src/index.ts",
     "build": "rimraf ./dist && tsc && tsc-alias",
     "start": "node dist/index.js",
-    "lint": "eslint .", //kiểm tra rỗi
+    "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "prettier": "prettier --check .",
     "prettier:fix": "prettier --write ."
