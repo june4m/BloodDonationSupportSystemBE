@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "@types/qs": "^6.14.0",
     "asynckit": "^0.4.0",
     "axios": "^1.9.0",
     "call-bind-apply-helpers": "^1.0.2",
@@ -35,6 +36,7 @@
   "devDependencies": {
     "@types/dotenv": "^8.2.3",
     "@types/express": "^5.0.2",
+    "@types/jsonwebtoken": "^9.0.9",
     "@types/mssql": "^9.1.7",
     "@types/node": "^22.15.29",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
