@@ -29,10 +29,7 @@ export class UserService {
           statusCode: 400
         }
       }
-      console.log(credentials.password)
-      console.log(user.password)
-      console.log(credentials.password.trim())
-      console.log(user.password.trim())
+
       const isPasswordValid = credentials.password.trim() === user.password.trim()
 
       if (!isPasswordValid) {
