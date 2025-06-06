@@ -18,18 +18,21 @@ export class UserService {
       if (!user) {
         return {
           success: false,
-          message: USERS_MESSAGES.EMAIL_OR_PASSWORD_IS_INCORRECT
+          message: USERS_MESSAGES.EMAIL_OR_PASSWORD_IS_INCORRECT,
+          statusCode: 400
         }
       }
       if (!user.password) {
         return {
           success: false,
-          message: USERS_MESSAGES.EMAIL_OR_PASSWORD_IS_INCORRECT
+          message: USERS_MESSAGES.EMAIL_OR_PASSWORD_IS_INCORRECT,
+          statusCode: 400
         }
       }
       return {
         success: true,
-        message: USERS_MESSAGES.LOGIN_SUCCESS
+        message: USERS_MESSAGES.LOGIN_SUCCESS,
+        statusCode: 200
       }
     } catch (error) {
       console.error('Login error:', error)

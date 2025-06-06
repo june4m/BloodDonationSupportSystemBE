@@ -6,8 +6,5 @@ export interface User {
 export interface Auth {
   success: boolean
   message: string
-
-  data?: {
-    user: User
-  }
+  statusCode: number
 }

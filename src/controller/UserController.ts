@@ -1,6 +1,7 @@
 import { Request, Response } from 'express'
 import { UserService } from '../services/user.service'
 import { User } from '~/models/schemas/user.schema'
+import { ResponseHandle } from '~/utils/Response'
 class UserController {
   public userService: UserService
   constructor() {
@@ -25,13 +26,10 @@ class UserController {
         password
       }
       const result = await this.userService.authUser(credentials)
-      return res.status(200).json({ msg: 'Login successful (mocked)' })
+      return ResponseHandle.responseSuccess(res, 'login succes', 200)
     } catch (error) {
       console.error('Login error:', error)
-      res.status(400).json({
-        msg: 'User already exists'
-      })
-      return res.status(500).json({ msg: 'Server error' })
+      return ResponseHandle.responseSuccess(res, 'login fail', 400)
     }
   }
 }
