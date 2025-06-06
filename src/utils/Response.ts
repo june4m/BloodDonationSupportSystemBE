@@ -3,18 +3,18 @@ interface IResponseSuccess {
   status: boolean
   message: string
   errors: null
-  statusCode: Number
+  data: any
 }
 interface IResponseError {
   status: boolean
   message: string
   errors: any
-  statusCode: number
+  data: null
 }
 export class ResponseHandle {
   public static responseSuccess(
     res: Response,
-
+    data: any,
     message: string = 'Success',
     statusCode: number = 200
   ): Response {
@@ -22,7 +22,7 @@ export class ResponseHandle {
       status: true,
       message,
       errors: null,
-      statusCode
+      data
     }
     return res.status(statusCode).json(response)
   }
@@ -37,7 +37,7 @@ export class ResponseHandle {
       status: false,
       message,
       errors,
-      statusCode
+      data: null
     }
     return res.status(statusCode).json(respone)
   }

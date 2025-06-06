@@ -1,4 +1,5 @@
 import { Request, Response } from 'express'
+
 import { UserService } from '../services/user.service'
 import { User } from '~/models/schemas/user.schema'
 import { ResponseHandle } from '~/utils/Response'
@@ -26,10 +27,14 @@ class UserController {
         password
       }
       const result = await this.userService.authUser(credentials)
-      return ResponseHandle.responseSuccess(res, 'login succes', 200)
+      if (!result.success) {
+        // Trả về lỗi với message rõ ràng
+        return ResponseHandle.responseError(res, null, result.message, result.statusCode || 400)
+      }
+      return ResponseHandle.responseSuccess(res, result)
     } catch (error) {
       console.error('Login error:', error)
-      return ResponseHandle.responseSuccess(res, 'login fail', 400)
+      return ResponseHandle.responseError(res, error, 'login fail', 400)
     }
   }
 }

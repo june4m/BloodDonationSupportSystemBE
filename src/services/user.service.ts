@@ -29,6 +29,19 @@ export class UserService {
           statusCode: 400
         }
       }
+      console.log(credentials.password)
+      console.log(user.password)
+      console.log(credentials.password.trim())
+      console.log(user.password.trim())
+      const isPasswordValid = credentials.password.trim() === user.password.trim()
+
+      if (!isPasswordValid) {
+        return {
+          success: false,
+          message: USERS_MESSAGES.EMAIL_OR_PASSWORD_IS_INCORRECT,
+          statusCode: 400
+        }
+      }
       return {
         success: true,
         message: USERS_MESSAGES.LOGIN_SUCCESS,
@@ -40,8 +53,12 @@ export class UserService {
     }
   }
 
-  async findUserLogin(email: string): Promise<User> {
-    const user = await this.userRepository.findByEmail(email)
-    return user
+  async findUserLogin(email: string): Promise<{ email: string; password: string } | null> {
+    const users = await this.userRepository.findByEmail(email)
+    if (Array.isArray(users) && users.length > 0) {
+      const user = users[0]
+      return { email: user.Email, password: user.Password }
+    }
+    return null
   }
 }
