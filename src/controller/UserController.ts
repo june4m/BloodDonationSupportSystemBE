@@ -10,16 +10,16 @@ class UserController {
     this.login = this.login.bind(this)
   }
   public async login(req: Request, res: Response): Promise<any> {
-    console.log('call login')
+    console.log('Call Login')
     const { email, password } = req.body
     console.log(req.body)
     if (typeof email !== 'string' || email.trim() === '') {
-      console.log('No email')
-      return res.status(400).json({ msg: 'Email is required' })
+      console.log('No Email')
+      return res.status(400).json({ msg: 'Email is required!' })
     }
     if (typeof password !== 'string' || password.trim() === '') {
       console.log('No Password')
-      return res.status(400).json({ msg: 'Pass is required' })
+      return res.status(400).json({ msg: 'Pass is required!' })
     }
     try {
       const credentials: User = {
@@ -34,7 +34,7 @@ class UserController {
       return ResponseHandle.responseSuccess(res, result)
     } catch (error) {
       console.error('Login error:', error)
-      return ResponseHandle.responseError(res, error, 'login fail', 400)
+      return ResponseHandle.responseError(res, error, 'Login Fail', 400)
     }
   }
 }
