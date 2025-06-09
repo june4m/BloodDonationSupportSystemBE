@@ -1,45 +1,54 @@
-
-import sql,{ConnectionPool} from 'mssql';
+import sql, { ConnectionPool, config as SqlConfig } from 'mssql'
 import dotenv from 'dotenv'
-import { error } from 'console';
-
 dotenv.config()
-class DatabaseServices{
-    private pool: sql.ConnectionPool | null = null
-    private config:sql.config = {
-        user:process.env.DB_USERNAME as string,
-        password: process.env.DB_PASSWORD as string,
-        server: process.env.DB_SERVER as string,
-        database: process.env.DB_NAME as string,
-        options: {
-            encrypt: false,
-            trustServerCertificate: true
-        }
-    }
-    async connect(): Promise<ConnectionPool>{
-        if(!this.pool){
-            try{
-                this.pool = await sql.connect(this.config)
-                console.log('Connect database successfully');
-                
-            }catch (error)
-            {
-                console.error('Database connection failed',error);
-                throw error
-            }
-        }
-        return this.pool
-    }
-    get connection(){
-        if(!this.pool) throw new Error('DB not connected yet')
-            return this.pool
+
+class DatabaseServices {
+  private static instance: DatabaseServices
+  private pool: ConnectionPool
+
+  private constructor() {
+    const sqlConfig: SqlConfig = {
+      user: process.env.DB_USERNAME,
+      password: process.env.DB_PASSWORD,
+      server: process.env.DB_HOST ?? 'localhost',
+      database: process.env.DB_NAME,
+      options: {
+        encrypt: false,
+        trustServerCertificate: true
+      }
     }
 
-    async getAllMember(){
-        const pool = await this.connect();
-        const result= await pool.request().query('SELECT * FROM MEMBER');
-        return result.recordset
+    this.pool = new sql.ConnectionPool(sqlConfig)
+    this.pool
+      .connect()
+      .then(() => console.log('Connected to SQL Server'))
+      .catch((err) => console.error('Database connect error', err))
+  }
+
+  public static getInstance(): DatabaseServices {
+    if (!DatabaseServices.instance) {
+      DatabaseServices.instance = new DatabaseServices()
     }
+    return DatabaseServices.instance
+  }
+
+  public async query(queryText: string, params?: any[]): Promise<any> {
+    const request = this.pool.request()
+
+    if (params && params.length > 0) {
+      // Tự động gán input như @param1, @param2...
+      params.forEach((value, index) => {
+        request.input(`param${index + 1}`, value)
+      })
+
+      // Thay ? bằng @param1, @param2...
+      let count = 0
+      queryText = queryText.replace(/\?/g, () => `@param${++count}`)
+    }
+
+    const result = await request.query(queryText)
+    return result.recordset
+  }
 }
-const databaseServices = new DatabaseServices
-export  default databaseServices
+
+export default DatabaseServices.getInstance()

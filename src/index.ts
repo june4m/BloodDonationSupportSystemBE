@@ -1,20 +1,18 @@
 import express from 'express'
-import DatabaseServices from '~/services/database.services';
-
-
-
-
-const app = express();
+import DatabaseServices from '~/services/database.services'
+import UserController from '../src/controller/UserController'
+import cors from 'cors'
+import router from './routes'
+const app = express()
 const port = 3000
-app.get('/user',async(req,res)=>{
-    try{
-        const users = await DatabaseServices.getAllMember()
-        res.json(users);
-    }catch(error){
-        res.status(500).send('Error fetching users')
-    }
-})
 
-app.listen(port ,()=>{
-    console.log(`Server running on http://localhost:${port}`)
+// Middleware to parse JSON
+app.use(cors())
+app.use(express.json())
+app.use('/api', router)
+// Instantiate the controller
+
+// Start server
+app.listen(port, () => {
+  console.log(`Server running on http://localhost:${port}`)
 })
