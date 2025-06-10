@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 
-import { UserService } from '../services/user.service'
+import { UserService } from '../services/user.services'
 import { User } from '~/models/schemas/user.schema'
 import { ResponseHandle } from '~/utils/Response'
 class UserController {
