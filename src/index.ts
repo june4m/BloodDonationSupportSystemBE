@@ -2,9 +2,8 @@ import express from 'express'
 import DatabaseServices from '~/services/database.services'
 import UserController from '../src/controller/UserController'
 import cors from 'cors'
-import router from './routers/users.routers'
+import router from './routes'
 import cookieParser from 'cookie-parser'
-
 
 const app = express()
 const port = 3000

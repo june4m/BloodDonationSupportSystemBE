@@ -49,7 +49,21 @@ class DatabaseServices {
     const result = await request.query(queryText)
     return result.recordset
   }
-  
+  public async queryParam(queryText: string, params?: any[]): Promise<any> {
+    const request = this.pool.request()
+
+    if (params && params.length > 0) {
+      params.forEach((value, index) => {
+        request.input(`param${index + 1}`, value)
+      })
+
+      let count = 0
+      queryText = queryText.replace(/\?/g, () => `@param${++count}`)
+    }
+
+    const result = await request.query(queryText)
+    return result // trả về toàn bộ result, không chỉ recordset
+  }
 }
 
 export default DatabaseServices.getInstance()
