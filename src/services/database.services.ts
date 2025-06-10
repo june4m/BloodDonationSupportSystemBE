@@ -49,6 +49,7 @@ class DatabaseServices {
     const result = await request.query(queryText)
     return result.recordset
   }
+  
 }
 
 export default DatabaseServices.getInstance()
