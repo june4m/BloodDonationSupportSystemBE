@@ -9,7 +9,8 @@ export interface Auth {
   message?: string
   statusCode?: number
   data?:{
-    user_id: string
+    user_email: string
+    user_name: string
   }
 }
 
