@@ -1,7 +1,7 @@
 import { error } from 'console'
 import { format } from 'path'
 import { SlotRepository } from '~/repository/slot.repository'
-import { Slot } from '~/models/schemas/slot.schema'
+import { Slot, slotDTO, SlotFactory } from '~/models/schemas/slot.schema'
 export class SlotService {
   private slotRepository: SlotRepository
   constructor() {
@@ -25,6 +25,28 @@ export class SlotService {
 
       console.log('Result', result)
       return result
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async getSlot(status: string): Promise<slotDTO[]> {
+    console.log('Slot Service, getSlot')
+
+    const today = new Date()
+    const formatTodayDate = today.toISOString().split('T')[0]
+    console.log('Today:', formatTodayDate)
+
+    try {
+      // Lấy dữ liệu thô từ repo (mảng)
+      const rawResult = await this.slotRepository.getSlot(status, formatTodayDate)
+      console.log('Raw Result:', rawResult)
+
+      // Map từng phần tử qua factory để format dữ liệu
+      const formattedResult = rawResult.map((item: any) => SlotFactory.createDetailSlot(item))
+      console.log('Formatted Result:', formattedResult)
+
+      return formattedResult
     } catch (error) {
       throw error
     }

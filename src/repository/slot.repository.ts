@@ -1,3 +1,4 @@
+import databaseServices from '../services/database.services'
 import Database from '../services/database.services'
 export class SlotRepository {
   async createSlot(slotData: any) {
@@ -34,6 +35,23 @@ export class SlotRepository {
       console.log('Repository', result)
 
       return result
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async getSlot(status: string, formatTodayDate: string) {
+    console.log('Slot repo')
+    try {
+      const slotData = await Database.query(
+        `
+  SELECT * FROM Slot 
+  WHERE Status = ? AND CAST(slot_date AS DATE) >= ?
+`,
+        [status, formatTodayDate]
+      )
+      console.log(slotData)
+      return slotData
     } catch (error) {
       throw error
     }

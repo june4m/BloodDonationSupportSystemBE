@@ -8,4 +8,5 @@ const slotController = new SlotController()
 // router.post('/login', (req, res) => userController.login(req, res))
 router.post('/createSlot', slotController.createSlot)
 router.post('/login', slotController.createSlot)
+router.get('/displaySlotList', slotController.displaySlotList)
 export default router

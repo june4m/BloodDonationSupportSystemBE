@@ -13,7 +13,7 @@ export class UserRepository {
             Password,
             User_name
         FROM Users
-        WHERE email = ?`,
+        WHERE email = "A"`,
         [email]
       )
       return result

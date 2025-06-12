@@ -6,6 +6,7 @@ class SlotController {
   constructor() {
     this.slotService = new SlotService()
     this.createSlot = this.createSlot.bind(this)
+    this.displaySlotList = this.displaySlotList.bind(this)
   }
 
   public async createSlot(req: Request, res: Response): Promise<any> {
@@ -22,5 +23,19 @@ class SlotController {
       return ResponseHandle.responseError(res, error, 'Fail', 400)
     }
   }
+
+  public async displaySlotList(req: Request, res: Response): Promise<any> {
+    console.log('get slot')
+    const status = 'A'
+    try {
+      console.log(status)
+      const getSlot = await this.slotService.getSlot(status)
+      return ResponseHandle.responseSuccess(res, getSlot, 'Success', 200)
+    } catch (error) {
+      console.log('error get slot')
+      return ResponseHandle.responseError(res, error, 'Fail', 400)
+    }
+  }
 }
+
 export default SlotController
