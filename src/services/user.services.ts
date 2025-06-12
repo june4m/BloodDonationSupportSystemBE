@@ -12,7 +12,7 @@ export class UserService {
     try {
       const loginIdKey = 'user_id'
       const passwordKey = 'password'
-
+      const user_name = 'user_name'
       const user = await this.findUserLogin(credentials.email)
 
       if (!user) {
@@ -29,6 +29,7 @@ export class UserService {
           statusCode: 400
         }
       }
+      
 
       const isPasswordValid = credentials.password.trim() === user.password.trim()
 
@@ -42,7 +43,11 @@ export class UserService {
       return {
         success: true,
         message: USERS_MESSAGES.LOGIN_SUCCESS,
-        statusCode: 200
+        statusCode: 200,
+        data:{
+          user_email: user.email,
+          user_name: user.user_name
+        }
       }
     } catch (error) {
       console.error('Login error:', error)
@@ -50,11 +55,11 @@ export class UserService {
     }
   }
 
-  async findUserLogin(email: string): Promise<{ email: string; password: string } | null> {
+  async findUserLogin(email: string): Promise<{ email: string; password: string, user_name: string } | null> {
     const users = await this.userRepository.findByEmail(email)
     if (Array.isArray(users) && users.length > 0) {
       const user = users[0]
-      return { email: user.Email, password: user.Password }
+      return { email: user.Email, password: user.Password, user_name: user.User_name }
     }
     return null
   }

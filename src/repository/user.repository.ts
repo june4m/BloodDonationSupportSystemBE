@@ -10,7 +10,8 @@ export class UserRepository {
         `SELECT 
             User_ID,
             Email,
-            Password
+            Password,
+            User_name
         FROM Users
         WHERE email = ?`,
         [email]
