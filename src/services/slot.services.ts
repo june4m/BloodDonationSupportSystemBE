@@ -51,4 +51,19 @@ export class SlotService {
       throw error
     }
   }
+
+  async registerBloodDonation(appointmentData: any): Promise<any> {
+    console.log('register service, registerblood')
+    try {
+      const insertData = {
+        Slot_ID: appointmentData.Slot_ID,
+        User_ID: appointmentData.User_ID
+      }
+      console.log('insertData', insertData)
+      const result = await this.slotRepository.registerSlot(insertData)
+      return result
+    } catch (error) {
+      throw error
+    }
+  }
 }

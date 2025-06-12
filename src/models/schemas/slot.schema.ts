@@ -17,6 +17,9 @@ export interface slotDTO {
   max_volume: number
   status: string
   user_id: string
+  user_name: string
+  phone: string
+  blood_type: string
 }
 
 export class SlotFactory {
@@ -41,7 +44,10 @@ export class SlotFactory {
       volume: data.Volume,
       max_volume: data.Max_Volume,
       status: data.Status,
-      user_id: data.User_ID
+      user_id: data.User_ID,
+      user_name: data.User_Name,
+      phone: data.Phone,
+      blood_type: data.Blood_Type
     }
   }
 }
