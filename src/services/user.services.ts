@@ -14,7 +14,6 @@ export class UserService {
       const passwordKey = 'password'
       const user_name = 'user_name'
       const user = await this.findUserLogin(credentials.email)
-
       if (!user) {
         return {
           success: false,
