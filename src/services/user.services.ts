@@ -10,9 +10,7 @@ export class UserService {
 
   async authUser(credentials: User): Promise<Auth> {
     try {
-      const loginIdKey = 'user_id'
-      const passwordKey = 'password'
-      const user_name = 'user_name'
+
       const user = await this.findUserLogin(credentials.email)
       if (!user) {
         return {
