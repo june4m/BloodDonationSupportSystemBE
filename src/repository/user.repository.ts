@@ -8,12 +8,13 @@ export class UserRepository {
     try {
       const result = await Database.query(
         `SELECT 
-            User_ID,
-            Email,
-            Password,
-            User_name
+        User_ID,
+        Email,
+        Password,
+        User_name,
+        Account_Role_ID
         FROM Users
-        WHERE email = "A"`,
+        WHERE Email = ?`,
         [email]
       )
       return result

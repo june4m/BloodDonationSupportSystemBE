@@ -41,23 +41,29 @@ class UserController {
 
       //
       const payload = {
+        user_id: result.data?.user_id,
         user_email: result.data?.user_email || email,
         user_name: result.data?.user_name as string,
+        user_role: result.data?.user_role,
         token_type: 'access_token'
       }
-      const expiresIn = '18'
+      const expiresIn = process.env.ACCESS_TOKEN_EXPIRE_IN
       const secret = (process.env.JWT_SECRET_ACCESS_TOKEN || process.env.JWT_SECRET) as string
 
       const token = jwt.sign(payload, secret, { expiresIn })
       console.log('token: ', token)
-      console.log('userEmail', payload.user_email)
+      console.log('userID: ', payload.user_id)
+      console.log('userEmail: ', payload.user_email)
       console.log('userName: ', payload.user_name)
+      console.log('user-role: ', payload.user_role)
 
       const maxAge = typeof expiresIn === 'string' ? ms(expiresIn) : 900000
-      res.cookie('token', token, { httpOnly: true, maxAge })
+      res.cookie('token', token, { httpOnly: true, maxAge }) //, secure: false, sameSite: 'lax'
       return ResponseHandle.responseSuccess(res, {
+        user_id: result.data?.user_id,
         user_email: result.data?.user_email || email,
-        user_name: result.data?.user_name ?? name
+        user_name: result.data?.user_name ?? name,
+        user_role: result.data?.user_role
       })
     } catch (error) {
       console.error('Login error:', error)
