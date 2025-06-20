@@ -20,8 +20,8 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
   const token = req.cookies.token || req.headers.authorization?.split(' ')[1]
 
   if (!token) {
-    res.status(401).json({ message: 'Token does not exist' })
-    return // ✅ thêm dòng này
+    res.status(401).json({ message: 'Token does not exist!' })
+    return
   }
 
   try {
@@ -30,7 +30,7 @@ export const authenticateJWT = (req: Request, res: Response, next: NextFunction)
     req.user = decoded
     next()
   } catch (error) {
-    res.status(403).json({ message: 'Invalid Token' })
-    return // ✅ thêm dòng này
+    res.status(403).json({ message: 'Invalid Token!' })
+    return
   }
 }

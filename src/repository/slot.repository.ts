@@ -21,17 +21,8 @@ export class SlotRepository {
     try {
       const { ...fields } = slotData
       const insertQuery = `INSERT INTO Slot( Slot_ID, Slot_Date, Start_Time, Volume, Max_Volume, End_Time, Status, Admin_ID
-                ) Values (?,?,?,?,?,?,?,?)`
-      const params = [
-        newSlotId,
-        fields.Slot_Date,
-        fields.Start_Time,
-        fields.Volume,
-        fields.Max_Volume,
-        fields.End_Time,
-        fields.Status,
-        fields.Admin_ID
-      ]
+                ) Values (?,?,?,'0',?,?,'A','U001')`
+      const params = [newSlotId, fields.Slot_Date, fields.Start_Time, fields.Max_Volume, fields.End_Time]
       console.log('Admin_ID in data:', fields.Admin_ID)
       const result = await Database.queryParam(insertQuery, params)
       console.log('Repository', result)
