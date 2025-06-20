@@ -20,8 +20,8 @@ export class SlotRepository {
 
     try {
       const { ...fields } = slotData
-      const insertQuery = `INSERT INTO Slot( Slot_ID, Slot_Date,Start_Time, Volume, Max_Volume,End_Time, Status, User_ID
-                ) Values(?,?,?,?,?,?,?,?)`
+      const insertQuery = `INSERT INTO Slot( Slot_ID, Slot_Date, Start_Time, Volume, Max_Volume, End_Time, Status, Admin_ID
+                ) Values (?,?,?,?,?,?,?,?)`
       const params = [
         newSlotId,
         fields.Slot_Date,
@@ -30,8 +30,9 @@ export class SlotRepository {
         fields.Max_Volume,
         fields.End_Time,
         fields.Status,
-        fields.User_ID
+        fields.Admin_ID
       ]
+      console.log('Admin_ID in data:', fields.Admin_ID)
       const result = await Database.queryParam(insertQuery, params)
       console.log('Repository', result)
 
@@ -45,9 +46,15 @@ export class SlotRepository {
     console.log('Slot repo')
     try {
       const slotData = await Database.query(
+        // `
+        // SELECT * FROM Slot
+        // WHERE Status = ? AND CAST(slot_date AS DATE) >= ?
+        // `,
         `
-        SELECT * FROM Slot 
-        WHERE Status = ? AND CAST(slot_date AS DATE) >= ?
+        SELECT * FROM Slot
+        WHERE Status = ?
+          AND CAST(Slot_Date AS DATE) >= ?
+          AND Volume < Max_Volume
         `,
         [status, formatTodayDate]
       )

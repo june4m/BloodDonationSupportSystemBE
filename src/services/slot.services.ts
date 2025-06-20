@@ -18,7 +18,7 @@ export class SlotService {
         Max_Volume: slotData.Max_Volume,
         End_Time: slotData.End_Time,
         Status: slotData.Status,
-        User_ID: slotData.User_ID
+        Admin_ID: slotData.Admin_ID
       }
       console.log('Format Data', formatData)
       const result = await this.slotRepository.createSlot(formatData)

@@ -1,4 +1,4 @@
-import { User, Auth } from '~/models/schemas/user.schema'
+import { User, Auth, LoginCredentials } from '~/models/schemas/user.schema'
 import { UserRepository } from '~/repository/user.repository'
 import { USERS_MESSAGES } from '~/constant/message'
 export class UserService {
@@ -8,7 +8,7 @@ export class UserService {
     this.userRepository = new UserRepository()
   }
 
-  async authUser(credentials: User): Promise<Auth> {
+  async authUser(credentials: LoginCredentials): Promise<Auth> {
     try {
       const loginIdKey = 'user_id'
       const passwordKey = 'password'

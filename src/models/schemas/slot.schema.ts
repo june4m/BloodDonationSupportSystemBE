@@ -6,8 +6,9 @@ export interface Slot {
   volume: number
   max_volume: number
   status: string
-  user_id: string
+  admin_id: string
 }
+
 export interface slotDTO {
   slot_id: string
   slot_date: string | null
@@ -16,10 +17,6 @@ export interface slotDTO {
   volume: number
   max_volume: number
   status: string
-  user_id: string
-  user_name: string
-  phone: string
-  blood_type: string
 }
 
 export class SlotFactory {
@@ -43,11 +40,7 @@ export class SlotFactory {
       end_time: formatTime(data.End_Time),
       volume: data.Volume,
       max_volume: data.Max_Volume,
-      status: data.Status,
-      user_id: data.User_ID,
-      user_name: data.User_Name,
-      phone: data.Phone,
-      blood_type: data.Blood_Type
+      status: data.Status
     }
   }
 }

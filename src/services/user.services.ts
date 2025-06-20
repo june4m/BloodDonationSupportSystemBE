@@ -1,6 +1,7 @@
-import { User, Auth } from '~/models/schemas/user.schema'
+import { User, Auth, LoginCredentials, UpdateUserFields } from '~/models/schemas/user.schema'
 import { UserRepository } from '~/repository/user.repository'
 import { USERS_MESSAGES } from '~/constant/message'
+import { UserPayload } from '~/middleware/authMiddleware'
 export class UserService {
   public userRepository: UserRepository
 
@@ -8,11 +9,8 @@ export class UserService {
     this.userRepository = new UserRepository()
   }
 
-  async authUser(credentials: User): Promise<Auth> {
+  async authUser(credentials: LoginCredentials): Promise<Auth> {
     try {
-      const loginIdKey = 'user_id'
-      const passwordKey = 'password'
-      const user_name = 'user_name'
       const user = await this.findUserLogin(credentials.email)
 
       if (!user) {
@@ -66,14 +64,65 @@ export class UserService {
         user_id: user.User_ID,
         email: user.Email,
         password: user.Password,
-        user_name: user.User_name,
-        user_role: user.Account_Role_ID
+        user_name: user.User_Name,
+        user_role: user.User_Role
       }
     }
     return null
   }
+
   async checkEmailExists(email: string) {
     const users = await this.userRepository.findByEmail(email)
     return Array.isArray(users) && users.length > 0
+  }
+
+  public async editProfileService(
+    currentUser: UserPayload,
+    targetUserId: string,
+    updateData: any
+  ): Promise<{ message: string }> {
+    const targetUser = await this.userRepository.findById(targetUserId)
+    if (!targetUser) {
+      throw { statusCode: 404, message: 'User not found' }
+    }
+
+    const updateFields: UpdateUserFields = {}
+
+    if (currentUser.user_role === 'admin') {
+      if (updateData.User_Name) updateFields.User_Name = updateData.User_Name
+      if (updateData.YOB) updateFields.YOB = updateData.YOB
+      if (updateData.Address) updateFields.Address = updateData.Address
+      if (updateData.Phone) updateFields.Phone = updateData.Phone
+      if (updateData.Gender) updateFields.Gender = updateData.Gender
+      if (updateData.BloodType_ID) updateFields.BloodType_ID = updateData.BloodType_ID
+      if (updateData.User_Role) updateFields.User_Role = updateData.User_Role
+    } else if (currentUser.user_role === 'staff') {
+      if (targetUser.User_Role !== 'member') {
+        throw { statusCode: 403, message: 'Staff is only updated for Members' }
+      }
+      if (updateData.BloodType_ID) {
+        updateFields.BloodType_ID = updateData.BloodType_ID
+      } else {
+        throw { statusCode: 400, message: 'Staff can only update BloodType_ID' }
+      }
+    } else if (currentUser.user_role === 'member') {
+      if (currentUser.user_id !== targetUserId) {
+        throw { statusCode: 403, message: 'Members can only edit themselves' }
+      }
+      if (updateData.User_Name) updateFields.User_Name = updateData.User_Name
+      if (updateData.YOB) updateFields.YOB = updateData.YOB
+      if (updateData.Address) updateFields.Address = updateData.Address
+      if (updateData.Phone) updateFields.Phone = updateData.Phone
+      if (updateData.Gender) updateFields.Gender = updateData.Gender
+    } else {
+      throw { statusCode: 403, message: 'Invalid Role' }
+    }
+
+    if (Object.keys(updateFields).length === 0) {
+      throw { statusCode: 400, message: 'No valid data to update' }
+    }
+
+    await this.userRepository.updateUserFields(targetUserId, updateFields)
+    return { message: 'Update successful' }
   }
 }
