@@ -8,13 +8,14 @@ class DatabaseServices {
 
   private constructor() {
     const sqlConfig: SqlConfig = {
-      user: process.env.DB_USERNAME,
-      password: process.env.DB_PASSWORD,
-      server: process.env.DB_HOST ?? 'localhost',
-      database: process.env.DB_NAME,
+      user: process.env.DB_USERNAME!,
+      password: process.env.DB_PASSWORD!,
+      server: process.env.DB_SERVER!,
+      database: process.env.DB_NAME!,
       options: {
         encrypt: false,
-        trustServerCertificate: true
+        trustServerCertificate: true,
+        
       }
     }
 
@@ -32,34 +33,34 @@ class DatabaseServices {
     return DatabaseServices.instance
   }
 
-  public async query(queryText: string, params?: any[]): Promise<any> {
-    const request = this.pool.request()
+    public async query(queryText: string, params?: any[]): Promise<any> {
+      const request = this.pool.request()
 
-    if (params && params.length > 0) {
-      // Tự động gán input như @param1, @param2...
-      params.forEach((value, index) => {
-        request.input(`param${index + 1}`, value)
-      })
+      if (params && params.length > 0) {
+        // Tự động gán input như @param1, @param2...
+        params.forEach((value, index) => {
+          request.input(`param${index + 1}`, value)
+        })
 
-      // Thay ? bằng @param1, @param2...
-      let count = 0
-      queryText = queryText.replace(/\?/g, () => `@param${++count}`)
+        // Thay ? bằng @param1, @param2...
+        let count = 0
+        queryText = queryText.replace(/\?/g, () => `@param${++count}`)
+      }
+
+      const result = await request.query(queryText)
+      return result.recordset
     }
+    public async queryParam(queryText: string, params?: any[]): Promise<any> {
+      const request = this.pool.request()
 
-    const result = await request.query(queryText)
-    return result.recordset
-  }
-  public async queryParam(queryText: string, params?: any[]): Promise<any> {
-    const request = this.pool.request()
+      if (params && params.length > 0) {
+        params.forEach((value, index) => {
+          request.input(`param${index + 1}`, value)
+        })
 
-    if (params && params.length > 0) {
-      params.forEach((value, index) => {
-        request.input(`param${index + 1}`, value)
-      })
-
-      let count = 0
-      queryText = queryText.replace(/\?/g, () => `@param${++count}`)
-    }
+        let count = 0
+        queryText = queryText.replace(/\?/g, () => `@param${++count}`)
+      }
 
     const result = await request.query(queryText)
     return result // trả về toàn bộ result, không chỉ recordset

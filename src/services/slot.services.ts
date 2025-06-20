@@ -1,33 +1,19 @@
+import { UserRepository } from './../repository/user.repository';
+import { Appointment } from './../models/schemas/slot.schema';
 import { error } from 'console'
 import { format } from 'path'
 import { SlotRepository } from '~/repository/slot.repository'
 import { Slot, slotDTO, SlotFactory } from '~/models/schemas/slot.schema'
 export class SlotService {
   private slotRepository: SlotRepository
+  private userRepository: UserRepository
   constructor() {
     this.slotRepository = new SlotRepository()
+    this.userRepository = new UserRepository()
   }
 
-  async createSlot(slotData: any): Promise<Slot> {
-    console.log('formatData Services')
-    try {
-      const formatData = {
-        Slot_Date: slotData.Slot_Date,
-        Start_Time: slotData.Start_Time,
-        Volume: slotData.Volume,
-        Max_Volume: slotData.Max_Volume,
-        End_Time: slotData.End_Time,
-        Status: slotData.Status,
-        User_ID: slotData.User_ID
-      }
-      console.log('Format Data', formatData)
-      const result = await this.slotRepository.createSlot(formatData)
-
-      console.log('Result', result)
-      return result
-    } catch (error) {
-      throw error
-    }
+  async createSlot(slotData: Slot): Promise<slotDTO> {
+    return this.slotRepository.createSlot(slotData)
   }
 
   async getSlot(status: string): Promise<slotDTO[]> {
@@ -52,18 +38,14 @@ export class SlotService {
     }
   }
 
-  async registerBloodDonation(appointmentData: any): Promise<any> {
-    console.log('register service, registerblood')
-    try {
-      const insertData = {
-        Slot_ID: appointmentData.Slot_ID,
-        User_ID: appointmentData.User_ID
-      }
-      console.log('insertData', insertData)
-      const result = await this.slotRepository.registerSlot(insertData)
-      return result
-    } catch (error) {
-      throw error
+  public async registerBloodDonation(data: Appointment): Promise<any> {
+    if (!data.Slot_ID || !data.User_ID) {
+      throw new Error('Slot_ID and User_ID are required')
     }
+    const user = await this.userRepository.findById(data.User_ID)
+    if (!user) {
+      throw new Error('User not found')
+    }
+    return this.slotRepository.registerSlot(data)
   }
 }

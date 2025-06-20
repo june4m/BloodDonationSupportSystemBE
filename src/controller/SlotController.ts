@@ -1,9 +1,10 @@
-import { SlotService } from '~/services/slot.services'
 import { Request, Response } from 'express'
+import { SlotService } from '~/services/slot.services'
 import { ResponseHandle } from '~/utils/Response'
-import { error } from 'console'
+
 class SlotController {
-  public slotService: SlotService
+  private slotService: SlotService
+
   constructor() {
     this.slotService = new SlotService()
     this.createSlot = this.createSlot.bind(this)
@@ -11,44 +12,43 @@ class SlotController {
     this.registerDonationBlood = this.registerDonationBlood.bind(this)
   }
 
-  public async createSlot(req: Request, res: Response): Promise<any> {
-    console.log('Create Slot1')
-    const slotData = req.body
+  /** [POST] /api/slots/createSlot */
+  public async createSlot(req: Request, res: Response): Promise<void> {
     try {
-      console.log('Create Slot')
-
-      console.log(slotData)
-      const createSlot = await this.slotService.createSlot(slotData)
-      return ResponseHandle.responseSuccess(res, createSlot, 'Success', 200)
-    } catch (error) {
-      console.log('error create')
-      return ResponseHandle.responseError(res, error, 'Fail', 400)
+      const slotData = req.body
+      const result = await this.slotService.createSlot(slotData)
+      ResponseHandle.responseSuccess(res, result, 'Slot created successfully', 200)
+    } catch (err: any) {
+      ResponseHandle.responseError(res, err, err.message || 'Failed to create slot', 400)
     }
   }
 
-  public async getSlotList(req: Request, res: Response): Promise<any> {
-    console.log('get slot')
-    const status = 'A'
+  /** [GET] /api/slots/getSlotList */
+  public async getSlotList(req: Request, res: Response): Promise<void> {
     try {
-      console.log(status)
-      const getSlot = await this.slotService.getSlot(status)
-      return ResponseHandle.responseSuccess(res, getSlot, 'Success', 200)
-    } catch (error) {
-      console.log('error get slot')
-      return ResponseHandle.responseError(res, error, 'Fail', 400)
+      const status = 'A'
+      const result = await this.slotService.getSlot(status)
+      ResponseHandle.responseSuccess(res, result, 'Slots fetched successfully', 200)
+    } catch (err: any) {
+      ResponseHandle.responseError(res, err, err.message || 'Failed to fetch slots', 400)
     }
   }
 
-  public async registerDonationBlood(req: Request, res: Response): Promise<any> {
-    console.log('registerDonationBlood 1')
-    const registerData = req.body
+  /** [POST] /api/slots/registerSlot/:slotId */
+  public async registerDonationBlood(req: Request<{ slotId: string }>, res: Response): Promise<void> {
     try {
-      console.log('registerDonationBlood')
-      const registerDonationBlood = await this.slotService.registerBloodDonation(registerData)
-      return ResponseHandle.responseSuccess(res, registerDonationBlood, 'Success', 200)
-    } catch (error) {
-      console.log('Error RegisterDonationBlood')
-      return ResponseHandle.responseError(res, error, 'Fail', 400)
+      const slotId = req.params.slotId
+      const userId = req.user?.user_id as string
+      // Thêm Appointment_ID rỗng để khớp kiểu
+      const appointment = {
+        Appointment_ID: '',
+        Slot_ID: slotId,
+        User_ID: userId
+      }
+      const result = await this.slotService.registerBloodDonation(appointment)
+      ResponseHandle.responseSuccess(res, result, 'Registered successfully', 200)
+    } catch (err: any) {
+      ResponseHandle.responseError(res, err, err.message || 'Registration failed', 400)
     }
   }
 }

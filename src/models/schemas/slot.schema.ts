@@ -1,53 +1,69 @@
-export interface Slot {
-  slot_id: string
-  slot_date: string
-  start_time: string
-  end_time: string
-  volume: number
-  max_volume: number
-  status: string
-  user_id: string
+export interface SlotCreation {
+  Slot_Date: Date | string;
+  Start_Time: string;
+  End_Time: string;
+  Volume?: number;
+  Max_Volume: number;
+  Status: 'A' | 'F'; // 'A': Active, 'F': Full
+  Admin_ID: string; // Bắt buộc, liên kết với admin
 }
+
+export interface Slot {
+  Slot_ID: string;
+  Slot_Date: string;
+  Start_Time: string;
+  End_Time: string;
+  Volume: number;
+  Max_Volume: number;
+  Status: 'A' | 'F';
+  Admin_ID: string; // Liên kết với admin
+}
+
 export interface slotDTO {
-  slot_id: string
-  slot_date: string | null
-  start_time: string | null
-  end_time: string | null
-  volume: number
-  max_volume: number
-  status: string
-  user_id: string
-  user_name: string
-  phone: string
-  blood_type: string
+  Slot_ID: string;
+  Slot_Date: string | null;
+  Start_Time: string | null;
+  End_Time: string | null;
+  Volume: number;
+  Max_Volume: number;
+  Status: 'A' | 'F';
+  Admin_ID: string;
+  User_Name?: string;
+  Phone?: string;
+  Blood_Type?: string;
+}
+
+export interface Appointment {
+  Appointment_ID: string;
+  User_ID: string; // Chỉ member
+  Slot_ID: string;
+  Volume?: number;
+  Status?: 'A' | 'C'; // P: Pending, C: Completed
 }
 
 export class SlotFactory {
-  static createDetailSlot(data: any, isCSV: boolean = false): slotDTO {
-    // Format ngày YYYY-MM-DD
+  static createDetailSlot(data: Slot, isCSV: boolean = false): slotDTO {
     const formatDate = (dateStr?: string | null): string | null => {
-      if (!dateStr) return null
-      return new Date(dateStr).toISOString().slice(0, 10) // Lấy 10 ký tự đầu YYYY-MM-DD
-    }
+      if (!dateStr) return null;
+      const date = new Date(dateStr);
+      return isNaN(date.getTime()) ? null : date.toISOString().slice(0, 10);
+    };
 
-    // Format giờ HH:mm:ss
     const formatTime = (timeStr?: string | null): string | null => {
-      if (!timeStr) return null
-      return new Date(timeStr).toISOString().slice(11, 19) // Lấy phần giờ phút giây
-    }
+      if (!timeStr) return null;
+      const time = new Date(`1970-01-01T${timeStr}Z`);
+      return isNaN(time.getTime()) ? null : time.toISOString().slice(11, 19);
+    };
 
     return {
-      slot_id: data.Slot_ID,
-      slot_date: formatDate(data.Slot_Date),
-      start_time: formatTime(data.Start_Time),
-      end_time: formatTime(data.End_Time),
-      volume: data.Volume,
-      max_volume: data.Max_Volume,
-      status: data.Status,
-      user_id: data.User_ID,
-      user_name: data.User_Name,
-      phone: data.Phone,
-      blood_type: data.Blood_Type
-    }
+      Slot_ID: data.Slot_ID,
+      Slot_Date: formatDate(data.Slot_Date),
+      Start_Time: formatTime(data.Start_Time),
+      End_Time: formatTime(data.End_Time),
+      Volume: data.Volume,
+      Max_Volume: data.Max_Volume,
+      Status: data.Status,
+      Admin_ID: data.Admin_ID,
+    };
   }
 }

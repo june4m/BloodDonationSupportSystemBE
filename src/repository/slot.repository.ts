@@ -1,3 +1,4 @@
+import { Appointment } from '~/models/schemas/slot.schema'
 import databaseServices from '../services/database.services'
 import Database from '../services/database.services'
 export class SlotRepository {
@@ -20,7 +21,7 @@ export class SlotRepository {
 
     try {
       const { ...fields } = slotData
-      const insertQuery = `INSERT INTO Slot( Slot_ID, Slot_Date,Start_Time, Volume, Max_Volume,End_Time, Status, User_ID
+      const insertQuery = `INSERT INTO Slot( Slot_ID, Slot_Date,Start_Time, Volume, Max_Volume,End_Time, Status, Admin_ID
                 ) Values(?,?,?,?,?,?,?,?)`
       const params = [
         newSlotId,
@@ -29,8 +30,8 @@ export class SlotRepository {
         fields.Volume,
         fields.Max_Volume,
         fields.End_Time,
-        fields.Status,
-        fields.User_ID
+        fields.Status || 'A',
+        fields.Admin_ID
       ]
       const result = await Database.queryParam(insertQuery, params)
       console.log('Repository', result)
@@ -58,9 +59,9 @@ export class SlotRepository {
     }
   }
 
-  async registerSlot(appointmentData: any) {
+  async registerSlot(appointmentData: Appointment) {
     console.log('register repo')
-    let newSlotId = 'AP001'
+    let newAppointmentID = 'AP001'
     const lastId = `
       SELECT TOP 1 Appointment_ID
       FROM AppointmentGiving
@@ -69,13 +70,14 @@ export class SlotRepository {
     const lastIdResult = await Database.query(lastId)
     console.log('lastIdResult: ', lastIdResult)
     if (lastIdResult.length > 0) {
-      const lastSlotId = lastIdResult[0].Appointment_ID // ex: 'AP005'
-      const numericPart = parseInt(lastSlotId.slice(2)) // => 5
+      const lastAppointmentID = lastIdResult[0].Appointment_ID // ex: 'AP005'
+      const numericPart = parseInt(lastAppointmentID.slice(2)) // => 5
       const nextId = numericPart + 1
-      newSlotId = 'AP' + String(nextId).padStart(3, '0') // => 'AP006'
+      newAppointmentID = 'AP' + String(nextId).padStart(3, '0') // => 'AP006'
     } // else {
     //   console.log('fail update slotid')
     // }
+    await Database.query(`UPĐATE Slot SET Volume = ISNULL(Volume,0) + 1 WHERE Slot_ID = ?`, [appointmentData.Slot_ID])
     console.log('start try')
     try {
       const { ...fields } = appointmentData
@@ -83,7 +85,7 @@ export class SlotRepository {
         INSERT INTO AppointmentGiving (Appointment_ID, Slot_ID, User_ID, Status)
         VALUES (?, ?, ?, 'A')
         `
-      const params = [newSlotId, fields.Slot_ID, fields.User_ID]
+      const params = [newAppointmentID, fields.Slot_ID, fields.User_ID]
       const addAppointment = await Database.queryParam(insertQuery, params)
       //       await Database.query(
       //         `UPDATE Slot

@@ -12,10 +12,7 @@ const port = 3000
 // Middleware to parse JSON
 // app.use(cors())
 app.use(
-  cors({
-    origin: ['http://localhost:5173', 'http://localhost:5174'], // hoặc Postman
-    credentials: true
-  })
+  cors()
 )
 app.use(express.json())
 app.use(cookieParser())

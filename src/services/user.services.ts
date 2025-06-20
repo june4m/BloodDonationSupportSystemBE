@@ -1,6 +1,10 @@
+import { RegisterReqBody } from './../models/schemas/requests/user.requests';
 import { User, Auth } from '~/models/schemas/user.schema'
 import { UserRepository } from '~/repository/user.repository'
 import { USERS_MESSAGES } from '~/constant/message'
+import { error } from 'console'
+import bcrypt from 'bcrypt';
+import { body } from 'express-validator';
 export class UserService {
   public userRepository: UserRepository
 
@@ -10,11 +14,7 @@ export class UserService {
 
   async authUser(credentials: User): Promise<Auth> {
     try {
-      const loginIdKey = 'user_id'
-      const passwordKey = 'password'
-      const user_name = 'user_name'
       const user = await this.findUserLogin(credentials.email)
-
       if (!user) {
         return {
           success: false,
@@ -29,9 +29,18 @@ export class UserService {
           statusCode: 400
         }
       }
-
-      const isPasswordValid = credentials.password.trim() === user.password.trim()
-
+      
+      const stored = user.password!
+      let isPasswordValid = false
+    
+      // Nếu stored là hash (bcrypt thường bắt đầu bằng “$2b$”)
+      if (stored.startsWith('$2')) {
+        isPasswordValid = await bcrypt.compare(credentials.password, stored)
+      } else {
+        // fallback: nếu bạn còn lưu plaintext trong DB
+        isPasswordValid = credentials.password === stored
+      }
+    
       if (!isPasswordValid) {
         return {
           success: false,
@@ -39,41 +48,81 @@ export class UserService {
           statusCode: 400
         }
       }
+      let userRole: 'admin' | 'staff' | 'member' = 'member'
+      if (user.user_role && ['admin', 'staff', 'member'].includes(user.user_role)) {
+        userRole = user.user_role as 'admin' | 'staff' | 'member';
+      }
       return {
         success: true,
         message: USERS_MESSAGES.LOGIN_SUCCESS,
         statusCode: 200,
-        data: {
+        data:{
           user_id: user.user_id,
-          user_email: user.email,
           user_name: user.user_name,
-          user_role: user.user_role
+          user_role: userRole
         }
       }
     } catch (error) {
       console.error('Login error:', error)
-      throw error
+      return {
+        success: false,
+        message: 'Internal Server error',
+        statusCode: 500
+      };
     }
   }
 
-  async findUserLogin(
-    email: string
-  ): Promise<{ user_id: string; email: string; password: string; user_name: string; user_role: string } | null> {
+  async findUserLogin(email: string): Promise<User| null> {
     const users = await this.userRepository.findByEmail(email)
     if (Array.isArray(users) && users.length > 0) {
       const user = users[0]
-      return {
-        user_id: user.User_ID,
-        email: user.Email,
-        password: user.Password,
-        user_name: user.User_name,
-        user_role: user.Account_Role_ID
-      }
+      return { email: user.email,
+               password: user.password,
+               user_id: user.user_id,
+               user_name: user.user_name,
+               user_role: user.user_role || 'member' 
+              } as User
     }
     return null
   }
-  async checkEmailExists(email: string) {
+  async checkEmailExists(email:string){
     const users = await this.userRepository.findByEmail(email)
     return Array.isArray(users) && users.length > 0
+  }
+  async updateBloodType(userId: string, bloodType: string): Promise<User[]> {
+    try {
+      if (!userId || !bloodType) {
+        throw new Error('User_ID and Blood_Type are required');
+      }
+      const user = await this.userRepository.findById(userId);
+      if (!user) throw new Error('User not found');
+      const updatedUser = await this.userRepository.updateBloodType(userId, bloodType);
+      return updatedUser;
+    } catch (error) {
+      console.error('Error updating blood type:', error);
+      throw error;
+    }
+  }
+  public async register(
+    body: Pick<RegisterReqBody, 'email' | 'password' | 'name' | 'date_of_birth'>
+  ): Promise<User> {
+    const { email, password, name, date_of_birth } = body
+    
+    if (!(email && password && name && date_of_birth)) {
+      throw new Error(USERS_MESSAGES.VALIDATION_ERROR)
+    }
+   
+    const exists = await this.userRepository.findByEmail(email)
+    if (exists.length) {
+      throw new Error(USERS_MESSAGES.EMAIL_HAS_BEEN_USED)
+    }
+    
+    const newUser = await this.userRepository.createAccount({
+      email,
+      password,
+      name,
+      date_of_birth
+    })
+    return newUser
   }
 }
