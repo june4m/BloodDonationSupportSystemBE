@@ -22,16 +22,12 @@ export class SlotRepository {
     try {
       const { ...fields } = slotData
       const insertQuery = `INSERT INTO Slot( Slot_ID, Slot_Date,Start_Time, Volume, Max_Volume,End_Time, Status, Admin_ID
-                ) Values(?,?,?,?,?,?,?,?)`
+                ) Values(?,?,?,'0','200',?,'A','U001')`
       const params = [
         newSlotId,
         fields.Slot_Date,
         fields.Start_Time,
-        fields.Volume,
-        fields.Max_Volume,
         fields.End_Time,
-        fields.Status || 'A',
-        fields.Admin_ID
       ]
       const result = await Database.queryParam(insertQuery, params)
       console.log('Repository', result)
@@ -59,7 +55,7 @@ export class SlotRepository {
     }
   }
 
-  async registerSlot(appointmentData: Appointment) {
+  async  registerSlot(appointmentData: Appointment) {
     console.log('register repo')
     let newAppointmentID = 'AP001'
     const lastId = `
