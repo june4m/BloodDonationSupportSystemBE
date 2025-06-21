@@ -11,43 +11,37 @@ import { parse } from 'path';
  * Repository class for user-related with database
  */
 export class UserRepository {
-  async findByEmail(email: string): Promise<User[]> {
-    try {
-      const result = await Database.query(
-        `SELECT 
-            User_ID,
-            Email,
-            Password,
-            User_name,
-            User_Role
-        FROM Users
-        WHERE email = ?`,
-        [email]
-      )
-      return Array.isArray(result)  ? result as User[] : [];
-    } catch (error) {
-      console.error('Error in findByEmail', error)
-      throw error
-    }
+  async findByEmail(email: string): Promise<User> {
+    const rows = await databaseServices.query(
+      `
+      SELECT
+        User_ID   AS user_id,
+        Email     AS email,
+        Password  AS password,
+        User_Name AS user_name,
+        User_Role AS user_role
+      FROM Users
+      WHERE LOWER(Email) = LOWER(?)
+      `,
+      [email]
+    )
+    return rows 
   }
-  async findById(userId: string): Promise<User[]> {
-    try {
-      const result = await Database.query(
-        `SELECT 
-            User_ID,
-            Email,
-            Password,
-            User_name,
-            User_Role
-        FROM Users
-        WHERE User_ID = ?`,
-        [userId]
-      )
-      return Array.isArray(result)  ? result as User[] : [];
-    } catch (error) {
-      console.error('Error in findByEmail', error)
-      throw error
-    }
+  async findById(userId: string): Promise<User | null> {
+    const rows = await databaseServices.query(
+      `
+      SELECT
+        User_ID   AS user_id,
+        Email     AS email,
+        Password  AS password,
+        User_Name AS user_name,
+        User_Role AS user_role
+      FROM Users
+      WHERE User_ID = ?
+      `,
+      [userId]
+    )
+    return rows[0] ?? null
   }
   async updateUserRole(userId: string,role: string): Promise<void>{
       try{
@@ -63,7 +57,7 @@ export class UserRepository {
         throw error;
       }
   }
-  async update(userId: string, updates: Partial<User>):Promise<User[]>{
+  async update(userId: string, updates: Partial<User>):Promise<User>{
     try {
       const allowedUpdates: Partial<User> = {};
       if (updates.phone !== undefined) allowedUpdates.phone = updates.phone;
@@ -87,7 +81,7 @@ export class UserRepository {
     }
   }
 
-  async updateBloodType(userId: string, bloodType: string): Promise<User[]> {
+  async updateBloodType(userId: string, bloodType: string): Promise<User> {
     try {
       const query = `UPDATE Users SET Blood_Type = ? WHERE User_ID = ?`;
       const result = await Database.query(query, [bloodType, userId]);

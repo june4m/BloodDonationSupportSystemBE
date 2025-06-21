@@ -8,7 +8,7 @@ dotenv.config()
 export const signToken = ({
   payload,
   privateKey,
-  options = { algorithm: 'HS256' }
+  options = { algorithm: 'HS256',expiresIn: process.env.ACCESS_TOKEN_EXPIRE_IN  }
 }: {
   payload: string | Buffer | object
   privateKey: string

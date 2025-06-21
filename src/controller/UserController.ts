@@ -7,7 +7,7 @@ import dotenv from 'dotenv'
 import bcrypt from 'bcrypt'
 import ms from 'ms'
 
-import { RegisterReqBody } from '~/models/schemas/requests/user.requests'
+import { LoginReqBody, RegisterReqBody } from '~/models/schemas/requests/user.requests'
 import { signToken } from '~/utils/jwt'
 dotenv.config()
 
@@ -21,7 +21,7 @@ class UserController {
     this.editProfile = this.editProfile.bind(this);
 
   }
-  public async login(req: Request, res: Response): Promise<any> {
+  public async login(req: Request<{},{},LoginReqBody>, res: Response): Promise<any> {
     console.log('Call Login')
     const { email, password } = req.body
     console.log(req.body)
@@ -58,7 +58,7 @@ class UserController {
       const token = await signToken({
         payload,
         privateKey: secret,
-        options: {expiresIn}
+        options: { algorithm: 'HS256',expiresIn}
       })
       console.log('token: ', token)
       console.log('userID: ', payload.user_id)

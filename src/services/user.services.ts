@@ -1,4 +1,4 @@
-import { RegisterReqBody } from './../models/schemas/requests/user.requests';
+import { LoginReqBody, RegisterReqBody } from './../models/schemas/requests/user.requests';
 import { User, Auth } from '~/models/schemas/user.schema'
 import { UserRepository } from '~/repository/user.repository'
 import { USERS_MESSAGES } from '~/constant/message'
@@ -12,9 +12,10 @@ export class UserService {
     this.userRepository = new UserRepository()
   }
 
-  async authUser(credentials: User): Promise<Auth> {
+  async authUser(credentials: LoginReqBody): Promise<Auth> {
     try {
       const user = await this.findUserLogin(credentials.email)
+      console.log(' authUser: user fetched from DB', user);
       if (!user) {
         return {
           success: false,
@@ -22,6 +23,7 @@ export class UserService {
           statusCode: 400
         }
       }
+      console.log(' authUser: stored password', user.password);
       if (!user.password) {
         return {
           success: false,
@@ -48,6 +50,7 @@ export class UserService {
           statusCode: 400
         }
       }
+      console.log('authUser: isPasswordValid?', isPasswordValid);
       let userRole: 'admin' | 'staff' | 'member' = 'member'
       if (user.user_role && ['admin', 'staff', 'member'].includes(user.user_role)) {
         userRole = user.user_role as 'admin' | 'staff' | 'member';
@@ -89,7 +92,7 @@ export class UserService {
     const users = await this.userRepository.findByEmail(email)
     return Array.isArray(users) && users.length > 0
   }
-  async updateBloodType(userId: string, bloodType: string): Promise<User[]> {
+  async updateBloodType(userId: string, bloodType: string): Promise<User> {
     try {
       if (!userId || !bloodType) {
         throw new Error('User_ID and Blood_Type are required');
@@ -112,8 +115,9 @@ export class UserService {
       throw new Error(USERS_MESSAGES.VALIDATION_ERROR)
     }
    
-    const exists = await this.userRepository.findByEmail(email)
-    if (exists.length) {
+    const existing = await this.findUserLogin(email.toLowerCase())
+
+    if (existing) {
       throw new Error(USERS_MESSAGES.EMAIL_HAS_BEEN_USED)
     }
     

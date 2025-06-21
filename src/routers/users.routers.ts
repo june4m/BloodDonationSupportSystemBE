@@ -3,12 +3,14 @@ import SlotController from '~/controller/SlotController'
 import UserController from '~/controller/UserController'
 import { verifyToken } from '~/midleware/auth.midleware'
 import { authorize } from '~/midleware/authorization.midleware'
-
+import { body } from 'express-validator'
 const router = Router()
 const userController = new UserController()
 const slotController = new SlotController()
 
 router.post('/login',
+    body('email').isEmail().withMessage('Email không hợp lệ'),
+    body('password').notEmpty().withMessage('Password là bắt buộc'),
      userController.login)
 
 
