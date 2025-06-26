@@ -83,10 +83,14 @@ class UserController {
     res: Response
   ): Promise<void> {
     try {
-      const {email, password, name, date_of_birth } = req.body;
-      if (!email || !password || !name ||!date_of_birth) {
+      const {email, password, confirm_password, name, date_of_birth } = req.body;
+      if (!email || !password || !confirm_password|| !name ||!date_of_birth) {
         ResponseHandle.responseError(res, null, 'Email and password are required', 400);
         return
+      }
+      if (password !== confirm_password) {
+         res.status(400).json({ message: 'Passwords do not match' });
+         return;
       }
       const hashedPassword = await bcrypt.hash(password, 10); // Mã hóa password
       const result = await this.userService.register({

@@ -101,7 +101,7 @@ export class UserRepository {
     const { email, password, name, date_of_birth} = body
     const lastRow = await databaseServices.query(
       `SELECT TOP 1 User_ID FROM Users
-      ORDER BY CAST (SUBSTRING(User_ID,2,LEN,(User_ID) - 1 AS INT) DESC)`
+      ORDER BY CAST (SUBSTRING(User_ID,2,LEN(User_ID) - 1) AS INT) DESC`
     )
     let newId = 'U001'
     if(lastRow.length){

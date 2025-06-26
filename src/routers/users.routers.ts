@@ -1,3 +1,4 @@
+
 import { Router } from 'express'
 import SlotController from '~/controller/SlotController'
 import UserController from '~/controller/UserController'
@@ -7,7 +8,9 @@ import { body } from 'express-validator'
 const router = Router()
 const userController = new UserController()
 const slotController = new SlotController()
+// const appointmentController = new AppointmentController()
 
+router.post('/signup', userController.register)
 router.post('/login',
     body('email').isEmail().withMessage('Email không hợp lệ'),
     body('password').notEmpty().withMessage('Password là bắt buộc'),
@@ -30,11 +33,14 @@ router.post('/registerSlot',
      slotController.registerDonationBlood)
 
 
+// router.post('/getAppointmentList',
+//      authorize (['staff']),
+//      appointmentController.getAppointmentList)
 
 router.post('/createSlot',
     verifyToken,
     authorize(['admin']),
     slotController.createSlot)
 
-    
+
 export default router
