@@ -12,7 +12,7 @@ class SlotController {
     this.registerDonationBlood = this.registerDonationBlood.bind(this)
   }
 
-  /** [POST] /api/slots/createSlot */
+ 
   public async createSlot(req: Request, res: Response): Promise<void> {
     try {
       const slotData = req.body
@@ -23,7 +23,7 @@ class SlotController {
     }
   }
 
-  /** [GET] /api/slots/getSlotList */
+
   public async getSlotList(req: Request, res: Response): Promise<void> {
     try {
       const status = 'A'
