@@ -12,8 +12,6 @@ const slotController = new SlotController()
 
 router.post('/signup', userController.register)
 router.post('/login',
-    body('email').isEmail().withMessage('Email không hợp lệ'),
-    body('password').notEmpty().withMessage('Password là bắt buộc'),
      userController.login)
 
 
