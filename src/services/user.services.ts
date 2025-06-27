@@ -129,4 +129,8 @@ export class UserService {
     })
     return newUser
   }
+
+  public async findById(userId: string): Promise<User | null> {
+    return await this.userRepository.findById(userId);
+  }
 }

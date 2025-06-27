@@ -19,6 +19,7 @@ class UserController {
     this.register = this.register.bind(this);
     this.logout = this.logout.bind(this);
     this.editProfile = this.editProfile.bind(this);
+    this.getMe = this.getMe.bind(this);
 
   }
   public async login(req: Request<{},{},LoginReqBody>, res: Response): Promise<any> {
@@ -88,7 +89,7 @@ class UserController {
         ResponseHandle.responseError(res, null, 'Email and password are required', 400);
         return
       }
-      if (password !== confirm_password) {
+      if (password !== confirm_password) {  
          res.status(400).json({ message: 'Passwords do not match' });
          return;
       }
@@ -152,6 +153,25 @@ class UserController {
       ResponseHandle.responseError(res, err, err.message || 'Update failed', 400)
     }
   }
+  public async getMe(req: Request, res: Response): Promise<any> {
+    try {
+      const userId = req.user?.user_id; // Lấy user_id từ middleware
+      if (!userId) {
+        return ResponseHandle.responseError(res, null, 'Unauthorized', 401);
+      }
+  
+      const user = await this.userService.findById(userId);
+      if (!user) {
+        return ResponseHandle.responseError(res, null, 'User not found', 404);
+      }
+  
+      return ResponseHandle.responseSuccess(res, user, 'User information retrieved successfully', 200);
+    } catch (error) {
+      console.error('GetMe error:', error);
+      return ResponseHandle.responseError(res, error, 'Failed to retrieve user information', 500);
+    }
+  }
+  
 }
 
 export default UserController

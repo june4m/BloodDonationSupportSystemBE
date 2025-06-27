@@ -34,11 +34,10 @@ class SlotController {
     }
   }
 
-  /** [POST] /api/slots/registerSlot/:slotId */
-  public async registerDonationBlood(req: Request<{ slotId: string }>, res: Response): Promise<void> {
+  public async registerDonationBlood(req: Request, res: Response): Promise<void> {
     try {
-      const slotId = req.params.slotId
-      const userId = req.user?.user_id as string
+      const slotId = req.body.Slot_ID
+      const userId = req.body.User_ID
       // Thêm Appointment_ID rỗng để khớp kiểu
       const appointment = {
         Appointment_ID: '',

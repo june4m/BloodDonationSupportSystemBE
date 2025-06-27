@@ -55,7 +55,7 @@ export class SlotRepository {
     }
   }
 
-  async  registerSlot(appointmentData: Appointment) {
+  async registerSlot(appointmentData: Appointment) {
     console.log('register repo')
     let newAppointmentID = 'AP001'
     const lastId = `
@@ -73,7 +73,6 @@ export class SlotRepository {
     } // else {
     //   console.log('fail update slotid')
     // }
-    await Database.query(`UPĐATE Slot SET Volume = ISNULL(Volume,0) + 1 WHERE Slot_ID = ?`, [appointmentData.Slot_ID])
     console.log('start try')
     try {
       const { ...fields } = appointmentData

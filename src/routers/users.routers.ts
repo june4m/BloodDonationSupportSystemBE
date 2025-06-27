@@ -21,7 +21,7 @@ router.post('/logout',
      verifyToken,
      userController.logout)
 
-
+router.get('/getMe', verifyToken, userController.getMe)
 // lấy danh sách slot
 router.get('/getSlotList', 
     slotController.getSlotList)
@@ -29,7 +29,6 @@ router.get('/getSlotList',
 
 //member đăng kí slot
 router.post('/registerSlot',
-    authorize(['member']),
      slotController.registerDonationBlood)
 
 
