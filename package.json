@@ -4,11 +4,13 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "@types/ms": "^0.7.31",
     "@types/qs": "^6.14.0",
     "asynckit": "^0.4.0",
     "axios": "^1.9.0",
     "call-bind-apply-helpers": "^1.0.2",
     "combined-stream": "^1.0.8",
+    "cookie-parser": "^1.4.7",
     "delayed-stream": "^1.0.0",
     "dotenv": "^16.5.0",
     "dunder-proto": "^1.0.1",
@@ -30,10 +32,12 @@
     "math-intrinsics": "^1.1.0",
     "mime-db": "^1.52.0",
     "mime-types": "^2.1.35",
+    "ms": "^2.1.3",
     "mssql": "^11.0.1",
     "proxy-from-env": "^1.1.0"
   },
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.9",
     "@types/dotenv": "^8.2.3",
     "@types/express": "^5.0.2",
     "@types/jsonwebtoken": "^9.0.9",
