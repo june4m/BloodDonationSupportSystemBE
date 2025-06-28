@@ -41,8 +41,20 @@ router.post('/createSlot',
     authorize(['admin']),
     slotController.createSlot)
 
-router.post('/getPotentialDonorList',
+// danh sach tiem nam
+router.get('/getPotentialDonorList',
     verifyToken,
     authorize(['staff']),
     staffController.getPotentialList)
+
+router.get('/getMemberList',
+    verifyToken,
+    authorize(['staff']),
+    staffController.getMemberList)
+
+router.post('/addMemberToPotentialList',
+    verifyToken,
+    authorize(['staff']),
+    staffController.addMemberToPotentialList)
+
 export default router
