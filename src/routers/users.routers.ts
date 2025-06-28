@@ -5,9 +5,11 @@ import UserController from '~/controller/UserController'
 import { verifyToken } from '~/midleware/auth.midleware'
 import { authorize } from '~/midleware/authorization.midleware'
 import { body } from 'express-validator'
+import StaffController from '~/controller/StaffController'
 const router = Router()
 const userController = new UserController()
 const slotController = new SlotController()
+const staffController = new StaffController()
 // const appointmentController = new AppointmentController()
 
 router.post('/signup', userController.register)
@@ -39,5 +41,8 @@ router.post('/createSlot',
     authorize(['admin']),
     slotController.createSlot)
 
-
+router.post('/getPotentialDonorList',
+    verifyToken,
+    authorize(['staff']),
+    staffController.getPotentialList)
 export default router
