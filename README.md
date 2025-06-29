@@ -27,6 +27,7 @@ This repository contains the **backend** source code, developed with **Node.js**
 - **Backend:** Node.js (Express)
 - **Database:** Microsoft SQL Server
 - **Frontend (not included in this repo):** React + Vite
+- **Auth:** JWT 
 
 ## 🚀 Getting Started
 
