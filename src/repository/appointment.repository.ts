@@ -6,7 +6,15 @@ import databaseServices from '~/services/database.services'
 export class AppointmentRepository {
   async getAllAppointmentList() {
     console.log('Appointment repo getAppointmentList')
-    const query = `select * from AppointmentGiving`
+    const query = `SELECT 
+  A.Appointment_ID AS Appointment_ID,
+  U.User_Name AS Name,
+  U.Email AS Email,
+  B.Blood_group
+FROM AppointmentGiving A
+JOIN Users U ON A.User_ID = U.User_ID
+JOIN BloodType B ON U.BloodType_ID = B.BloodType_ID
+WHERE A.Volume IS NULL`
     try {
       const result = await databaseServices.query(query)
       return result
