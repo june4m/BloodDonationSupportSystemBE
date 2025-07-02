@@ -30,18 +30,20 @@ export class UserRepository {
   async findById(userId: string): Promise<User | null> {
     const rows = await databaseServices.query(
       `
-      SELECT
-        User_ID   AS user_id,
-        Email     AS email,
-        Password  AS password,
-        User_Name AS user_name,
-        User_Role AS user_role,
-        Phone AS phone,
-        Address AS address,
-        YOB AS date_of_birth,
-        BloodType_ID AS bloodtype_id
-      FROM Users
-      WHERE User_ID = ?
+    SELECT
+      U.User_ID   AS user_id,
+      U.Email     AS email,
+      U.Password  AS password,
+      U.User_Name AS user_name,
+      U.User_Role AS user_role,
+      U.Phone     AS phone,
+      U.Address   AS address,
+      CONVERT(VARCHAR(10), U.YOB, 23) AS date_of_birth,
+      U.BloodType_ID AS bloodtype_id,
+      B.Blood_group AS blood_group
+    FROM Users U
+    JOIN BloodType B ON U.BloodType_ID = B.BloodType_ID
+    WHERE U.User_ID = ?
       `,
       [userId]
     )
