@@ -57,4 +57,11 @@ router.post('/addMemberToPotentialList',
     authorize(['staff']),
     staffController.addMemberToPotentialList)
 
+router.post('/addEmergencyRequest',
+    verifyToken, 
+    authorize(['staff']),
+    body('Emergency_ID').notEmpty().withMessage('Emergency_ID is required'),
+    staffController.addEmergencyRequest
+ )
+
 export default router

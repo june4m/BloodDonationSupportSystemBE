@@ -1,3 +1,6 @@
+import { body } from 'express-validator';
+import { EmergencyRequestReqBody } from '~/models/schemas/slot.schema';
+
 import { StaffRepository } from "~/repository/staff.repository"
 
 export class staffServices{
@@ -31,4 +34,12 @@ export class staffServices{
           throw error;
         }
     }
+    async addEmergencyRequest(body: EmergencyRequestReqBody): Promise<void> {
+        try {
+          await this.staffRepository.addEmergencyRequest(body);
+        } catch (error) {
+          console.error('Error in addEmergencyRequest:', error);
+          throw error;
+        }
+      }
 }
