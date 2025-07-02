@@ -25,7 +25,7 @@ export class UserRepository {
       `,
       [email]
     )
-    return rows 
+    return rows
   }
   async findById(userId: string): Promise<User | null> {
     const rows = await databaseServices.query(
@@ -35,7 +35,11 @@ export class UserRepository {
         Email     AS email,
         Password  AS password,
         User_Name AS user_name,
-        User_Role AS user_role
+        User_Role AS user_role,
+        Phone AS phone,
+        Address AS address,
+        YOB AS date_of_birth,
+        BloodType_ID AS bloodtype_id
       FROM Users
       WHERE User_ID = ?
       `,
@@ -43,21 +47,21 @@ export class UserRepository {
     )
     return rows[0] ?? null
   }
-  async updateUserRole(userId: string,role: string): Promise<void>{
-      try{
-        const result = await Database.query(
-            `UPDATE Users
+  async updateUserRole(userId: string, role: string): Promise<void> {
+    try {
+      const result = await Database.query(
+        `UPDATE Users
             SET User_Role = ?
             WHERE User_ID = ?
             `,
-            [role, userId]
-        )
-      }catch(error){
-        console.error('Error in updateUserRole', error);
-        throw error;
-      }
+        [role, userId]
+      )
+    } catch (error) {
+      console.error('Error in updateUserRole', error);
+      throw error;
+    }
   }
-  async update(userId: string, updates: Partial<User>):Promise<User>{
+  async update(userId: string, updates: Partial<User>): Promise<User> {
     try {
       const allowedUpdates: Partial<User> = {};
       if (updates.phone !== undefined) allowedUpdates.phone = updates.phone;
@@ -68,13 +72,13 @@ export class UserRepository {
       }
       const query = `UPDATE Users SET ? WHERE User_ID = ?`;
       const result = await Database.query(query, [allowedUpdates, userId]);
-      if(result.affectedRows === 0){
+      if (result.affectedRows === 0) {
         throw new Error('No user found or update failed');
       }
       const updatedUser = await this.findById(userId);
-      if(!updatedUser) throw new Error('Update faileed to retrieve user');
+      if (!updatedUser) throw new Error('Update faileed to retrieve user');
       return updatedUser
-      
+
     } catch (error) {
       console.error('Error in update:', error);
       throw error;
@@ -97,24 +101,24 @@ export class UserRepository {
       throw error;
     }
   }
-  async createAccount(body: Pick<RegisterReqBody,'email' | 'password' | 'name' | 'date_of_birth'>): Promise<User>{
-    const { email, password, name, date_of_birth} = body
+  async createAccount(body: Pick<RegisterReqBody, 'email' | 'password' | 'name' | 'date_of_birth'>): Promise<User> {
+    const { email, password, name, date_of_birth } = body
     const lastRow = await databaseServices.query(
       `SELECT TOP 1 User_ID FROM Users
       ORDER BY CAST (SUBSTRING(User_ID,2,LEN(User_ID) - 1) AS INT) DESC`
     )
     let newId = 'U001'
-    if(lastRow.length){
+    if (lastRow.length) {
       const lastId = lastRow[0].User_ID as string
-      const num =parseInt(lastId.slice(1),10) + 1
-      newId = 'U' + String(num).padStart(3,'0');
+      const num = parseInt(lastId.slice(1), 10) + 1
+      newId = 'U' + String(num).padStart(3, '0');
     }
     const sql = `
       INSERT INTO Users
         (User_ID, User_Name, YOB, Email, Password,Status, User_Role, Admin_ID)
       VALUES (@param1, @param2, @param3, @param4, @param5,'Active', 'member','U001')
       `
-    await databaseServices.queryParam(sql,[
+    await databaseServices.queryParam(sql, [
       newId,
       name,
       date_of_birth,
