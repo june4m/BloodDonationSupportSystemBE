@@ -111,8 +111,8 @@ export class UserRepository {
     }
     const sql = `
       INSERT INTO Users
-        (User_ID, User_Name, YOB, Email, Password, User_Role)
-      VALUES (@param1, @param2, @param3, @param4, @param5, 'member')
+        (User_ID, User_Name, YOB, Email, Password,Status, User_Role, Admin_ID)
+      VALUES (@param1, @param2, @param3, @param4, @param5,'Active', 'member','U001')
       `
     await databaseServices.queryParam(sql,[
       newId,
