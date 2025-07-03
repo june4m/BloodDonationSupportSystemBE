@@ -14,8 +14,7 @@ const staffController = new StaffController()
 // const appointmentController = new AppointmentController()
 
 router.post('/signup', userController.register)
-router.post('/login',
-    userController.login)
+router.post('/login', userController.login)
 
 router.post('/logout', verifyToken, userController.logout)
 
@@ -30,28 +29,20 @@ router.post('/registerSlot', slotController.registerDonationBlood)
 //      authorize (['staff']),
 //      appointmentController.getAppointmentList)
 
-router.post('/createSlot',
-    verifyToken,
-    authorize(['admin']),
-    slotController.createSlot)
+router.post('/createSlot', verifyToken, authorize(['admin']), slotController.createSlot)
 
 // danh sach tiem nam
-router.get('/getPotentialDonorList',
-    verifyToken,
-    authorize(['staff']),
-    staffController.getPotentialList)
+router.get('/getPotentialDonorList', verifyToken, authorize(['staff']), staffController.getPotentialList)
 
-router.get('/getMemberList',
-    verifyToken,
-    authorize(['staff']),
-    staffController.getMemberList)
+router.get('/getMemberList', verifyToken, authorize(['staff']), staffController.getMemberList)
 
-router.post('/addMemberToPotentialList',
-    verifyToken,
-    authorize(['staff']),
-    staffController.addMemberToPotentialList)
+router.post('/addMemberToPotentialList', verifyToken, authorize(['staff']), staffController.addMemberToPotentialList)
 
-
-router.post('/appointment/:appointmentId/addVolume', appointmentController.updateVolume)
-router.get('/appointment', appointmentController.getAppointmentList)
+router.post(
+  '/appointment/:appointmentId/addVolume',
+  verifyToken,
+  authorize(['Staff']),
+  appointmentController.updateVolume
+)
+router.get('/appointment', verifyToken, authorize(['Staff']), appointmentController.getAppointmentList)
 export default router

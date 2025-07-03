@@ -1,9 +1,10 @@
-import { UserRepository } from './../repository/user.repository';
-import { Appointment } from './../models/schemas/slot.schema';
+import { UserRepository } from './../repository/user.repository'
+import { Appointment } from './../models/schemas/slot.schema'
 import { error } from 'console'
 import { format } from 'path'
 import { SlotRepository } from '~/repository/slot.repository'
 import { Slot, slotDTO, SlotFactory } from '~/models/schemas/slot.schema'
+import databaseServices from './database.services'
 export class SlotService {
   private slotRepository: SlotRepository
   private userRepository: UserRepository
@@ -34,6 +35,33 @@ export class SlotService {
 
       return formattedResult
     } catch (error) {
+      throw error
+    }
+  }
+
+  async checkSlotExist(slotDate: string, startTime: string, endTime: string): Promise<boolean> {
+    console.log('Checking for duplicate slot...')
+
+    try {
+      const query = `
+      SELECT COUNT(*) AS Count
+      FROM Slot
+      WHERE Slot_Date = ? 
+        AND Start_Time = ? 
+        AND End_Time = ?
+    `
+      const params = [slotDate, startTime, endTime]
+      const result = await databaseServices.queryParam(query, params)
+
+      // Kiểm tra nếu result có Count và là một mảng hợp lệ
+      if (result && result.recordsets && result.recordsets[0] && result.recordsets[0][0].Count !== undefined) {
+        return result.recordsets[0][0].Count > 0
+      } else {
+        console.log('No count or invalid result structure')
+        return false
+      }
+    } catch (error) {
+      console.error('Error checking slot existence:', error)
       throw error
     }
   }

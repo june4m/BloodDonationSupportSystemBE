@@ -12,17 +12,27 @@ class SlotController {
     this.registerDonationBlood = this.registerDonationBlood.bind(this)
   }
 
- 
   public async createSlot(req: Request, res: Response): Promise<void> {
     try {
       const slotData = req.body
+
+      const isSlotExist = await this.slotService.checkSlotExist(
+        slotData.Slot_Date,
+        slotData.Start_Time,
+        slotData.End_Time
+      )
+      if (isSlotExist) {
+        ResponseHandle.responseError(res, null, 'Slot already exists at the specified time', 400)
+        return
+      }
+
       const result = await this.slotService.createSlot(slotData)
+
       ResponseHandle.responseSuccess(res, result, 'Slot created successfully', 200)
     } catch (err: any) {
       ResponseHandle.responseError(res, err, err.message || 'Failed to create slot', 400)
     }
   }
-
 
   public async getSlotList(req: Request, res: Response): Promise<void> {
     try {
