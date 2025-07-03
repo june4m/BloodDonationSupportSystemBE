@@ -51,11 +51,19 @@ class StaffController{
         try {
             const userId = req.body.User_ID as string
             const staffId = req.user?.user_id; 
-            const note = req.query.note as string || '';
+            const note = req.body.note as string || '';
             if (!userId || !staffId){
                 res.status(HTTP_STATUS.BAD_REQUEST).json({
                     success: false,
                     message: 'User ID and Staff ID are required'
+                });
+                return;
+            }
+            const isDuplicate = await this.staffServices.checkPotentialDonorExists(userId);
+            if (isDuplicate) {
+                res.status(HTTP_STATUS.BAD_REQUEST).json({
+                    success: false,
+                    message: 'User already exists in the potential donor list'
                 });
                 return;
             }
@@ -100,5 +108,6 @@ class StaffController{
           });
         }
     }
+
 }
 export default StaffController;

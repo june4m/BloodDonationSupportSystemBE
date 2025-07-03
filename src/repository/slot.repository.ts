@@ -43,7 +43,8 @@ export class SlotRepository {
     try {
       const slotData = await Database.query(
         `
-        SELECT * FROM Slot 
+        SELECT Slot_ID, Slot_Date, CONVERT(VARCHAR(8), Start_Time, 108) AS Start_Time, Volume, Max_Volume, CONVERT(VARCHAR(8), End_Time, 108) AS End_Time, Status, Admin_ID
+        FROM Slot 
         WHERE Status = ? AND CAST(slot_date AS DATE) >= ?
         `,
         [status, formatTodayDate]

@@ -16,13 +16,12 @@ class UserController {
   constructor() {
     this.userService = new UserService()
     this.login = this.login.bind(this)
-    this.register = this.register.bind(this);
-    this.logout = this.logout.bind(this);
-    this.editProfile = this.editProfile.bind(this);
-    this.getMe = this.getMe.bind(this);
-
+    this.register = this.register.bind(this)
+    this.logout = this.logout.bind(this)
+    this.editProfile = this.editProfile.bind(this)
+    this.getMe = this.getMe.bind(this)
   }
-  public async login(req: Request<{},{},LoginReqBody>, res: Response): Promise<any> {
+  public async login(req: Request<{}, {}, LoginReqBody>, res: Response): Promise<any> {
     console.log('Call Login')
     const { email, password } = req.body
     console.log(req.body)
@@ -59,7 +58,7 @@ class UserController {
       const token = await signToken({
         payload,
         privateKey: secret,
-        options: { algorithm: 'HS256',expiresIn}
+        options: { algorithm: 'HS256', expiresIn }
       })
       console.log('token: ', token)
       console.log('userID: ', payload.user_id)
@@ -68,43 +67,51 @@ class UserController {
 
       const maxAge = typeof expiresIn === 'string' ? ms(expiresIn) : 900000
       res.cookie('token', token, { httpOnly: true, maxAge }) //, secure: false, sameSite: 'lax'
-      return ResponseHandle.responseSuccess(res, {
-        user_id: result.data?.user_id,
-        user_name: result.data?.user_name,
-        user_role: result.data?.user_role
-      }, `Hello, ${payload.user_name}`, 200)
+      return ResponseHandle.responseSuccess(
+        res,
+        {
+          user_id: result.data?.user_id,
+          user_name: result.data?.user_name,
+          user_role: result.data?.user_role
+        },
+        `Hello, ${payload.user_name}`,
+        200
+      )
     } catch (error) {
       console.error('Login error:', error)
       return ResponseHandle.responseError(res, error, 'Login Fail', 500)
     }
   }
 
-  public async register(
-    req: Request<{}, {}, RegisterReqBody>,
-    res: Response
-  ): Promise<void> {
+  public async register(req: Request<{}, {}, RegisterReqBody>, res: Response): Promise<void> {
     try {
-      const {email, password, confirm_password, name, date_of_birth } = req.body;
-      if (!email || !password || !confirm_password|| !name ||!date_of_birth) {
-        ResponseHandle.responseError(res, null, 'Email and password are required', 400);
+      const { email, password, confirm_password, name, date_of_birth } = req.body
+      if (!email || !password || !confirm_password || !name || !date_of_birth) {
+        ResponseHandle.responseError(res, null, 'Email and password are required', 400)
         return
       }
-      if (password !== confirm_password) {  
-         res.status(400).json({ message: 'Passwords do not match' });
-         return;
+      if (password !== confirm_password) {
+        res.status(400).json({ message: 'Passwords do not match' })
+        return
       }
-      const hashedPassword = await bcrypt.hash(password, 10); // Mã hóa password
+      const emailExists = await this.userService.checkEmailExists(email)
+      if (emailExists) {
+        ResponseHandle.responseError(res, null, 'Email already exists', 400)
+        return
+      }
+      const hashedPassword = await bcrypt.hash(password, 10) // Mã hóa password
       const result = await this.userService.register({
         email,
         password: hashedPassword,
         name,
-        date_of_birth });
-       ResponseHandle.responseSuccess(res, result, 'Registration successful', 201);
+        date_of_birth
+      })
+      ResponseHandle.responseSuccess(res, result, 'Registration successful', 201)
     } catch (error) {
-      console.error('Register error:', error);
-       ResponseHandle.responseError(res, error, 'Registration failed', 500);
+      console.error('Register error:', error)
+      ResponseHandle.responseError(res, error, 'Registration failed', 500)
     }
-  }  
+  }
   public async logout(req: Request, res: Response): Promise<any> {
     try {
       res.clearCookie('token', { httpOnly: true })
@@ -114,28 +121,36 @@ class UserController {
       return ResponseHandle.responseError(res, error, 'Logout failed', 500)
     }
   }
-  public async editProfile(req: Request, res: Response): Promise<any> { 
+
+  public async editProfile(req: Request, res: Response): Promise<any> {
     try {
-      const userId = req.user?.user_id;
+      const userId = req.user?.user_id
       if (!userId) {
-        return ResponseHandle.responseError(res, null, 'Unauthorized', 401);
+        return ResponseHandle.responseError(res, null, 'Unauthorized', 401)
       }
-      const { phone, user_name } = req.body;
-      const updates: Partial<User> = {};
-      if (phone) updates.phone = phone;
-      if (user_name) updates.user_name = user_name;
+      const { phone, user_name } = req.body
+      const updates: Partial<User> = {}
+      if (phone) updates.phone = phone
+      if (user_name) updates.user_name = user_name
+
+      // // Nếu có bloodtype_id thì gọi hàm updateBloodType riêng
+      // if (bloodtype_id) {
+      //   const updatedUser = await this.userService.updateBloodType(userId, bloodtype_id)
+      //   return ResponseHandle.responseSuccess(res, updatedUser, 'Profile updated', 200)
+      // }
 
       if (Object.keys(updates).length === 0) {
-        return ResponseHandle.responseError(res, null, 'No fields to update', 400);
+        return ResponseHandle.responseError(res, null, 'No fields to update', 400)
       }
 
-      const updatedUser = await this.userService.updateBloodType(userId, updates.bloodtype_id || ''); // Sửa lại logic
-      return ResponseHandle.responseSuccess(res, updatedUser, 'Profile updated', 200);
+      const updatedUser = await this.userService.updateBloodType(userId, updates.bloodtype_id || '') // Sửa lại logic
+      return ResponseHandle.responseSuccess(res, updatedUser, 'Profile updated', 200)
     } catch (error) {
-      console.error('Edit profile error:', error);
-      return ResponseHandle.responseError(res, error, 'Update failed', 500);
+      console.error('Edit profile error:', error)
+      return ResponseHandle.responseError(res, error, 'Update failed', 500)
     }
   }
+
   public async updateBloodTypeByStaff(
     req: Request<{ userId: string }, {}, { bloodType_ID: string }>,
     res: Response
@@ -153,25 +168,25 @@ class UserController {
       ResponseHandle.responseError(res, err, err.message || 'Update failed', 400)
     }
   }
+
   public async getMe(req: Request, res: Response): Promise<any> {
     try {
-      const userId = req.user?.user_id; // Lấy user_id từ middleware
+      const userId = req.user?.user_id // Lấy user_id từ middleware
       if (!userId) {
-        return ResponseHandle.responseError(res, null, 'Unauthorized', 401);
+        return ResponseHandle.responseError(res, null, 'Unauthorized', 401)
       }
-  
-      const user = await this.userService.findById(userId);
+
+      const user = await this.userService.findById(userId)
       if (!user) {
-        return ResponseHandle.responseError(res, null, 'User not found', 404);
+        return ResponseHandle.responseError(res, null, 'User not found', 404)
       }
-  
-      return ResponseHandle.responseSuccess(res, user, 'User information retrieved successfully', 200);
+
+      return ResponseHandle.responseSuccess(res, user, 'User information retrieved successfully', 200)
     } catch (error) {
-      console.error('GetMe error:', error);
-      return ResponseHandle.responseError(res, error, 'Failed to retrieve user information', 500);
+      console.error('GetMe error:', error)
+      return ResponseHandle.responseError(res, error, 'Failed to retrieve user information', 500)
     }
   }
-  
 }
 
 export default UserController

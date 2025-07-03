@@ -42,7 +42,7 @@ export class StaffRepository {
             throw error;
         }
     }
-    async addMemberToPotentialList(userId: string,note:string, staffId: string): Promise<void> {
+    async addMemberToPotentialList(userId: string,staffId: string,note:string): Promise<void> {
         try {
             const lastRow = await databaseServices.query(
                 `SELECT TOP 1 Potential_ID FROM PotentialDonor
@@ -130,5 +130,19 @@ export class StaffRepository {
           console.error('Error in addEmergencyRequest:', error);
           throw error;
         }
+    }
+    async checkPotentialDonorExists(userId: string): Promise<boolean> {
+      try {
+          const query = `
+              SELECT COUNT(*) AS count
+              FROM PotentialDonor
+              WHERE User_ID = ?
+          `;
+          const result = await databaseServices.query(query, [userId]);
+          return result[0].count > 0;
+      } catch (error) {
+          console.error('Error in checkPotentialDonorExists:', error);
+          throw error;
       }
+    }
 }

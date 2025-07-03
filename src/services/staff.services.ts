@@ -1,3 +1,4 @@
+import { log } from 'console';
 import { body } from 'express-validator';
 import { EmergencyRequestReqBody } from '~/models/schemas/slot.schema';
 
@@ -41,5 +42,14 @@ export class staffServices{
           console.error('Error in addEmergencyRequest:', error);
           throw error;
         }
+    }
+    async checkPotentialDonorExists(userId: string): Promise<boolean> {
+      try {
+        const result = await this.staffRepository.checkPotentialDonorExists(userId);
+        return result;
+      } catch (error) {
+        console.error('Error in checkPotentialDonorExists:', error);
+        throw error;
       }
+    }
 }
