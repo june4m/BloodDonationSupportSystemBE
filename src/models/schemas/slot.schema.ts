@@ -41,21 +41,19 @@ export interface Appointment {
   Status?: 'A' | 'C'; // P: Pending, C: Completed
 }
 export interface EmergencyRequestReqBody {
-  Emergency_ID: string
-  Volume?: number
+  Emergency_ID?: string
+  Requester_ID: string
+  BloodType_ID: string
+  Needed_Before: string
+  Volume: number
   Priority?: string
   Status: 'Pending' | 'In Progress' | 'Completed'
-  Needed_Before?: string
   Created_At?: string
   Updated_At?: string
   Potential_ID?: string
   Appointment_ID?: string
-  User_ID?: string
-  BloodType_ID?: string
-  Requester_Name: string; 
-  Requester_Phone: string; 
-  Requester_Address?: string;
-  Slot_ID: string
+  Staff_ID?: string
+  Slot_ID?: string
 }
 export class SlotFactory {
   static createDetailSlot(data: Slot, isCSV: boolean = false): slotDTO {

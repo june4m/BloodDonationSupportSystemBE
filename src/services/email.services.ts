@@ -14,11 +14,11 @@ export const sendEmailService = async (email: string) =>{
           });
     
         const info = await transporter.sendMail({
-            from: '"From:"<minhncse182968@fpt.edu.vn>',
+            from: 'Đại Việt Blood"From:"<daivietblood@gmail.com>',
             to: email,
             subject: "Send api.email",
-            text: "Donate cho em Minh  hoặc bay acc :) ?", 
-            html: "<b> Donate cho em Minh  hoặc bay acc :)</b>", 
+            text: "Bạn có đồng ý hỗ trợ hiến máu không?", 
+            html: "<b> Có người cần đăng ký hiến máu và phù hợp với nhóm máu của bạn, bạn có thể giúp đỡ họ không? </b>", 
         });
         return info;
     } catch (error) {

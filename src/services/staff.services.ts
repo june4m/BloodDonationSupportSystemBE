@@ -1,4 +1,6 @@
+
 import { log } from 'console';
+import { promises } from 'dns';
 import { body } from 'express-validator';
 import { EmergencyRequestReqBody } from '~/models/schemas/slot.schema';
 
@@ -37,7 +39,7 @@ export class staffServices{
     }
     async addEmergencyRequest(body: EmergencyRequestReqBody): Promise<void> {
         try {
-          await this.staffRepository.addEmergencyRequest(body);
+          await this.staffRepository.createEmergencyRequest(body);
         } catch (error) {
           console.error('Error in addEmergencyRequest:', error);
           throw error;
@@ -52,4 +54,33 @@ export class staffServices{
         throw error;
       }
     }
+    public async createEmergencyRequest(data: EmergencyRequestReqBody): Promise<any> {
+      try {
+          const emergencyRequest = await this.staffRepository.createEmergencyRequest(data);
+          return emergencyRequest;
+      } catch (error) {
+          console.error('Error in createEmergencyRequest:', error);
+          throw error;
+      }
+    }
+    public async isSpamRequest(userId: string): Promise<boolean> {
+      try {
+          const isSpam = await this.staffRepository.checkRecentEmergencyRequest(userId);
+          console.log('isSpam:', isSpam); // Debug kết quả
+          return isSpam;
+      } catch (error) {
+          console.error('Error in isSpamRequest:', error);
+          throw error;
+      }
+    }
+    public async getAllEmergencyRequests(): Promise<EmergencyRequestReqBody[]> {
+      try {
+          const emergencyRequests = await this.staffRepository.getAllEmergencyRequests();
+          return emergencyRequests;
+      } catch (error) {
+          console.error('Error in getAllEmergencyRequests:', error);
+          throw error;
+      }
+    }
+    
 }

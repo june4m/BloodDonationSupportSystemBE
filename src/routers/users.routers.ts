@@ -62,11 +62,14 @@ router.get('/getAppointmentList',
      verifyToken,authorize(['staff']),
      appointmentController.getAppointmentList)
 
-router.post('/addEmergencyRequest',
+router.post('/requestEmergencyBlood',
     verifyToken, 
+    authorize(['member']),
+    staffController.createEmergencyRequest
+)
+router.get('/getEmergencyRequestList',
+    verifyToken,
     authorize(['staff']),
-    body('Emergency_ID').notEmpty().withMessage('Emergency_ID is required'),
-    staffController.addEmergencyRequest
- )
+    staffController.getAllEmergencyRequests)
 
 export default router

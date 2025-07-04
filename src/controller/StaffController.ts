@@ -11,7 +11,8 @@ class StaffController{
         this.getPotentialList = this.getPotentialList.bind(this);
         this.getMemberList = this.getMemberList.bind(this);
         this.addMemberToPotentialList = this.addMemberToPotentialList.bind(this);
-        this.addEmergencyRequest = this.addEmergencyRequest.bind(this);
+        this.createEmergencyRequest = this.createEmergencyRequest.bind(this);
+        this.getAllEmergencyRequests = this.getAllEmergencyRequests.bind(this);
     }
     public async getPotentialList(req: any, res: any): Promise<void> {
         try{
@@ -81,33 +82,73 @@ class StaffController{
             });
         }
     }    
-    public async addEmergencyRequest(req: any, res: any): Promise<void> {
+    public async createEmergencyRequest(req: any, res: any): Promise<void> {
         try {
-          const body: EmergencyRequestReqBody = req.body;
-      
-          // Kiểm tra dữ liệu đầu vào
-          if (!body.BloodType_ID || !body.Volume || !body.Needed_Before || !body.Requester_Name || !body.Requester_Phone) {
-            res.status(HTTP_STATUS.BAD_REQUEST).json({
-              success: false,
-              message: 'Blood Type ID, Volume, Needed Before, Requester Name, and Requester Phone are required',
+            const { BloodType_ID, Volume, Needed_Before } = req.body;
+    
+            // Kiểm tra dữ liệu đầu vào
+            if (!BloodType_ID || !Volume || !Needed_Before) {
+                res.status(400).json({
+                    success: false,
+                    message: 'BloodType_ID, Volume, and Needed_Before are required',
+                });
+                return;
+            }
+    
+            // Lấy Requester_ID từ token
+            const Requester_ID = req.user?.user_id;
+            console.log('Requester_ID:', Requester_ID); // Debug giá trị
+    
+            // Kiểm tra spam
+            const isSpam = await this.staffServices.isSpamRequest(Requester_ID);
+            if (isSpam) {
+                res.status(429).json({
+                    success: false,
+                    message: 'You have already submitted a request recently. Please wait before submitting another request.',
+                });
+                return;
+            }
+    
+            // Gọi service để tạo yêu cầu máu khẩn cấp
+            const emergencyRequest = await this.staffServices.createEmergencyRequest({
+                Requester_ID,
+                Volume,
+                BloodType_ID,
+                Needed_Before,
+                Status: 'Pending',
+                Created_At: new Date().toISOString(),
             });
-            return;
-          }
-      
-          await this.staffServices.addEmergencyRequest(body);
-          res.status(HTTP_STATUS.OK).json({
-            success: true,
-            message: 'Emergency request created successfully',
-          });
+    
+            res.status(200).json({
+                success: true,
+                message: 'Emergency blood request created successfully',
+                data: emergencyRequest,
+            });
         } catch (error: any) {
-          console.error('Error in addEmergencyRequest:', error);
-          res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
-            success: false,
-            message: 'Failed to create emergency request',
-            error: error.message || 'Internal Server Error',
-          });
+            console.error('Error in createEmergencyRequest:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to create emergency blood request',
+                error: error.message || 'Internal server error',
+            });
         }
     }
-
+    public async getAllEmergencyRequests(req: any, res: any): Promise<void> {
+        try {
+            const emergencyRequests = await this.staffServices.getAllEmergencyRequests();
+            res.status(200).json({
+                success: true,
+                data: emergencyRequests,
+                message: 'Emergency requests retrieved successfully',
+            });
+        } catch (error: any) {
+            console.error('Error in getAllEmergencyRequests:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to retrieve emergency requests',
+                error: error.message || 'Internal server error',
+            });
+        }
+    }
 }
 export default StaffController;
