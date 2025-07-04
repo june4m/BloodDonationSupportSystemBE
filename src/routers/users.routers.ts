@@ -52,8 +52,15 @@ router.post('/addMemberToPotentialList',
     staffController.addMemberToPotentialList)
 
 
-router.post('/appointment/:appointmentId/addVolume', verifyToken,authorize(['staff']),appointmentController.updateVolume)
-router.get('/getAppointmentList', verifyToken,authorize(['staff']),appointmentController.getAppointmentList)
+router.post('/appointment/:appointmentId/addVolume',
+     verifyToken,authorize(['staff']),
+     appointmentController.updateVolume)
+
+
+
+router.get('/getAppointmentList',
+     verifyToken,authorize(['staff']),
+     appointmentController.getAppointmentList)
 
 router.post('/addEmergencyRequest',
     verifyToken, 
