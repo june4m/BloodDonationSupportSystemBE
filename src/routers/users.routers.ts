@@ -72,4 +72,9 @@ router.get('/getEmergencyRequestList',
     authorize(['staff']),
     staffController.getAllEmergencyRequests)
 
+router.post('/handleEmergencyRequest/:emergencyId',
+    verifyToken,
+    authorize(['staff']),   
+    staffController.handleEmergencyRequest)
+
 export default router

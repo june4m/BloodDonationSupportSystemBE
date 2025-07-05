@@ -1,3 +1,5 @@
+import { UpdateMeReqBody } from './../models/schemas/requests/user.requests';
+import { Appointment } from './../models/schemas/slot.schema';
 import { body, param } from 'express-validator';
 import HTTP_STATUS from "~/constant/httpStatus";
 import { EmergencyRequestReqBody } from '~/models/schemas/slot.schema';
@@ -13,6 +15,7 @@ class StaffController{
         this.addMemberToPotentialList = this.addMemberToPotentialList.bind(this);
         this.createEmergencyRequest = this.createEmergencyRequest.bind(this);
         this.getAllEmergencyRequests = this.getAllEmergencyRequests.bind(this);
+        this.handleEmergencyRequest = this.handleEmergencyRequest.bind(this);
     }
     public async getPotentialList(req: any, res: any): Promise<void> {
         try{
@@ -146,6 +149,44 @@ class StaffController{
             res.status(500).json({
                 success: false,
                 message: 'Failed to retrieve emergency requests',
+                error: error.message || 'Internal server error',
+            });
+        }
+    }
+    public async handleEmergencyRequest(req: any, res: any): Promise<void> {
+        try {
+            const emergencyId = req.params.emergencyId; // Lấy emergencyId từ URL
+            const { Priority, Status, Potential_ID, Appointment_ID } = req.body;
+            const Staff_ID = req.user?.user_id;
+    
+            if (!emergencyId || !Priority || !Status) {
+                res.status(HTTP_STATUS.BAD_REQUEST).json({
+                    success: false,
+                    message: 'Emergency_ID, Priority, and Status are required',
+                });
+                return;
+            }
+    
+            const updateReqEmergency = await this.staffServices.updateEmergencyRequest({
+                Emergency_ID: emergencyId,
+                Priority,
+                Status,
+                Potential_ID: Potential_ID || null,
+                Appointment_ID: Appointment_ID || null,
+                Staff_ID,
+                Updated_At: new Date().toISOString(),
+            });
+    
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                message: 'Emergency request handled successfully',
+                data: updateReqEmergency,
+            });
+        } catch (error: any) {
+            console.error('Error in handleEmergencyRequest:', error);
+            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: 'Failed to handle emergency request',
                 error: error.message || 'Internal server error',
             });
         }

@@ -47,13 +47,22 @@ export interface EmergencyRequestReqBody {
   Needed_Before: string
   Volume: number
   Priority?: string
-  Status: 'Pending' | 'In Progress' | 'Completed'
+  Status: 'Pending' | 'Approved' | 'Completed'
   Created_At?: string
   Updated_At?: string
   Potential_ID?: string
   Appointment_ID?: string
   Staff_ID?: string
   Slot_ID?: string
+}
+export interface UpdateEmergencyRequestReqBody {
+  Emergency_ID: string;
+  Priority: 'High' | 'Medium' | 'Low';
+  Status: 'Pending' | 'Approved' | 'Completed';
+  Potential_ID?: string; // Tùy chọn
+  Appointment_ID?: string; // Tùy chọn
+  Staff_ID: string;
+  Updated_At: string;
 }
 export class SlotFactory {
   static createDetailSlot(data: Slot, isCSV: boolean = false): slotDTO {

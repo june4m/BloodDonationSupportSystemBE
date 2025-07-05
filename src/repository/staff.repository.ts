@@ -1,5 +1,6 @@
+
 import { PotentialDonor } from "~/models/schemas/potentialDonor.schema";
-import { EmergencyRequestReqBody } from "~/models/schemas/slot.schema";
+import { EmergencyRequestReqBody, UpdateEmergencyRequestReqBody } from "~/models/schemas/slot.schema";
 
 import { User } from "~/models/schemas/user.schema";
 import databaseServices from "~/services/database.services";
@@ -147,5 +148,27 @@ export class StaffRepository {
             throw error;
         }
     }
+    public async updateEmergencyRequest(data: UpdateEmergencyRequestReqBody): Promise<any> {
+        try {
+            const query = `
+                UPDATE EmergencyRequest
+                SET Priority = ?, Status = ?, Potential_ID = ?, Appointment_ID = ?, Staff_ID = ?, Updated_At = ?
+                WHERE Emergency_ID = ?
+            `;
+            await databaseServices.query(query, [
+                data.Priority,
+                data.Status,
+                data.Potential_ID,
+                data.Appointment_ID,
+                data.Staff_ID,
+                data.Updated_At,
+                data.Emergency_ID,
+            ]);
     
+            return { success: true, message: 'Emergency request updated successfully' };
+        } catch (error) {
+            console.error('Error in updateEmergencyRequest:', error);
+            throw error;
+        }
+    }
 }

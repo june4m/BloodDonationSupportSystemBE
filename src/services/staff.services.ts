@@ -2,7 +2,7 @@
 import { log } from 'console';
 import { promises } from 'dns';
 import { body } from 'express-validator';
-import { EmergencyRequestReqBody } from '~/models/schemas/slot.schema';
+import { EmergencyRequestReqBody, UpdateEmergencyRequestReqBody } from '~/models/schemas/slot.schema';
 
 import { StaffRepository } from "~/repository/staff.repository"
 
@@ -82,5 +82,14 @@ export class staffServices{
           throw error;
       }
     }
+    public async updateEmergencyRequest(data: UpdateEmergencyRequestReqBody): Promise<any> {
+      try {
+          const updatedRequest = await this.staffRepository.updateEmergencyRequest(data);
+          return updatedRequest;
+      } catch (error) {
+          console.error('Error in updateEmergencyRequest:', error);
+          throw error;
+      }
+    } 
     
 }
