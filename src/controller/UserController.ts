@@ -20,7 +20,7 @@ class UserController {
     this.logout = this.logout.bind(this);
     this.editProfile = this.editProfile.bind(this);
     this.getMe = this.getMe.bind(this);
-
+    this.getBloodTypes = this.getBloodTypes.bind(this);
   }
   public async login(req: Request<{},{},LoginReqBody>, res: Response): Promise<any> {
     console.log('Call Login')
@@ -69,6 +69,7 @@ class UserController {
       const maxAge = typeof expiresIn === 'string' ? ms(expiresIn) : 900000
       res.cookie('token', token, { httpOnly: true, maxAge }) //, secure: false, sameSite: 'lax'
       return ResponseHandle.responseSuccess(res, {
+        token,
         user_id: result.data?.user_id,
         user_name: result.data?.user_name,
         user_role: result.data?.user_role
@@ -84,9 +85,9 @@ class UserController {
     res: Response
   ): Promise<void> {
     try {
-      const {email, password, confirm_password, name, date_of_birth } = req.body;
-      if (!email || !password || !confirm_password|| !name ||!date_of_birth) {
-        ResponseHandle.responseError(res, null, 'Email and password are required', 400);
+      const {email, password, confirm_password, name, date_of_birth, phone } = req.body;
+      if (!email || !password || !confirm_password|| !name ||!date_of_birth || !phone) {
+        ResponseHandle.responseError(res, null, 'Missing required fields', 400);
         return
       }
       if (password !== confirm_password) {  
@@ -98,8 +99,10 @@ class UserController {
         email,
         password: hashedPassword,
         name,
-        date_of_birth });
-       ResponseHandle.responseSuccess(res, result, 'Registration successful', 201);
+        date_of_birth,
+        phone
+      });
+      ResponseHandle.responseSuccess(res, result, 'Registration successful', 201);
     } catch (error) {
       console.error('Register error:', error);
        ResponseHandle.responseError(res, error, 'Registration failed', 500);
@@ -116,20 +119,22 @@ class UserController {
   }
   public async editProfile(req: Request, res: Response): Promise<any> { 
     try {
-      const userId = req.user?.user_id;
+      const userId = req.user?.user_id || req.body.user_id;
       if (!userId) {
         return ResponseHandle.responseError(res, null, 'Unauthorized', 401);
       }
-      const { phone, user_name } = req.body;
+      const { user_name, yob, address, phone, gender, bloodtype_id } = req.body;
       const updates: Partial<User> = {};
-      if (phone) updates.phone = phone;
       if (user_name) updates.user_name = user_name;
-
+      if (yob) updates.yob = yob;
+      if (address) updates.address = address;
+      if (phone) updates.phone = phone;
+      if (gender) updates.gender = gender;
+      if (bloodtype_id) updates.bloodtype_id = bloodtype_id;
       if (Object.keys(updates).length === 0) {
         return ResponseHandle.responseError(res, null, 'No fields to update', 400);
       }
-
-      const updatedUser = await this.userService.updateBloodType(userId, updates.bloodtype_id || ''); // Sửa lại logic
+      const updatedUser = await this.userService.updateUser(userId, updates);
       return ResponseHandle.responseSuccess(res, updatedUser, 'Profile updated', 200);
     } catch (error) {
       console.error('Edit profile error:', error);
@@ -171,7 +176,14 @@ class UserController {
       return ResponseHandle.responseError(res, error, 'Failed to retrieve user information', 500);
     }
   }
-  
+  public async getBloodTypes(req: Request, res: Response): Promise<any> {
+    try {
+      const bloodTypes = await this.userService.getAllBloodTypes();
+      return ResponseHandle.responseSuccess(res, bloodTypes, 'Blood types fetched', 200);
+    } catch (error) {
+      return ResponseHandle.responseError(res, error, 'Failed to fetch blood types', 500);
+    }
+  }
 }
 
 export default UserController

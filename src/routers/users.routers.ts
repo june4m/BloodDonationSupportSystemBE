@@ -1,14 +1,15 @@
-
 import { Router } from 'express'
 import SlotController from '~/controller/SlotController'
 import UserController from '~/controller/UserController'
 import { verifyToken } from '~/midleware/auth.midleware'
 import { authorize } from '~/midleware/authorization.midleware'
 import { body } from 'express-validator'
+import AppointmentController from '~/controller/AppointmentControler'
+// const appointmentController = new AppointmentController()
+
 const router = Router()
 const userController = new UserController()
 const slotController = new SlotController()
-// const appointmentController = new AppointmentController()
 
 router.post('/signup', userController.register)
 router.post('/login',
@@ -41,5 +42,13 @@ router.post('/createSlot',
     authorize(['admin']),
     slotController.createSlot)
 
+router.post('/appointments/confirm', AppointmentController.confirmAppointment)
+router.get('/appointments/history', verifyToken, AppointmentController.getHistory)
+router.get('/appointments/list', AppointmentController.getAllAppointments)
+router.get('/getAllAppointments', AppointmentController.getAllAppointments)
+
+router.post('/updateUser', verifyToken, userController.editProfile)
+
+router.get('/bloodtypes', userController.getBloodTypes)
 
 export default router

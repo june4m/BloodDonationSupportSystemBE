@@ -33,34 +33,37 @@ class DatabaseServices {
     return DatabaseServices.instance
   }
 
-    public async query(queryText: string, params?: any[]): Promise<any> {
-      const request = this.pool.request()
+  public async query(queryText: string, params?: any[]): Promise<any> {
+    const request = this.pool.request()
 
-      if (params && params.length > 0) {
-        // Tự động gán input như @param1, @param2...
-        params.forEach((value, index) => {
-          request.input(`param${index + 1}`, value)
-        })
+    if (params && params.length > 0) {
+      // Tự động gán input như @param1, @param2...
+      params.forEach((value, index) => {
+        request.input(`param${index + 1}`, value)
+      })
 
-        // Thay ? bằng @param1, @param2...
-        let count = 0
-        queryText = queryText.replace(/\?/g, () => `@param${++count}`)
-      }
-
-      const result = await request.query(queryText)
-      return result.recordset
+      // Thay ? bằng @param1, @param2...
+      let count = 0
+      queryText = queryText.replace(/\?/g, () => `@param${++count}`)
     }
-    public async queryParam(queryText: string, params?: any[]): Promise<any> {
-      const request = this.pool.request()
 
-      if (params && params.length > 0) {
-        params.forEach((value, index) => {
-          request.input(`param${index + 1}`, value)
-        })
+    const result = await request.query(queryText)
+    return result.recordset
+  }
 
-        let count = 0
-        queryText = queryText.replace(/\?/g, () => `@param${++count}`)
-      }
+  public async queryParam(queryText: string, params?: any[]): Promise<any> {
+    const request = this.pool.request()
+
+    if (params && params.length > 0) {
+      // Tự động gán input như @param1, @param2...
+      params.forEach((value, index) => {
+        request.input(`param${index + 1}`, value)
+      })
+
+      // Thay ? bằng @param1, @param2...
+      let count = 0
+      queryText = queryText.replace(/\?/g, () => `@param${++count}`)
+    }
 
     const result = await request.query(queryText)
     return result // trả về toàn bộ result, không chỉ recordset

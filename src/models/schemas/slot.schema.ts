@@ -39,6 +39,7 @@ export interface Appointment {
   Slot_ID: string;
   Volume?: number;
   Status?: 'A' | 'C'; // P: Pending, C: Completed
+  Health_Declaration?: any;
 }
 
 export class SlotFactory {
@@ -51,8 +52,24 @@ export class SlotFactory {
 
     const formatTime = (timeStr?: string | null): string | null => {
       if (!timeStr) return null;
-      const time = new Date(`1970-01-01T${timeStr}Z`);
-      return isNaN(time.getTime()) ? null : time.toISOString().slice(11, 19);
+      // Nếu timeStr đã là định dạng TIME (HH:mm:ss), trả về trực tiếp
+      if (typeof timeStr === 'string' && /^\d{2}:\d{2}:\d{2}$/.test(timeStr)) {
+        return timeStr;
+      }
+      // Nếu là Date object hoặc string có thể parse thành Date
+      try {
+        const time = new Date(timeStr);
+        if (isNaN(time.getTime())) {
+          return null;
+        }
+        // Lấy giờ/phút/giây theo local (giờ gốc lưu trong DB)
+        const h = String(time.getHours()).padStart(2, '0');
+        const m = String(time.getMinutes()).padStart(2, '0');
+        const s = String(time.getSeconds()).padStart(2, '0');
+        return `${h}:${m}:${s}`;
+      } catch (error) {
+        return null;
+      }
     };
 
     return {

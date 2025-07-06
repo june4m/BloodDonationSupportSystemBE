@@ -1,4 +1,3 @@
-
 import { body } from 'express-validator';
 
 import Database from '../services/database.services'
@@ -19,7 +18,12 @@ export class UserRepository {
         Email     AS email,
         Password  AS password,
         User_Name AS user_name,
-        User_Role AS user_role
+        User_Role AS user_role,
+        YOB       AS yob,
+        Address   AS address,
+        Phone     AS phone,
+        Gender    AS gender,
+        BloodType_ID AS bloodtype_id
       FROM Users
       WHERE LOWER(Email) = LOWER(?)
       `,
@@ -35,7 +39,12 @@ export class UserRepository {
         Email     AS email,
         Password  AS password,
         User_Name AS user_name,
-        User_Role AS user_role
+        User_Role AS user_role,
+        YOB       AS yob,
+        Address   AS address,
+        Phone     AS phone,
+        Gender    AS gender,
+        BloodType_ID AS bloodtype_id
       FROM Users
       WHERE User_ID = ?
       `,
@@ -62,19 +71,64 @@ export class UserRepository {
       const allowedUpdates: Partial<User> = {};
       if (updates.phone !== undefined) allowedUpdates.phone = updates.phone;
       if (updates.user_name !== undefined) allowedUpdates.user_name = updates.user_name;
+      if (updates.yob !== undefined) allowedUpdates.yob = updates.yob;
+      if (updates.address !== undefined) allowedUpdates.address = updates.address;
+      if (updates.gender !== undefined) allowedUpdates.gender = updates.gender;
+      if (updates.bloodtype_id !== undefined) allowedUpdates.bloodtype_id = updates.bloodtype_id;
+
+      console.log('[DEBUG][updateUser] userId:', userId);
+      console.log('[DEBUG][updateUser] allowedUpdates:', allowedUpdates);
 
       if (Object.keys(allowedUpdates).length === 0) {
+        console.error('[DEBUG][updateUser] No valid fields to update');
         throw new Error('No valid fields to update');
       }
-      const query = `UPDATE Users SET ? WHERE User_ID = ?`;
-      const result = await Database.query(query, [allowedUpdates, userId]);
-      if(result.affectedRows === 0){
-        throw new Error('No user found or update failed');
+
+      // Xây dựng truy vấn UPDATE động
+      const updateFields: string[] = [];
+      const params: any[] = [];
+      if (allowedUpdates.phone !== undefined) {
+        updateFields.push('Phone = ?');
+        params.push(allowedUpdates.phone);
+      }
+      if (allowedUpdates.user_name !== undefined) {
+        updateFields.push('User_Name = ?');
+        params.push(allowedUpdates.user_name);
+      }
+      if (allowedUpdates.yob !== undefined) {
+        updateFields.push('YOB = ?');
+        params.push(allowedUpdates.yob);
+      }
+      if (allowedUpdates.address !== undefined) {
+        updateFields.push('Address = ?');
+        params.push(allowedUpdates.address);
+      }
+      if (allowedUpdates.gender !== undefined) {
+        updateFields.push('Gender = ?');
+        params.push(allowedUpdates.gender);
+      }
+      if (allowedUpdates.bloodtype_id !== undefined) {
+        updateFields.push('BloodType_ID = ?');
+        params.push(allowedUpdates.bloodtype_id);
+      }
+      params.push(userId); // cho WHERE clause
+      const query = `UPDATE Users SET ${updateFields.join(', ')} WHERE User_ID = ?`;
+      console.log('[DEBUG][updateUser] SQL:', query);
+      console.log('[DEBUG][updateUser] params:', params);
+      const result = await Database.query(query, params);
+      if (result && typeof result === 'object') {
+        if (Array.isArray(result.rowsAffected) && result.rowsAffected[0] === 0) {
+          console.error('[DEBUG][updateUser] No user found or update failed (rowsAffected=0)');
+          throw new Error('No user found or update failed');
+        }
+        if (typeof result.affectedRows === 'number' && result.affectedRows === 0) {
+          console.error('[DEBUG][updateUser] No user found or update failed');
+          throw new Error('No user found or update failed');
+        }
       }
       const updatedUser = await this.findById(userId);
-      if(!updatedUser) throw new Error('Update faileed to retrieve user');
+      if(!updatedUser) throw new Error('Update failed to retrieve user');
       return updatedUser
-      
     } catch (error) {
       console.error('Error in update:', error);
       throw error;
@@ -83,12 +137,16 @@ export class UserRepository {
 
   async updateBloodType(userId: string, bloodType: string): Promise<User> {
     try {
-      const query = `UPDATE Users SET Blood_Type = ? WHERE User_ID = ?`;
+      const query = `UPDATE Users SET BloodType_ID = ? WHERE User_ID = ?`;
       const result = await Database.query(query, [bloodType, userId]);
-      if (result.affectedRows === 0) {
-        throw new Error('No user found or update failed');
+      if (result && typeof result === 'object') {
+        if (Array.isArray(result.rowsAffected) && result.rowsAffected[0] === 0) {
+          throw new Error('No user found or update failed');
+        }
+        if (typeof result.affectedRows === 'number' && result.affectedRows === 0) {
+          throw new Error('No user found or update failed');
+        }
       }
-
       const updatedUser = await this.findById(userId);
       if (!updatedUser) throw new Error('Update failed to retrieve user');
       return updatedUser;
@@ -97,8 +155,8 @@ export class UserRepository {
       throw error;
     }
   }
-  async createAccount(body: Pick<RegisterReqBody,'email' | 'password' | 'name' | 'date_of_birth'>): Promise<User>{
-    const { email, password, name, date_of_birth} = body
+  async createAccount(body: Pick<RegisterReqBody,'email' | 'password' | 'name' | 'date_of_birth' | 'phone'>): Promise<User>{
+    const { email, password, name, date_of_birth, phone } = body
     const lastRow = await databaseServices.query(
       `SELECT TOP 1 User_ID FROM Users
       ORDER BY CAST (SUBSTRING(User_ID,2,LEN(User_ID) - 1) AS INT) DESC`
@@ -111,20 +169,27 @@ export class UserRepository {
     }
     const sql = `
       INSERT INTO Users
-        (User_ID, User_Name, YOB, Email, Password, User_Role)
-      VALUES (@param1, @param2, @param3, @param4, @param5, 'member')
+        (User_ID, User_Name, YOB, Email, Password, Phone, User_Role)
+      VALUES (?, ?, ?, ?, ?, ?, 'member')
       `
     await databaseServices.queryParam(sql,[
       newId,
       name,
       date_of_birth,
       email,
-      password
+      password,
+      phone
     ])
     const created = await databaseServices.query(
-      `SELECT * FROM Users WHERE User_ID = @param1`,
+      `SELECT * FROM Users WHERE User_ID = ?`,
       [newId]
     )
     return created[0]
+  }
+  async getAllBloodTypes() {
+    const rows = await databaseServices.query(
+      `SELECT BloodType_ID, Blood_group, RHFactor FROM BloodType`
+    );
+    return rows;
   }
 }

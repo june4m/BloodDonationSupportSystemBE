@@ -35,7 +35,7 @@ export class UserService {
       const stored = user.password!
       let isPasswordValid = false
     
-      // Nếu stored là hash (bcrypt thường bắt đầu bằng “$2b$”)
+      // Nếu stored là hash (bcrypt thường bắt đầu bằng "2b$")
       if (stored.startsWith('$2')) {
         isPasswordValid = await bcrypt.compare(credentials.password, stored)
       } else {
@@ -107,30 +107,43 @@ export class UserService {
     }
   }
   public async register(
-    body: Pick<RegisterReqBody, 'email' | 'password' | 'name' | 'date_of_birth'>
+    body: Pick<RegisterReqBody, 'email' | 'password' | 'name' | 'date_of_birth' | 'phone'>
   ): Promise<User> {
-    const { email, password, name, date_of_birth } = body
-    
-    if (!(email && password && name && date_of_birth)) {
+    const { email, password, name, date_of_birth, phone } = body
+    if (!(email && password && name && date_of_birth && phone)) {
       throw new Error(USERS_MESSAGES.VALIDATION_ERROR)
     }
-   
     const existing = await this.findUserLogin(email.toLowerCase())
-
     if (existing) {
       throw new Error(USERS_MESSAGES.EMAIL_HAS_BEEN_USED)
     }
-    
     const newUser = await this.userRepository.createAccount({
       email,
       password,
       name,
-      date_of_birth
+      date_of_birth,
+      phone
     })
     return newUser
   }
 
   public async findById(userId: string): Promise<User | null> {
     return await this.userRepository.findById(userId);
+  }
+
+  public async updateUser(userId: string, updates: Partial<User>): Promise<User> {
+    // Chỉ lấy các trường hợp lệ
+    const allowed: Partial<User> = {};
+    if (updates.user_name !== undefined) allowed.user_name = updates.user_name;
+    if (updates.yob !== undefined) allowed.yob = updates.yob;
+    if (updates.address !== undefined) allowed.address = updates.address;
+    if (updates.phone !== undefined) allowed.phone = updates.phone;
+    if (updates.gender !== undefined) allowed.gender = updates.gender;
+    if (updates.bloodtype_id !== undefined) allowed.bloodtype_id = updates.bloodtype_id;
+    return this.userRepository.update(userId, allowed);
+  }
+
+  public async getAllBloodTypes() {
+    return this.userRepository.getAllBloodTypes();
   }
 }

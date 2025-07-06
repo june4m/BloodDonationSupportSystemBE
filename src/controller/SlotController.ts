@@ -16,6 +16,7 @@ class SlotController {
   public async createSlot(req: Request, res: Response): Promise<void> {
     try {
       const slotData = req.body
+      console.log('[DEBUG][BE] Body nhận từ FE khi tạo ca:', slotData)
       const result = await this.slotService.createSlot(slotData)
       ResponseHandle.responseSuccess(res, result, 'Slot created successfully', 200)
     } catch (err: any) {
@@ -28,6 +29,7 @@ class SlotController {
     try {
       const status = 'A'
       const result = await this.slotService.getSlot(status)
+      console.log('[DEBUG][BE] Dữ liệu trả về FE getSlotList:', result)
       ResponseHandle.responseSuccess(res, result, 'Slots fetched successfully', 200)
     } catch (err: any) {
       ResponseHandle.responseError(res, err, err.message || 'Failed to fetch slots', 400)
@@ -38,11 +40,13 @@ class SlotController {
     try {
       const slotId = req.body.Slot_ID
       const userId = req.body.User_ID
+      const healthDeclaration = req.body.Health_Declaration
       // Thêm Appointment_ID rỗng để khớp kiểu
       const appointment = {
         Appointment_ID: '',
         Slot_ID: slotId,
-        User_ID: userId
+        User_ID: userId,
+        Health_Declaration: healthDeclaration
       }
       const result = await this.slotService.registerBloodDonation(appointment)
       ResponseHandle.responseSuccess(res, result, 'Registered successfully', 200)
