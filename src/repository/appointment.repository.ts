@@ -93,18 +93,18 @@ export class AppointmentRepository {
       if (typeof Start_Time === 'string') {
         timeStr = Start_Time.substring(0, 8)
       } else if (Start_Time instanceof Date) {
-        timeStr = Start_Time.toTimeString().substring(0, 8)
+        timeStr = Start_Time.toISOString().substring(11, 19) // Lấy đúng giờ, phút, giây
       } else {
         timeStr = '00:00:00'
       }
-      const historyText = `Donated ${Volume}ml on ${dateStr} at ${timeStr}\n`
+      const historyText = `Đã hiến ${Volume}ml vào ngày ${dateStr} lúc ${timeStr} | `
 
       //lấy history hiện tại
       const getHistoryQuery = `SELECT History FROM Users WHERE User_ID = ?`
       const historyResult = await databaseServices.query(getHistoryQuery, [User_ID])
       const currentHistory = historyResult[0]?.History || ''
 
-      //cập nhật lại History
+      //nối history mới vào
       const newHistory = currentHistory + historyText
       const updateHistoryQuery = `UPDATE Users SET History = ? WHERE User_ID = ?`
       await databaseServices.query(updateHistoryQuery, [newHistory, User_ID])

@@ -74,6 +74,25 @@ export class SlotService {
     if (!user) {
       throw new Error('User not found')
     }
+
+    console.log('UserID param:', data.User_ID)
+    const lastDonation = await this.slotRepository.getLastDonationByUserId(data.User_ID)
+    console.log('lastDonation:', lastDonation)
+    if (lastDonation) {
+      const lastDate = new Date(lastDonation.donation_date)
+      const today = new Date()
+      const diffMonths = (today.getFullYear() - lastDate.getFullYear()) * 12 + (today.getMonth() - lastDate.getMonth())
+
+      if (diffMonths < 3) {
+        const nextDonationDate = new Date(lastDate)
+        nextDonationDate.setMonth(nextDonationDate.getMonth() + 3)
+        throw new Error(
+          `Bạn chỉ có thể hiến máu một lần trong 3 tháng. ` +
+            `Lần hiến máu gần nhất của bạn là vào ngày ${lastDate.toISOString().split('T')[0]}. ` +
+            `Bạn có thể hiến máu lại vào ngày ${nextDonationDate.toISOString().split('T')[0]}.`
+        )
+      }
+    }
     return this.slotRepository.registerSlot(data)
   }
 }

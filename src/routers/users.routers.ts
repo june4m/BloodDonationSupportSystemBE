@@ -41,8 +41,19 @@ router.post('/addMemberToPotentialList', verifyToken, authorize(['staff']), staf
 router.post(
   '/appointment/:appointmentId/addVolume',
   verifyToken,
-  authorize(['Staff']),
+  authorize(['staff']),
   appointmentController.updateVolume
 )
-router.get('/appointment', verifyToken, authorize(['Staff']), appointmentController.getAppointmentList)
+
+router.get('/appointment', verifyToken, authorize(['staff']), appointmentController.getAppointmentList)
+
+router.put('/profile/:userId', verifyToken, authorize(['member']), userController.updateProfile)
+
+router.put(
+  '/users/:userId/confirmBloodTypeByStaff',
+  verifyToken,
+  authorize(['staff']),
+  userController.confirmBloodByStaff
+)
+
 export default router

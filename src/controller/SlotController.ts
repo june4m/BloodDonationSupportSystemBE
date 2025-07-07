@@ -22,7 +22,12 @@ class SlotController {
         slotData.End_Time
       )
       if (isSlotExist) {
-        ResponseHandle.responseError(res, null, 'Slot already exists at the specified time', 400)
+        ResponseHandle.responseError(
+          res,
+          null,
+          'Slot đã tồn tại tại thời điểm chỉ định. Hãy chọn mốc thời gian khác!',
+          400
+        )
         return
       }
 
