@@ -187,7 +187,7 @@ class UserController {
 
   async updateProfile(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.params.userId
+      const userId = req.user.user_id
       const { User_Name, YOB, Phone, Gender } = req.body
 
       const result = await this.userService.updateProfile(userId, { User_Name, YOB, Phone, Gender })

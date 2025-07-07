@@ -23,7 +23,7 @@ router.get('/getMe', verifyToken, userController.getMe)
 router.get('/getSlotList', slotController.getSlotList)
 
 //member đăng kí slot
-router.post('/registerSlot', slotController.registerDonationBlood)
+router.post('/registerSlot', verifyToken, authorize(['member']), slotController.registerDonationBlood)
 
 // router.post('/getAppointmentList',
 //      authorize (['staff']),
@@ -47,7 +47,7 @@ router.post(
 
 router.get('/appointment', verifyToken, authorize(['staff']), appointmentController.getAppointmentList)
 
-router.put('/profile/:userId', verifyToken, authorize(['member']), userController.updateProfile)
+router.put('/profile', verifyToken, authorize(['member']), userController.updateProfile)
 
 router.put(
   '/users/:userId/confirmBloodTypeByStaff',

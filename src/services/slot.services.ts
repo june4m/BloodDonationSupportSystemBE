@@ -71,6 +71,7 @@ export class SlotService {
       throw new Error('Slot_ID and User_ID are required')
     }
     const user = await this.userRepository.findById(data.User_ID)
+    console.log('Received data in Service:', data)
     if (!user) {
       throw new Error('User not found')
     }
