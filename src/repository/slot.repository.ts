@@ -23,12 +23,7 @@ export class SlotRepository {
       const { ...fields } = slotData
       const insertQuery = `INSERT INTO Slot( Slot_ID, Slot_Date,Start_Time, Volume, Max_Volume,End_Time, Status, Admin_ID
                 ) Values(?,?,?,'0','200',?,'A','U001')`
-      const params = [
-        newSlotId,
-        fields.Slot_Date,
-        fields.Start_Time,
-        fields.End_Time,
-      ]
+      const params = [newSlotId, fields.Slot_Date, fields.Start_Time, fields.End_Time]
       const result = await Database.queryParam(insertQuery, params)
       console.log('Repository', result)
 
@@ -94,5 +89,23 @@ export class SlotRepository {
     } catch (error) {
       throw error
     }
+  }
+
+  async getLastDonationByUserId(userId: string): Promise<{ donation_date: string } | null> {
+    const query = `
+    SELECT TOP 1
+      AG.Appointment_ID,
+      S.Slot_Date AS donation_date
+    FROM AppointmentGiving AG
+    JOIN Slot S ON AG.Slot_ID = S.Slot_ID
+    WHERE AG.User_ID = ?
+    
+    ORDER BY S.Slot_Date DESC
+    `
+    //--AND AG.Status = 'C'
+    console.log('Query UserID:', userId)
+    const result = await Database.queryParam(query, [userId])
+    console.log('Query Result:', result)
+    return result.recordset[0] ?? null
   }
 }

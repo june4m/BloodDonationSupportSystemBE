@@ -20,6 +20,8 @@ class UserController {
     this.logout = this.logout.bind(this)
     this.editProfile = this.editProfile.bind(this)
     this.getMe = this.getMe.bind(this)
+    this.updateProfile = this.updateProfile.bind(this)
+    this.confirmBloodByStaff = this.confirmBloodByStaff.bind(this)
   }
   public async login(req: Request<{}, {}, LoginReqBody>, res: Response): Promise<any> {
     console.log('Call Login')
@@ -180,6 +182,31 @@ class UserController {
     } catch (error) {
       console.error('GetMe error:', error)
       return ResponseHandle.responseError(res, error, 'Failed to retrieve user information', 500)
+    }
+  }
+
+  async updateProfile(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.user.user_id
+      const { User_Name, YOB, Phone, Gender } = req.body
+
+      const result = await this.userService.updateProfile(userId, { User_Name, YOB, Phone, Gender })
+
+      ResponseHandle.responseSuccess(res, result, 'Profile updated successfully', 200)
+    } catch (error: any) {
+      ResponseHandle.responseError(res, error, error.message || 'Failed to update profile', 400)
+    }
+  }
+
+  async confirmBloodByStaff(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.params.userId
+      const { bloodType } = req.body
+
+      const result = await this.userService.confirmBloodByStaff(userId, bloodType)
+      ResponseHandle.responseSuccess(res, result, 'Blood type confirmed successfully', 200)
+    } catch (error: any) {
+      ResponseHandle.responseError(res, error, error.message || 'Failed to confirm blood type', 400)
     }
   }
 }
