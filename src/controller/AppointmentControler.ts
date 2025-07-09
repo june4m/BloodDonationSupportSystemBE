@@ -1,11 +1,11 @@
-import { appointmentServices } from '~/services/appointment.services'
 import { Request, Response } from 'express'
+import { AppointmentServices } from '~/services/appointment.services'
 import { ResponseHandle } from '~/utils/Response'
 
 class AppointmentController {
-  private appointmentService: appointmentServices
+  private appointmentService: AppointmentServices
   constructor() {
-    this.appointmentService = new appointmentServices()
+    this.appointmentService = new AppointmentServices()
     this.getAppointmentById = this.getAppointmentById.bind(this)
     this.updateVolume = this.updateVolume.bind(this)
     this.getAppointmentList = this.getAppointmentList.bind(this)

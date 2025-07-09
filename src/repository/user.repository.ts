@@ -37,23 +37,23 @@ export class UserRepository {
         U.User_Name       AS user_name,
         U.User_Role       AS user_role,
         U.Phone           AS phone,
+        U.Gender          AS gender,
         U.Address         AS address,
         CONVERT(VARCHAR(10), U.YOB, 23) AS date_of_birth,
         U.BloodType_ID    AS bloodtype_id,
         B.Blood_group     AS blood_group,
-        (
-          SELECT STRING_AGG(bg, ', ')
-          FROM (
+        (SELECT STRING_AGG(bg, ', ')
+		      FROM (
             SELECT DISTINCT BT2.Blood_group AS bg
             FROM   BloodCompatibility BC
             JOIN   BloodType BT2 ON BC.Receiver_Blood_ID = BT2.BloodType_ID
             WHERE  BC.Component_ID   = 'CP001'
-              AND  BC.Is_Compatible  = 1
-              AND  BC.Donor_Blood_ID = U.BloodType_ID
+            AND  BC.Is_Compatible  = 1
+            AND  BC.Donor_Blood_ID = U.BloodType_ID
           ) AS distinct_groups
-        ) AS rbc_compatible_to
+	      ) AS rbc_compatible_to
       FROM Users U
-      JOIN BloodType B ON U.BloodType_ID = B.BloodType_ID
+      LEFT JOIN BloodType B ON U.BloodType_ID = B.BloodType_ID 
       WHERE U.User_ID = ?;
       `,
       [userId]
@@ -114,6 +114,7 @@ export class UserRepository {
       throw error
     }
   }
+
   async createAccount(body: Pick<RegisterReqBody, 'email' | 'password' | 'name' | 'date_of_birth'>): Promise<User> {
     const { email, password, name, date_of_birth } = body
     const lastRow = await databaseServices.query(

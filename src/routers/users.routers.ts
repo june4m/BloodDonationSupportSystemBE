@@ -6,14 +6,21 @@ import { authorize } from '~/midleware/authorization.midleware'
 import { body } from 'express-validator'
 import AppointmentController from '~/controller/AppointmentControler'
 import StaffController from '~/controller/StaffController'
+import AdminController from '~/controller/AdminController'
+import { PatientController } from '~/controller/PatientController'
 const router = Router()
 const userController = new UserController()
 const slotController = new SlotController()
 const appointmentController = new AppointmentController()
 const staffController = new StaffController()
+const adminController = new AdminController()
+const patientController = new PatientController()
 // const appointmentController = new AppointmentController()
 
+router.post('/signup/staff', verifyToken, authorize(['admin']), adminController.signupStaffAccount)
+
 router.post('/signup', userController.register)
+
 router.post('/login', userController.login)
 
 router.post('/logout', verifyToken, userController.logout)
@@ -55,5 +62,11 @@ router.put(
   authorize(['staff']),
   userController.confirmBloodByStaff
 )
+
+router.put('/profile/updateRole/:userId', verifyToken, authorize(['admin']), adminController.updateUserRole)
+
+router.post('/patientDetail', verifyToken, authorize(['staff']), patientController.addPatientDetail)
+
+router.post('/patientDetail/:appointmentId', verifyToken, authorize(['staff']), patientController.addPatientDetail)
 
 export default router

@@ -109,6 +109,7 @@ class UserController {
       ResponseHandle.responseError(res, error, 'Registration failed', 500)
     }
   }
+
   public async logout(req: Request, res: Response): Promise<any> {
     try {
       res.clearCookie('token', { httpOnly: true })

@@ -1,8 +1,8 @@
 import { Appointment } from '~/models/schemas/appointment.schema'
 import { AppointmentRepository } from './../repository/appointment.repository'
 
-export class appointmentServices {
-  private appointmentRepository: AppointmentRepository
+export class AppointmentServices {
+  public appointmentRepository: AppointmentRepository
   constructor() {
     this.appointmentRepository = new AppointmentRepository()
   }

@@ -39,6 +39,28 @@ export class SlotService {
     }
   }
 
+  async getSlotById(slotId: string): Promise<slotDTO[]> {
+    console.log('Slot Service, getSlot')
+
+    const today = new Date()
+    const formatTodayDate = today.toISOString().split('T')[0]
+    console.log('Today:', formatTodayDate)
+
+    try {
+      // Lấy dữ liệu thô từ repo (mảng)
+      const rawResult = await this.slotRepository.getSlot(slotId, formatTodayDate)
+      console.log('Raw Result:', rawResult)
+
+      // Map từng phần tử qua factory để format dữ liệu
+      const formattedResult = rawResult.map((item: any) => SlotFactory.createDetailSlot(item))
+      console.log('Formatted Result:', formattedResult)
+
+      return formattedResult
+    } catch (error) {
+      throw error
+    }
+  }
+
   async checkSlotExist(slotDate: string, startTime: string, endTime: string): Promise<boolean> {
     console.log('Checking for duplicate slot...')
 

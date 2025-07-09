@@ -3,7 +3,7 @@ export interface Appointment {
   Slot_ID: string
   User_ID: string
   Volume?: number
-  Status?: 'A' | 'C'
+  Status?: 'Pending' | 'Processing' | 'Completed' | 'Canceled'
 }
 
 export interface UpdateVolumePayload {

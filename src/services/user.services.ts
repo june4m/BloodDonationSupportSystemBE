@@ -89,6 +89,7 @@ export class UserService {
     }
     return null
   }
+
   async checkEmailExists(email: string) {
     const users = await this.userRepository.findByEmail(email)
     return Array.isArray(users) && users.length > 0
@@ -107,6 +108,7 @@ export class UserService {
       throw error
     }
   }
+
   public async register(body: Pick<RegisterReqBody, 'email' | 'password' | 'name' | 'date_of_birth'>): Promise<User> {
     const { email, password, name, date_of_birth } = body
 
@@ -160,10 +162,17 @@ export class UserService {
     }
 
     // Tách nhóm máu và RhFactor
-    const bloodGroup = bloodTypeInput.slice(0, -1).trim() // A, B, AB, O
-    const rhFactor = bloodTypeInput.slice(-1) // + hoặc -
+    const bloodTypeInputClean = bloodTypeInput.replace(/\s+/g, '').toUpperCase()
+    const bloodGroup = bloodTypeInputClean.slice(0, -1)
+    const rhFactor = bloodTypeInputClean.slice(-1)
     console.log('bloodGroup: ', bloodGroup)
     console.log('rhFactor: ', rhFactor)
+
+    const validGroups = new Set(['A', 'B', 'AB', 'O'])
+    const validRh = new Set(['+', '-'])
+    if (!validGroups.has(bloodGroup) || !validRh.has(rhFactor)) {
+      throw new Error('Nhóm máu nhập vào không hợp lệ!')
+    }
 
     const bloodType = await this.userRepository.findBloodTypeByGroupAndRh(bloodGroup, rhFactor)
     if (!bloodType) {
