@@ -129,7 +129,7 @@ export class AppointmentRepository {
   public async getAppointmentById(appointmentId: string): Promise<any | null> {
     console.log('getAppointmentById Appointment Repo')
     const query = `
-    SELECT User_ID, Slot_ID
+    SELECT User_ID, Slot_ID, Status
     FROM AppointmentGiving
     WHERE Appointment_ID = ?
     `

@@ -18,12 +18,16 @@ export class PatientController {
       console.log('appointmentId: ', appointmentId)
 
       if (!appointmentId || !description || !status) {
-        console.log('Dô lỗi')
         ResponseHandle.responseError(res, null, 'All fields are required', 400)
         return
       }
 
       const result = await this.patientDetailService.addPatientDetail(appointmentId, description, status)
+
+      if (!result.success) {
+        ResponseHandle.responseError(res, null, result.message, 400)
+        return
+      }
       ResponseHandle.responseSuccess(res, result, 'Patient detail added successfully', 201)
     } catch (error) {
       console.error('Error adding patient detail: ', error)
