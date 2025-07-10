@@ -211,6 +211,7 @@ export class AppointmentRepository {
       FROM AppointmentGiving ag
       JOIN Slot s ON ag.Slot_ID = s.Slot_ID
       WHERE ag.User_ID = ?
+      ORDER BY s.Slot_Date DESC
     `
     const result = await databaseServices.queryParam(query, [appointmentId])
     console.log('result: ', result)
