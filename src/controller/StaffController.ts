@@ -16,6 +16,7 @@ class StaffController{
         this.createEmergencyRequest = this.createEmergencyRequest.bind(this);
         this.getAllEmergencyRequests = this.getAllEmergencyRequests.bind(this);
         this.handleEmergencyRequest = this.handleEmergencyRequest.bind(this);
+        this.getBloodBank = this.getBloodBank.bind(this);
     }
     public async getPotentialList(req: any, res: any): Promise<void> {
         try{
@@ -188,6 +189,23 @@ class StaffController{
                 success: false,
                 message: 'Failed to handle emergency request',
                 error: error.message || 'Internal server error',
+            });
+        }
+    }
+    public async getBloodBank(req: any, res: any): Promise<void> {
+        try {
+            const bloodBank = await this.staffServices.getBloodBank();
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                data: bloodBank,
+                message: 'Blood bank retrieved successfully'
+            });
+        } catch (error: any) {
+            console.error('Error in getBloodBank:', error);
+            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: 'Failed to retrieve blood bank',
+                error: error.message || 'Internal Server Error'
             });
         }
     }

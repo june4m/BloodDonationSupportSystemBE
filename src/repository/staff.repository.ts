@@ -171,4 +171,23 @@ export class StaffRepository {
             throw error;
         }
     }
+    public async getBloodBank(): Promise<any[]> {
+        try {
+            const query = `SELECT BloodBank_ID, BloodUnit_ID, Volume,Storage_Date, Status, Last_Update FROM BloodBank`;
+            const result = await databaseServices.query(query);
+    
+            // Map kết quả trả về thành danh sách các đối tượng
+            return result.map((item: any) => ({
+                BloodBank_ID: item.BloodBank_ID,
+                BloodUnit_ID: item.BloodUnit_ID,
+                Volume: item.Volume,
+                Storage_Date: item.Storage_Date,
+                Status: item.Status,               
+                Updated_At: item.Updated_At,
+            }));
+        } catch (error) {
+            console.error('Error in getBloodBank:', error);
+            throw error;
+        }
+    }
 }

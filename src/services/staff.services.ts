@@ -91,5 +91,14 @@ export class staffServices{
           throw error;
       }
     } 
+    public async getBloodBank(): Promise<any> {
+      try {
+          const bloodBank = await this.staffRepository.getBloodBank();
+          return bloodBank;
+      } catch (error) {
+          console.error('Error in getBloodBank:', error);
+          throw error;
+      }
+    }
     
 }

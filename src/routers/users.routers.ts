@@ -81,4 +81,9 @@ router.post('/handleEmergencyRequest/:emergencyId',
     authorize(['staff']),   
     staffController.handleEmergencyRequest)
 
+router.get('/getBloodBank',
+    verifyToken,
+    authorize(['staff']),
+    staffController.getBloodBank)
+
 export default router
