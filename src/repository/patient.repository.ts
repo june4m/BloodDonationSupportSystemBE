@@ -65,4 +65,33 @@ export class PatientDetailRepository {
     console.log('result getPatientDetailByAppointmentId: ', result)
     return result.recordset.length > 0 ? result.recordset[0] : null
   }
+
+  public async updatePatientDetailByAppointmentId(patientDetailData: PatientDetail): Promise<any> {
+    console.log('updatePatientDetailByAppointmentId Repo')
+
+    let query = 'UPDATE Patient_Detail SET'
+    const params: any[] = []
+
+    if (patientDetailData.Description !== undefined) {
+      query += ' Description = ?,'
+      params.push(patientDetailData.Description)
+    }
+
+    if (patientDetailData.Status !== undefined) {
+      query += ' Status = ?,'
+      params.push(patientDetailData.Status)
+    }
+
+    query = query.slice(0, -1) + ' WHERE Appointment_ID = ?'
+    params.push(patientDetailData.Appointment_ID)
+    console.log('params: ', params)
+
+    const result = await databaseServices.queryParam(query, params)
+    console.log('Repo result: ', result)
+
+    if (result && result.rowsAffected && result.rowsAffected[0] > 0) {
+      return { success: true, message: 'Cập nhật hồ sơ của bệnh nhân thành công' }
+    }
+    return { success: false, message: 'Cập nhật hồ sơ của bệnh nhân thất bại' }
+  }
 }

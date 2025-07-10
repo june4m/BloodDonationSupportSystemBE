@@ -63,4 +63,27 @@ export class PatientDetailService {
       return { success: false, message: error.message || 'Thêm hồ sơ bệnh án thất bại vì bị lỗi!' }
     }
   }
+
+  public async updatePatientDetailByAppointmentId(
+    appointmentId: string,
+    description?: string,
+    status?: string
+  ): Promise<any> {
+    console.log('updatePatientDetailByAppointmentId Services')
+    try {
+      const patientDetailData: PatientDetail = {
+        Appointment_ID: appointmentId,
+        Description: description,
+        Status: status
+      }
+      console.log('patientDetailData: ', patientDetailData)
+
+      const result = await this.patientDetailRepository.updatePatientDetailByAppointmentId(patientDetailData)
+      console.log('Services result: ', result)
+      return result
+    } catch (error: any) {
+      console.error('Error updating patient detail:', error)
+      return { success: false, message: error.message || 'Failed to update patient detail' }
+    }
+  }
 }
