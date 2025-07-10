@@ -2,6 +2,7 @@ import { param } from 'express-validator'
 import { Appointment } from './../models/schemas/slot.schema'
 
 import databaseServices from '~/services/database.services'
+import { AppointmentReminder } from '~/models/schemas/appointment.schema'
 
 export class AppointmentRepository {
   async getAllAppointmentList() {
@@ -125,4 +126,26 @@ JOIN BloodType B ON U.BloodType_ID = B.BloodType_ID`
       throw error
     }
   }
+  async findBeetweenDate(start: Date, end: Date): Promise<AppointmentReminder[]> {
+    try {
+      const sql = `
+      SELECT
+        A.Appointment_ID,
+        U.User_Name,
+        U.Email,
+        S.Slot_Date,
+        CONVERT(varchar(8), S.Start_Time, 108) AS Start_Time
+      FROM AppointmentGiving A
+      JOIN Users U   ON A.User_ID = U.User_ID
+      JOIN Slot  S   ON A.Slot_ID = S.Slot_ID
+      WHERE S.Slot_Date >= ? AND S.Slot_Date < ?
+      ORDER BY S.Slot_Date, S.Start_Time
+    `;
+      const result = await databaseServices.queryParam(sql, [start, end]);
+      return result.recordset?? result;
+  } catch (error) {
+      console.error('Error in findBeetweenDate:', error);
+      throw new Error('Failed to retrieve appointments between dates');
+  }
+}
 }
