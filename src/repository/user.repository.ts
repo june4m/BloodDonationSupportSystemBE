@@ -139,7 +139,7 @@ export class UserRepository {
 
   async updateUserProfile(
     userId: string,
-    data: { User_Name?: string; YOB?: string; Phone?: string; Gender?: string }
+    data: { User_Name?: string; YOB?: string; Address?: string; Phone?: string; Gender?: string }
   ): Promise<any> {
     let query = 'UPDATE Users SET'
     const params: any[] = []
@@ -152,6 +152,10 @@ export class UserRepository {
     if (data.YOB) {
       updates.push(' YOB = ?')
       params.push(data.YOB)
+    }
+    if (data.Address) {
+      updates.push(' Address = ?')
+      params.push(data.Address)
     }
     if (data.Phone) {
       updates.push(' Phone = ?')

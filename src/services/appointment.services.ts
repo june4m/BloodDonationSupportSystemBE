@@ -105,4 +105,41 @@ export class AppointmentServices {
       return { success: false, message: error.message || 'Failed to update appointment status' }
     }
   }
+
+  public async rejectAppointment(appointmentId: string, reasonReject: string): Promise<any> {
+    console.log('rejectAppointment Appointment Services')
+    try {
+      const appointment = await this.appointmentRepository.getAppointmentById(appointmentId)
+      console.log('appointment: ', appointment)
+      if (!appointment) {
+        return { success: false, message: 'Appointment not found' }
+      }
+
+      const result = await this.appointmentRepository.rejectAppointment(appointmentId, 'Canceled', reasonReject)
+      console.log('Service result: ', result)
+
+      if (result.success) {
+        return { success: true, message: 'Appointment rejected successfully', data: result.data }
+      }
+
+      return { success: false, message: 'Failed to update appointment status' }
+    } catch (error: any) {
+      console.error('Error rejecting appointment: ', error)
+      return { success: false, message: error.message || 'Failed to reject appointment' }
+    }
+  }
+
+  public async getAppointmentDetailsByUserId(userId: string): Promise<any> {
+    console.log('getAppointmentDetails Appointment Services')
+    try {
+      const appointmentDetails = await this.appointmentRepository.getAppointmentDetailsByUserId(userId)
+      console.log('appointmentDetails: ', appointmentDetails)
+      if (!appointmentDetails) {
+        throw new Error('Appointment details not found')
+      }
+      return { success: true, data: appointmentDetails }
+    } catch (error: any) {
+      return { success: false, message: error.message || 'Failed to get appointment details' }
+    }
+  }
 }

@@ -10,6 +10,8 @@ class AppointmentController {
     this.updateVolume = this.updateVolume.bind(this)
     this.getAppointmentList = this.getAppointmentList.bind(this)
     this.updateStatus = this.updateStatus.bind(this)
+    this.rejectAppointment = this.rejectAppointment.bind(this)
+    this.getAppointmentDetailsByUserId = this.getAppointmentDetailsByUserId.bind(this)
   }
 
   async getAppointmentById(req: Request, res: Response): Promise<void> {
@@ -64,6 +66,53 @@ class AppointmentController {
     } catch (error: any) {
       console.error('Error in updateStatus controller:', error)
       ResponseHandle.responseError(res, error, 'Failed to update appointment status', 500)
+    }
+  }
+
+  public async rejectAppointment(req: Request, res: Response): Promise<void> {
+    console.log('rejectAppointment Appointment Controller')
+    try {
+      const { appointmentId } = req.params
+      const { reasonReject } = req.body
+
+      if (!appointmentId || !reasonReject) {
+        ResponseHandle.responseError(res, null, 'Appointment ID and Reason Reject are required', 400)
+        return
+      }
+
+      const result = await this.appointmentService.rejectAppointment(appointmentId, reasonReject)
+      console.log('Appointment Controller Result: ', result)
+
+      if (result.success) {
+        ResponseHandle.responseSuccess(res, result.data, 'Appointment rejected successfully', 200)
+      } else {
+        ResponseHandle.responseError(res, null, result.message, 400)
+      }
+    } catch (error) {
+      ResponseHandle.responseError(res, error, 'Failed to reject appointment', 500)
+    }
+  }
+
+  public async getAppointmentDetailsByUserId(req: Request, res: Response): Promise<void> {
+    console.log('getAppointmentDetails Appointment Controller')
+    try {
+      const userId = req.user.user_id
+      console.log('userId: ', userId)
+      if (!userId) {
+        ResponseHandle.responseError(res, null, 'User ID is required', 400)
+        return
+      }
+
+      const result = await this.appointmentService.getAppointmentDetailsByUserId(userId)
+      console.log('Controller result: ', result)
+      if (result.success) {
+        ResponseHandle.responseSuccess(res, result.data, 'Appointment details fetched successfully', 200)
+      } else {
+        ResponseHandle.responseError(res, null, result.message, 400)
+      }
+    } catch (error: any) {
+      console.error('Error fetching appointment details: ', error)
+      ResponseHandle.responseError(res, error, 'Failed to fetch appointment details', 500)
     }
   }
 }

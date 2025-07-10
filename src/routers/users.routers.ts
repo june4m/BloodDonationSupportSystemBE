@@ -74,4 +74,18 @@ router.post(
 
 router.put('/appointment/:appointmentId/status', verifyToken, authorize(['staff']), appointmentController.updateStatus)
 
+router.put(
+  '/appointment/:appointmentId/reject',
+  verifyToken,
+  authorize(['staff']),
+  appointmentController.rejectAppointment
+)
+
+router.get(
+  '/appointment/details',
+  verifyToken,
+  authorize(['member']),
+  appointmentController.getAppointmentDetailsByUserId
+)
+
 export default router

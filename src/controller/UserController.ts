@@ -189,9 +189,9 @@ class UserController {
   public async updateProfile(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user.user_id
-      const { User_Name, YOB, Phone, Gender } = req.body
+      const { User_Name, YOB, Address, Phone, Gender } = req.body
 
-      const result = await this.userService.updateProfile(userId, { User_Name, YOB, Phone, Gender })
+      const result = await this.userService.updateProfile(userId, { User_Name, YOB, Address, Phone, Gender })
 
       ResponseHandle.responseSuccess(res, result, 'Profile updated successfully', 200)
     } catch (error: any) {

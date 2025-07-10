@@ -137,7 +137,7 @@ export class UserService {
 
   async updateProfile(
     userId: string,
-    data: { User_Name?: string; YOB?: string; Phone?: string; Gender?: string }
+    data: { User_Name?: string; YOB?: string; Address?: string; Phone?: string; Gender?: string }
   ): Promise<any> {
     if (!userId) {
       throw new Error('User ID is required')
@@ -148,12 +148,13 @@ export class UserService {
       throw new Error('User not found')
     }
 
-    const { User_Name, YOB, Phone, Gender } = data
-    if (!User_Name && !YOB && !Phone && !Gender) {
+    const { User_Name, YOB, Address, Phone, Gender } = data
+    if (!User_Name && !YOB && !Address && !Phone && !Gender) {
       throw new Error('At least one field must be provided for update')
     }
 
-    return await this.userRepository.updateUserProfile(userId, { User_Name, YOB, Phone, Gender })
+    const result = await this.userRepository.updateUserProfile(userId, { User_Name, YOB, Address, Phone, Gender })
+    return result
   }
 
   async confirmBloodByStaff(userId: string, bloodTypeInput: string): Promise<any> {

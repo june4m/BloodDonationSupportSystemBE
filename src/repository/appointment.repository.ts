@@ -169,4 +169,51 @@ export class AppointmentRepository {
 
     return { success: false, message: 'Failed to update appointment status' }
   }
+
+  public async rejectAppointment(appointmentId: string, status: string, reasonReject: string): Promise<any> {
+    console.log('rejectAppointment Appointment Repo')
+    const query = `
+      UPDATE AppointmentGiving
+      SET Status = ?, Reason_Reject = ?
+      WHERE Appointment_ID = ?
+    `
+    const params = [status, reasonReject, appointmentId]
+    console.log('params: ', params)
+
+    try {
+      const result = await databaseServices.queryParam(query, params)
+      console.log('Result from query:', result)
+
+      if (result && result.rowsAffected && result.rowsAffected > 0) {
+        return { success: true, data: result }
+      }
+
+      return { success: false, message: 'Failed to update appointment status and reason reject' }
+    } catch (error) {
+      console.error('Error updating appointment status and reason reject: ', error)
+      return { success: false, message: 'Failed to update appointment status and reason reject' }
+    }
+  }
+
+  public async getAppointmentDetailsByUserId(appointmentId: string): Promise<any> {
+    console.log('getAppointmentDetails Appointment Repo')
+    const query = `
+      SELECT 
+        ag.Appointment_ID,
+        ag.Slot_ID,
+        ag.User_ID,
+        s.Slot_Date,
+        s.Start_Time,
+        s.End_Time,
+        ag.Volume,
+        ag.Status,
+        ag.Reason_Reject    
+      FROM AppointmentGiving ag
+      JOIN Slot s ON ag.Slot_ID = s.Slot_ID
+      WHERE ag.User_ID = ?
+    `
+    const result = await databaseServices.queryParam(query, [appointmentId])
+    console.log('result: ', result)
+    return result.recordset ?? null
+  }
 }
