@@ -9,6 +9,7 @@ class AppointmentController {
     this.getAppointmentById = this.getAppointmentById.bind(this)
     this.updateVolume = this.updateVolume.bind(this)
     this.getAppointmentList = this.getAppointmentList.bind(this)
+    this.updateStatus = this.updateStatus.bind(this)
   }
 
   async getAppointmentById(req: Request, res: Response): Promise<void> {
@@ -38,6 +39,31 @@ class AppointmentController {
       ResponseHandle.responseSuccess(res, result, 'Appointments fetched successfully', 200)
     } catch (error: any) {
       ResponseHandle.responseError(res, error, error.message || 'Failed to fetch appointments', 400)
+    }
+  }
+
+  public async updateStatus(req: Request, res: Response): Promise<void> {
+    try {
+      console.log('updateStatus Appointment Controller')
+      const { appointmentId } = req.params
+      const { newStatus } = req.body
+
+      if (!appointmentId || !newStatus) {
+        ResponseHandle.responseError(res, null, 'Appointment ID and New Status are required', 400)
+        return
+      }
+
+      const result = await this.appointmentService.updateStatusForAppointment(appointmentId, newStatus)
+      console.log('result: ', result)
+
+      if (result.success) {
+        ResponseHandle.responseSuccess(res, null, result.message, 200)
+      } else {
+        ResponseHandle.responseError(res, null, result.message, 400)
+      }
+    } catch (error: any) {
+      console.error('Error in updateStatus controller:', error)
+      ResponseHandle.responseError(res, error, 'Failed to update appointment status', 500)
     }
   }
 }

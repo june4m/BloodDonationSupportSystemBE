@@ -93,7 +93,7 @@ export class SlotRepository {
 
   public async getSlotById(slot_id: string) {
     console.log('getSlotById slotRepo')
-    const query = `SELECT Slot_Date FROM Slot WHERE Slot_ID = ?`
+    const query = `SELECT * FROM Slot WHERE Slot_ID = ?`
     console.log('slotRepo slot_id: ', slot_id)
     const result = await databaseServices.queryParam(query, [slot_id])
     console.log('getSlotById result: ', result)

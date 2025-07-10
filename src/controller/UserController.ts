@@ -186,7 +186,7 @@ class UserController {
     }
   }
 
-  async updateProfile(req: Request, res: Response): Promise<void> {
+  public async updateProfile(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.user.user_id
       const { User_Name, YOB, Phone, Gender } = req.body
@@ -199,7 +199,7 @@ class UserController {
     }
   }
 
-  async confirmBloodByStaff(req: Request, res: Response): Promise<void> {
+  public async confirmBloodByStaff(req: Request, res: Response): Promise<void> {
     try {
       const userId = req.params.userId
       const { bloodType } = req.body

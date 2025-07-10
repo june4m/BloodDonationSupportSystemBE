@@ -11,27 +11,25 @@ export class PatientController {
   }
 
   public async addPatientDetail(req: Request, res: Response): Promise<void> {
-    console.log('addPatientDetail Controller')
     try {
       const { appointmentId } = req.params
       const { description, status } = req.body
-      console.log('appointmentId: ', appointmentId)
 
       if (!appointmentId || !description || !status) {
-        ResponseHandle.responseError(res, null, 'All fields are required', 400)
+        ResponseHandle.responseError(res, null, 'Phải nhập hết các trường!', 400)
         return
       }
 
       const result = await this.patientDetailService.addPatientDetail(appointmentId, description, status)
 
-      if (!result.success) {
+      if (result.success) {
+        ResponseHandle.responseSuccess(res, result.data, 'Thêm hồ sơ bệnh án cho cuộc hẹn thành công!', 201)
+      } else {
         ResponseHandle.responseError(res, null, result.message, 400)
-        return
       }
-      ResponseHandle.responseSuccess(res, result, 'Patient detail added successfully', 201)
     } catch (error) {
-      console.error('Error adding patient detail: ', error)
-      ResponseHandle.responseError(res, error, 'Failed to add patient detail', 500)
+      console.log('error: ', error)
+      ResponseHandle.responseError(res, error, 'Thêm hồ sơ bệnh án thất bại!', 500)
     }
   }
 }

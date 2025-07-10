@@ -191,4 +191,14 @@ export class UserRepository {
     const result = await databaseServices.queryParam(query, [bloodTypeId, userId])
     return result
   }
+
+  public async getUserById(userId: string): Promise<any> {
+    const query = `
+    SELECT * FROM Users
+    WHERE User_ID = ?
+  `
+    const result = await databaseServices.queryParam(query, [userId])
+    console.log('result getUserById: ', result)
+    return result.recordset.length > 0 ? result.recordset[0] : null
+  }
 }

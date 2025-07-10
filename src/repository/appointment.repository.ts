@@ -12,12 +12,15 @@ export class AppointmentRepository {
       U.Email AS Email,
       U.Phone As Phone,
       S.Slot_Date AS DATE,
-      B.Blood_group,
-      A.Volume
+	  CONVERT(VARCHAR(5), B.Blood_group) +CONVERT(VARCHAR(5), B.RHFactor) AS BloodType,
+      A.Volume,
+      A.Status AS Status,
+      S.Start_Time,
+      S.End_Time
     FROM AppointmentGiving A
     JOIN Users U ON A.User_ID = U.User_ID
     JOIN Slot S ON A.Slot_ID = S.Slot_ID
-    JOIN BloodType B ON U.BloodType_ID = B.BloodType_ID`
+    LEFT JOIN BloodType B ON U.BloodType_ID = B.BloodType_ID`
     try {
       const result = await databaseServices.query(query)
       return result
@@ -129,16 +132,41 @@ export class AppointmentRepository {
   public async getAppointmentById(appointmentId: string): Promise<any | null> {
     console.log('getAppointmentById Appointment Repo')
     const query = `
-    SELECT User_ID, Slot_ID, Status
+    SELECT Appointment_ID, User_ID, Slot_ID, Status
     FROM AppointmentGiving
     WHERE Appointment_ID = ?
     `
     const result = await databaseServices.queryParam(query, [appointmentId])
     console.log('getAppointmentById result: ', result)
     if (result && result.recordset && result.recordset.length > 0) {
-      console.log('result.recordset[0]: ', result.recordset[0])
       return result.recordset[0]
     }
     return null
+  }
+
+  public async getCurrentStatus(appointmentId: string): Promise<string | null> {
+    const query = `
+      SELECT Status
+      FROM AppointmentGiving
+      WHERE Appointment_ID = ?
+    `
+    const result = await databaseServices.query(query, [appointmentId])
+    return result.length > 0 ? result[0].Status : null
+  }
+
+  public async updateAppointmentStatus(appointmentId: string, newStatus: string): Promise<any> {
+    const query = `
+      UPDATE AppointmentGiving
+      SET Status = ?
+      WHERE Appointment_ID = ?
+    `
+    const params = [newStatus, appointmentId]
+    const result = await databaseServices.query(query, params)
+    console.log('result trong repository: ', result)
+    if (result && result.rowsAffected && result.rowsAffected > 0) {
+      return { success: true, message: 'Appointment status updated successfully' }
+    }
+
+    return { success: false, message: 'Failed to update appointment status' }
   }
 }

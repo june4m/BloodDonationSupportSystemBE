@@ -65,8 +65,13 @@ router.put(
 
 router.put('/profile/updateRole/:userId', verifyToken, authorize(['admin']), adminController.updateUserRole)
 
-router.post('/patientDetail', verifyToken, authorize(['staff']), patientController.addPatientDetail)
+router.post(
+  '/patientDetail/:appointmentId/patient',
+  verifyToken,
+  authorize(['staff']),
+  patientController.addPatientDetail
+)
 
-router.post('/patientDetail/:appointmentId', verifyToken, authorize(['staff']), patientController.addPatientDetail)
+router.put('/appointment/:appointmentId/status', verifyToken, authorize(['staff']), appointmentController.updateStatus)
 
 export default router
