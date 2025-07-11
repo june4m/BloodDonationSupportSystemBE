@@ -94,4 +94,17 @@ export class PatientDetailRepository {
     }
     return { success: false, message: 'Cập nhật hồ sơ của bệnh nhân thất bại' }
   }
+
+  public async getAllPatientDetailByAppointmentId(appointmentId: string): Promise<any> {
+    console.log('getAllPatientDetailByAppointmentId Repo')
+    const query = `SELECT * FROM Patient_Detail WHERE Appointment_ID = ?`
+
+    const result = await databaseServices.queryParam(query, [appointmentId])
+    console.log('Repo result: ', result)
+    if (result && result.recordset && result.recordset.length > 0) {
+      return result.recordset[0]
+    } else {
+      return null
+    }
+  }
 }

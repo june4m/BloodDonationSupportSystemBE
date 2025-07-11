@@ -86,4 +86,20 @@ export class PatientDetailService {
       return { success: false, message: error.message || 'Failed to update patient detail' }
     }
   }
+
+  public async getPatientDetailsByAppointmentId(appointmentId: string): Promise<any> {
+    try {
+      console.log('getPatientDetailsByAppointmentId Services')
+      const patientDetails = await this.patientDetailRepository.getAllPatientDetailByAppointmentId(appointmentId)
+      console.log('patientDetails: ', patientDetails)
+
+      if (!patientDetails) {
+        return { success: false, message: 'No patient details found for this appointment.' }
+      }
+      return { success: true, data: patientDetails }
+    } catch (error: any) {
+      console.error('Error fetching patient details:', error)
+      return { success: false, message: error.message || 'Failed to fetch patient details' }
+    }
+  }
 }

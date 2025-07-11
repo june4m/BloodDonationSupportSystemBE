@@ -10,6 +10,7 @@ export class PatientController {
     this.patientDetailService = new PatientDetailService()
     this.addPatientDetail = this.addPatientDetail.bind(this)
     this.updatePatientDetail = this.updatePatientDetail.bind(this)
+    this.getPatientDetailsByAppointmentId = this.getPatientDetailsByAppointmentId.bind(this)
   }
 
   public async addPatientDetail(req: Request, res: Response): Promise<void> {
@@ -60,6 +61,31 @@ export class PatientController {
     } catch (error: any) {
       console.error('Error in controller:', error)
       ResponseHandle.responseError(res, error, 'Failed to update patient detail', 500)
+    }
+  }
+
+  public async getPatientDetailsByAppointmentId(req: Request, res: Response): Promise<void> {
+    console.log('getPatientDetailsByAppointmentId Controller')
+
+    try {
+      const { appointmentId } = req.params
+
+      if (!appointmentId) {
+        ResponseHandle.responseError(res, null, 'Appointment ID is required', 400)
+        return
+      }
+
+      const result = await this.patientDetailService.getPatientDetailsByAppointmentId(appointmentId)
+      console.log('Controller result: ', result)
+
+      if (result.success) {
+        ResponseHandle.responseSuccess(res, result.data, 'Patient details fetched successfully', 200)
+      } else {
+        ResponseHandle.responseError(res, null, result.message, 400)
+      }
+    } catch (error: any) {
+      console.error('Error in controller:', error)
+      ResponseHandle.responseError(res, error, 'Failed to fetch patient details', 500)
     }
   }
 }

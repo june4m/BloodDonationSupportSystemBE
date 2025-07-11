@@ -72,6 +72,13 @@ router.post(
   patientController.addPatientDetail
 )
 
+router.get(
+  '/patientDetail/:appointmentId',
+  verifyToken,
+  authorize(['staff']),
+  patientController.getPatientDetailsByAppointmentId
+)
+
 router.put(
   '/patientDetail/:appointmentId/update',
   verifyToken,
