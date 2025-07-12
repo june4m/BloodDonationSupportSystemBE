@@ -155,7 +155,7 @@ export class AppointmentServices {
         return { success: false, message: 'Failed to delete appointment' }
       }
 
-      return { success: true, message: 'Patient Detail and Appointment deleted successfully!' }
+      return { success: true, message: 'Bạn đã hủy cuộc hẹn thành công!' }
     } catch (error: any) {
       return { success: true, message: error.message || 'Failed to delete patient_detail and appointment' }
     }
