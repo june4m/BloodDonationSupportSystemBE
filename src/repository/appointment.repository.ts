@@ -218,4 +218,16 @@ export class AppointmentRepository {
     console.log('result: ', result)
     return result.recordset ?? null
   }
+
+  public async getSlotDateByAppointmentId(appointmentId: string): Promise<any> {
+    const query = `
+    SELECT s.Slot_Date
+    FROM AppointmentGiving ag
+    JOIN Slot s ON ag.Slot_ID = s.Slot_ID
+    WHERE ag.Appointment_ID = ?
+  `
+    const result = await databaseServices.queryParam(query, [appointmentId])
+    console.log('getSlotDateByAppointmentId Repo Result: ', result)
+    return result.recordset[0] ?? null
+  }
 }

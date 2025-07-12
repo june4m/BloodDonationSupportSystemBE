@@ -146,6 +146,26 @@ export class AppointmentServices {
 
   public async cancelAppointmentForMember(appointmentId: string): Promise<any> {
     try {
+      const slotDateResult = await this.appointmentRepository.getSlotDateByAppointmentId(appointmentId)
+      console.log('slotDateResult:', slotDateResult)
+
+      if (!slotDateResult) {
+        return { success: false, message: 'Appointment not found' }
+      }
+
+      const slotDate = new Date(slotDateResult.Slot_Date)
+      const today = new Date()
+      // xóa phần time, chỉ so sánh ngày
+      today.setHours(0, 0, 0, 0)
+      slotDate.setHours(0, 0, 0, 0)
+
+      console.log('Today:', today)
+      console.log('Slot Date:', slotDate)
+
+      if (slotDate <= today) {
+        return { success: false, message: 'Bạn chỉ có thể hủy cuộc hẹn trước 1 ngày diễn ra cuộc hẹn!' }
+      }
+
       const patientDetail = await this.patientRepository.deletePatientDetail(appointmentId)
       console.log('patientDetail Services: ', patientDetail)
 
