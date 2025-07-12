@@ -2,6 +2,7 @@ import { Appointment } from '~/models/schemas/appointment.schema'
 import { AppointmentRepository } from './../repository/appointment.repository'
 import { PatientDetailRepository } from '~/repository/patient.repository'
 import { UserRepository } from '~/repository/user.repository'
+import databaseServices from './database.services'
 
 export class AppointmentServices {
   public appointmentRepository: AppointmentRepository
@@ -140,6 +141,23 @@ export class AppointmentServices {
       return { success: true, data: appointmentDetails }
     } catch (error: any) {
       return { success: false, message: error.message || 'Failed to get appointment details' }
+    }
+  }
+
+  public async cancelAppointmentForMember(appointmentId: string): Promise<any> {
+    try {
+      const patientDetail = await this.patientRepository.deletePatientDetail(appointmentId)
+      console.log('patientDetail Services: ', patientDetail)
+
+      const appointment = await this.appointmentRepository.deleteApointment(appointmentId)
+      console.log('appointment result Services: ', appointment)
+      if (!appointment) {
+        return { success: false, message: 'Failed to delete appointment' }
+      }
+
+      return { success: true, message: 'Patient Detail and Appointment deleted successfully!' }
+    } catch (error: any) {
+      return { success: true, message: error.message || 'Failed to delete patient_detail and appointment' }
     }
   }
 }

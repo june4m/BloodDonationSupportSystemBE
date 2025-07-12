@@ -33,7 +33,8 @@ export class AppointmentRepository {
     console.log('Appointment repo delete')
     const query = `DELETE FROM AppointmentGiving WHERE Appointment_ID = ?`
     try {
-      const result = await databaseServices.query(query, [appointmentID])
+      const result = await databaseServices.queryParam(query, [appointmentID])
+      console.log('deleteAppointment repo result: ', result)
       return result
     } catch (error) {
       throw new Error('Appointment ID not existsent to delete')
@@ -43,7 +44,7 @@ export class AppointmentRepository {
     console.log('Appointment repo find Appointment')
     const query = `select * from AppointmentGiving WHERE Appointment_ID = ?`
     try {
-      const result = await databaseServices.query(query, [appointmentID])
+      const result = await databaseServices.queryParam(query, [appointmentID])
       return result
     } catch (error) {
       throw new Error('Appointment ID not exist')

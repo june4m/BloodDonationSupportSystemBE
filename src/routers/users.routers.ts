@@ -75,7 +75,7 @@ router.post(
 router.get(
   '/patientDetail/:appointmentId',
   verifyToken,
-  authorize(['staff']),
+  authorize(['member', 'staff']),
   patientController.getPatientDetailsByAppointmentId
 )
 
@@ -100,6 +100,13 @@ router.get(
   verifyToken,
   authorize(['member']),
   appointmentController.getAppointmentDetailsByUserId
+)
+
+router.put(
+  '/appointment/:appointmentId/cancelByMember',
+  verifyToken,
+  authorize(['member']),
+  appointmentController.cancelAppointmentForMember
 )
 
 export default router

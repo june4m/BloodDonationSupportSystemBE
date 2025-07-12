@@ -12,6 +12,7 @@ class AppointmentController {
     this.updateStatus = this.updateStatus.bind(this)
     this.rejectAppointment = this.rejectAppointment.bind(this)
     this.getAppointmentDetailsByUserId = this.getAppointmentDetailsByUserId.bind(this)
+    this.cancelAppointmentForMember = this.cancelAppointmentForMember.bind(this)
   }
 
   async getAppointmentById(req: Request, res: Response): Promise<void> {
@@ -113,6 +114,29 @@ class AppointmentController {
     } catch (error: any) {
       console.error('Error fetching appointment details: ', error)
       ResponseHandle.responseError(res, error, 'Failed to fetch appointment details', 500)
+    }
+  }
+
+  public async cancelAppointmentForMember(req: Request, res: Response): Promise<void> {
+    console.log('cancelAppointment Controller')
+    try {
+      const { appointmentId } = req.params
+      console.log('appointmentId: ', appointmentId)
+
+      if (!appointmentId) {
+        ResponseHandle.responseError(res, null, 'Appointment ID is required!', 400)
+        return
+      }
+      const result = await this.appointmentService.cancelAppointmentForMember(appointmentId)
+      console.log('Controller Result: ', result)
+      if (result.success) {
+        ResponseHandle.responseSuccess(res, null, result.message, 200)
+      } else {
+        ResponseHandle.responseError(res, null, result.message, 400)
+      }
+    } catch (error: any) {
+      console.error('Error cancelAppointmentForMember: ', error)
+      ResponseHandle.responseError(res, null, 'Failed to cancel appointent', 500)
     }
   }
 }
