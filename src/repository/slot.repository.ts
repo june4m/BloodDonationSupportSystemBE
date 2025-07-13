@@ -74,7 +74,7 @@ export class SlotRepository {
       const { ...fields } = appointmentData
       const insertQuery = `
         INSERT INTO AppointmentGiving (Appointment_ID, Slot_ID, User_ID, Status)
-        VALUES (?, ?, ?, 'A')
+        VALUES (?, ?, ?, 'Pending')
         `
       const params = [newAppointmentID, fields.Slot_ID, fields.User_ID]
       const addAppointment = await Database.queryParam(insertQuery, params)
@@ -91,6 +91,19 @@ export class SlotRepository {
     }
   }
 
+  public async getSlotById(slot_id: string) {
+    console.log('getSlotById slotRepo')
+    const query = `SELECT * FROM Slot WHERE Slot_ID = ?`
+    console.log('slotRepo slot_id: ', slot_id)
+    const result = await databaseServices.queryParam(query, [slot_id])
+    console.log('getSlotById result: ', result)
+    if (result && result.recordset && result.recordset.length > 0) {
+      console.log('result.recordset[0]: ', result.recordset[0])
+      return result.recordset[0]
+    }
+    return null
+  }
+
   async getLastDonationByUserId(userId: string): Promise<{ donation_date: string } | null> {
     const query = `
     SELECT TOP 1
@@ -103,7 +116,7 @@ export class SlotRepository {
     ORDER BY S.Slot_Date DESC
     `
     //--AND AG.Status = 'C'
-    console.log('Query UserID:', userId)
+    console.log('Query UserID: ', userId)
     const result = await Database.queryParam(query, [userId])
     console.log('Query Result:', result)
     return result.recordset[0] ?? null

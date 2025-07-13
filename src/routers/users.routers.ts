@@ -6,14 +6,21 @@ import { authorize } from '~/midleware/authorization.midleware'
 import { body } from 'express-validator'
 import AppointmentController from '~/controller/AppointmentControler'
 import StaffController from '~/controller/StaffController'
+import AdminController from '~/controller/AdminController'
+import { PatientController } from '~/controller/PatientController'
 const router = Router()
 const userController = new UserController()
 const slotController = new SlotController()
 const appointmentController = new AppointmentController()
 const staffController = new StaffController()
+const adminController = new AdminController()
+const patientController = new PatientController()
 // const appointmentController = new AppointmentController()
 
+router.post('/signup/staff', verifyToken, authorize(['admin']), adminController.signupStaffAccount)
+
 router.post('/signup', userController.register)
+
 router.post('/login', userController.login)
 
 router.post('/logout', verifyToken, userController.logout)
@@ -56,34 +63,50 @@ router.put(
   userController.confirmBloodByStaff
 )
 
-router.post('/appointment/:appointmentId/addVolume',
-     verifyToken,authorize(['staff']),
-     appointmentController.updateVolume)
+router.put('/profile/updateRole/:userId', verifyToken, authorize(['admin']), adminController.updateUserRole)
 
-
-
-router.get('/getAppointmentList',
-     verifyToken,authorize(['staff']),
-     appointmentController.getAppointmentList)
-
-router.post('/requestEmergencyBlood',
-    verifyToken, 
-    authorize(['member']),
-    staffController.createEmergencyRequest
+router.post(
+  '/patientDetail/:appointmentId/patient',
+  verifyToken,
+  authorize(['staff']),
+  patientController.addPatientDetail
 )
-router.get('/getEmergencyRequestList',
-    verifyToken,
-    authorize(['staff']),
-    staffController.getAllEmergencyRequests)
 
-router.post('/handleEmergencyRequest/:emergencyId',
-    verifyToken,
-    authorize(['staff']),   
-    staffController.handleEmergencyRequest)
+router.get(
+  '/patientDetail/:appointmentId',
+  verifyToken,
+  authorize(['member', 'staff']),
+  patientController.getPatientDetailsByAppointmentId
+)
 
-router.get('/getBloodBank',
-    verifyToken,
-    authorize(['staff']),
-    staffController.getBloodBank)
+router.put(
+  '/patientDetail/:appointmentId/update',
+  verifyToken,
+  authorize(['staff']),
+  patientController.updatePatientDetail
+)
+
+router.put('/appointment/:appointmentId/status', verifyToken, authorize(['staff']), appointmentController.updateStatus)
+
+router.put(
+  '/appointment/:appointmentId/reject',
+  verifyToken,
+  authorize(['staff']),
+  appointmentController.rejectAppointment
+)
+
+router.get(
+  '/appointment/details',
+  verifyToken,
+  authorize(['member']),
+  appointmentController.getAppointmentDetailsByUserId
+)
+
+router.put(
+  '/appointment/:appointmentId/cancelByMember',
+  verifyToken,
+  authorize(['member']),
+  appointmentController.cancelAppointmentForMember
+)
 
 export default router
