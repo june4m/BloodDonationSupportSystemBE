@@ -14,6 +14,7 @@ export class AppointmentServices {
     this.userRepository = new UserRepository()
   }
 
+
   async getAppointmentById(appointmentId: string): Promise<Appointment> {
     console.log('Appointment Service, getAppointmentById')
 
