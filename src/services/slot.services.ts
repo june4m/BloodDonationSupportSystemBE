@@ -1,9 +1,10 @@
-import { UserRepository } from './../repository/user.repository';
-import { Appointment } from './../models/schemas/slot.schema';
+import { UserRepository } from './../repository/user.repository'
+import { Appointment } from './../models/schemas/slot.schema'
 import { error } from 'console'
 import { format } from 'path'
 import { SlotRepository } from '~/repository/slot.repository'
 import { Slot, slotDTO, SlotFactory } from '~/models/schemas/slot.schema'
+import databaseServices from './database.services'
 export class SlotService {
   private slotRepository: SlotRepository
   private userRepository: UserRepository
@@ -38,13 +39,60 @@ export class SlotService {
     }
   }
 
+  async checkSlotExist(slotDate: string, startTime: string, endTime: string): Promise<boolean> {
+    console.log('Checking for duplicate slot...')
+
+    try {
+      const query = `
+      SELECT COUNT(*) AS Count
+      FROM Slot
+      WHERE Slot_Date = ? 
+        AND Start_Time = ? 
+        AND End_Time = ?
+    `
+      const params = [slotDate, startTime, endTime]
+      const result = await databaseServices.queryParam(query, params)
+
+      // Kiểm tra nếu result có Count và là một mảng hợp lệ
+      if (result && result.recordsets && result.recordsets[0] && result.recordsets[0][0].Count !== undefined) {
+        return result.recordsets[0][0].Count > 0
+      } else {
+        console.log('No count or invalid result structure')
+        return false
+      }
+    } catch (error) {
+      console.error('Error checking slot existence:', error)
+      throw error
+    }
+  }
+
   public async registerBloodDonation(data: Appointment): Promise<any> {
     if (!data.Slot_ID || !data.User_ID) {
       throw new Error('Slot_ID and User_ID are required')
     }
     const user = await this.userRepository.findById(data.User_ID)
+    console.log('Received data in Service:', data)
     if (!user) {
       throw new Error('User not found')
+    }
+
+    console.log('UserID param:', data.User_ID)
+    const lastDonation = await this.slotRepository.getLastDonationByUserId(data.User_ID)
+    console.log('lastDonation:', lastDonation)
+    if (lastDonation) {
+      const lastDate = new Date(lastDonation.donation_date)
+      const today = new Date()
+      const diffMonths = (today.getFullYear() - lastDate.getFullYear()) * 12 + (today.getMonth() - lastDate.getMonth())
+
+      if (diffMonths < 3) {
+        const nextDonationDate = new Date(lastDate)
+        nextDonationDate.setMonth(nextDonationDate.getMonth() + 3)
+        throw new Error(
+          `Bạn chỉ có thể hiến máu một lần trong 3 tháng. ` +
+            `Lần hiến máu gần nhất của bạn là vào ngày ${lastDate.toISOString().split('T')[0]}. ` +
+            `Bạn có thể hiến máu lại vào ngày ${nextDonationDate.toISOString().split('T')[0]}.`
+        )
+      }
     }
     return this.slotRepository.registerSlot(data)
   }

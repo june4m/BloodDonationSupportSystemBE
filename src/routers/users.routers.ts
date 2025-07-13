@@ -14,8 +14,7 @@ const staffController = new StaffController()
 // const appointmentController = new AppointmentController()
 
 router.post('/signup', userController.register)
-router.post('/login',
-    userController.login)
+router.post('/login', userController.login)
 
 router.post('/logout', verifyToken, userController.logout)
 
@@ -24,34 +23,67 @@ router.get('/getMe', verifyToken, userController.getMe)
 router.get('/getSlotList', slotController.getSlotList)
 
 //member đăng kí slot
-router.post('/registerSlot', slotController.registerDonationBlood)
+router.post('/registerSlot', verifyToken, authorize(['member']), slotController.registerDonationBlood)
 
 // router.post('/getAppointmentList',
 //      authorize (['staff']),
 //      appointmentController.getAppointmentList)
 
-router.post('/createSlot',
-    verifyToken,
-    authorize(['admin']),
-    slotController.createSlot)
+router.post('/createSlot', verifyToken, authorize(['admin']), slotController.createSlot)
 
 // danh sach tiem nam
-router.get('/getPotentialDonorList',
+router.get('/getPotentialDonorList', verifyToken, authorize(['staff']), staffController.getPotentialList)
+
+router.get('/getMemberList', verifyToken, authorize(['staff']), staffController.getMemberList)
+
+router.post('/addMemberToPotentialList', verifyToken, authorize(['staff']), staffController.addMemberToPotentialList)
+
+router.post(
+  '/appointment/:appointmentId/addVolume',
+  verifyToken,
+  authorize(['staff']),
+  appointmentController.updateVolume
+)
+
+router.get('/appointment', verifyToken, authorize(['staff']), appointmentController.getAppointmentList)
+
+router.put('/profile', verifyToken, authorize(['member']), userController.updateProfile)
+
+router.put(
+  '/users/:userId/confirmBloodTypeByStaff',
+  verifyToken,
+  authorize(['staff']),
+  userController.confirmBloodByStaff
+)
+
+router.post('/appointment/:appointmentId/addVolume',
+     verifyToken,authorize(['staff']),
+     appointmentController.updateVolume)
+
+
+
+router.get('/getAppointmentList',
+     verifyToken,authorize(['staff']),
+     appointmentController.getAppointmentList)
+
+router.post('/requestEmergencyBlood',
+    verifyToken, 
+    authorize(['member']),
+    staffController.createEmergencyRequest
+)
+router.get('/getEmergencyRequestList',
     verifyToken,
     authorize(['staff']),
-    staffController.getPotentialList)
+    staffController.getAllEmergencyRequests)
 
-router.get('/getMemberList',
+router.post('/handleEmergencyRequest/:emergencyId',
+    verifyToken,
+    authorize(['staff']),   
+    staffController.handleEmergencyRequest)
+
+router.get('/getBloodBank',
     verifyToken,
     authorize(['staff']),
-    staffController.getMemberList)
+    staffController.getBloodBank)
 
-router.post('/addMemberToPotentialList',
-    verifyToken,
-    authorize(['staff']),
-    staffController.addMemberToPotentialList)
-
-
-router.post('/appointment/:appointmentId/addVolume', appointmentController.updateVolume)
-router.get('/appointment', appointmentController.getAppointmentList)
 export default router

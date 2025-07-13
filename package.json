@@ -7,6 +7,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.19",
     "@types/ms": "^0.7.31",
+    "@types/nodemailer": "^6.4.17",
     "@types/qs": "^6.14.0",
     "asynckit": "^0.4.0",
     "axios": "^1.9.0",
@@ -39,6 +40,7 @@
     "mime-types": "^2.1.35",
     "ms": "^2.1.3",
     "mssql": "^11.0.1",
+    "nodemailer": "^7.0.5",
     "proxy-from-env": "^1.1.0"
   },
   "devDependencies": {

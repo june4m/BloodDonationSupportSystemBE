@@ -1,10 +1,10 @@
-import { LoginReqBody, RegisterReqBody } from './../models/schemas/requests/user.requests';
+import { LoginReqBody, RegisterReqBody } from './../models/schemas/requests/user.requests'
 import { User, Auth } from '~/models/schemas/user.schema'
 import { UserRepository } from '~/repository/user.repository'
 import { USERS_MESSAGES } from '~/constant/message'
 import { error } from 'console'
-import bcrypt from 'bcrypt';
-import { body } from 'express-validator';
+import bcrypt from 'bcrypt'
+import { body } from 'express-validator'
 export class UserService {
   public userRepository: UserRepository
 
@@ -15,7 +15,7 @@ export class UserService {
   async authUser(credentials: LoginReqBody): Promise<Auth> {
     try {
       const user = await this.findUserLogin(credentials.email)
-      console.log(' authUser: user fetched from DB', user);
+      console.log(' authUser: user fetched from DB', user)
       if (!user) {
         return {
           success: false,
@@ -23,7 +23,7 @@ export class UserService {
           statusCode: 400
         }
       }
-      console.log(' authUser: stored password', user.password);
+      console.log(' authUser: stored password', user.password)
       if (!user.password) {
         return {
           success: false,
@@ -31,10 +31,10 @@ export class UserService {
           statusCode: 400
         }
       }
-      
+
       const stored = user.password!
       let isPasswordValid = false
-    
+
       // Nếu stored là hash (bcrypt thường bắt đầu bằng “$2b$”)
       if (stored.startsWith('$2')) {
         isPasswordValid = await bcrypt.compare(credentials.password, stored)
@@ -42,7 +42,7 @@ export class UserService {
         // fallback: nếu bạn còn lưu plaintext trong DB
         isPasswordValid = credentials.password === stored
       }
-    
+
       if (!isPasswordValid) {
         return {
           success: false,
@@ -50,16 +50,16 @@ export class UserService {
           statusCode: 400
         }
       }
-      console.log('authUser: isPasswordValid?', isPasswordValid);
+      console.log('authUser: isPasswordValid?', isPasswordValid)
       let userRole: 'admin' | 'staff' | 'member' = 'member'
       if (user.user_role && ['admin', 'staff', 'member'].includes(user.user_role)) {
-        userRole = user.user_role as 'admin' | 'staff' | 'member';
+        userRole = user.user_role as 'admin' | 'staff' | 'member'
       }
       return {
         success: true,
         message: USERS_MESSAGES.LOGIN_SUCCESS,
         statusCode: 200,
-        data:{
+        data: {
           user_id: user.user_id,
           user_name: user.user_name,
           user_role: userRole
@@ -71,56 +71,55 @@ export class UserService {
         success: false,
         message: 'Internal Server error',
         statusCode: 500
-      };
+      }
     }
   }
 
-  async findUserLogin(email: string): Promise<User| null> {
+  async findUserLogin(email: string): Promise<User | null> {
     const users = await this.userRepository.findByEmail(email)
     if (Array.isArray(users) && users.length > 0) {
       const user = users[0]
-      return { email: user.email,
-               password: user.password,
-               user_id: user.user_id,
-               user_name: user.user_name,
-               user_role: user.user_role || 'member' 
-              } as User
+      return {
+        email: user.email,
+        password: user.password,
+        user_id: user.user_id,
+        user_name: user.user_name,
+        user_role: user.user_role || 'member'
+      } as User
     }
     return null
   }
-  async checkEmailExists(email:string){
+  async checkEmailExists(email: string) {
     const users = await this.userRepository.findByEmail(email)
     return Array.isArray(users) && users.length > 0
   }
   async updateBloodType(userId: string, bloodType: string): Promise<User> {
     try {
       if (!userId || !bloodType) {
-        throw new Error('User_ID and Blood_Type are required');
+        throw new Error('User_ID and Blood_Type are required')
       }
-      const user = await this.userRepository.findById(userId);
-      if (!user) throw new Error('User not found');
-      const updatedUser = await this.userRepository.updateBloodType(userId, bloodType);
-      return updatedUser;
+      const user = await this.userRepository.findById(userId)
+      if (!user) throw new Error('User not found')
+      const updatedUser = await this.userRepository.updateBloodType(userId, bloodType)
+      return updatedUser
     } catch (error) {
-      console.error('Error updating blood type:', error);
-      throw error;
+      console.error('Error updating blood type:', error)
+      throw error
     }
   }
-  public async register(
-    body: Pick<RegisterReqBody, 'email' | 'password' | 'name' | 'date_of_birth'>
-  ): Promise<User> {
+  public async register(body: Pick<RegisterReqBody, 'email' | 'password' | 'name' | 'date_of_birth'>): Promise<User> {
     const { email, password, name, date_of_birth } = body
-    
+
     if (!(email && password && name && date_of_birth)) {
       throw new Error(USERS_MESSAGES.VALIDATION_ERROR)
     }
-   
+
     const existing = await this.findUserLogin(email.toLowerCase())
 
     if (existing) {
       throw new Error(USERS_MESSAGES.EMAIL_HAS_BEEN_USED)
     }
-    
+
     const newUser = await this.userRepository.createAccount({
       email,
       password,
@@ -131,6 +130,47 @@ export class UserService {
   }
 
   public async findById(userId: string): Promise<User | null> {
-    return await this.userRepository.findById(userId);
+    return await this.userRepository.findById(userId)
+  }
+
+  async updateProfile(
+    userId: string,
+    data: { User_Name?: string; YOB?: string; Phone?: string; Gender?: string }
+  ): Promise<any> {
+    if (!userId) {
+      throw new Error('User ID is required')
+    }
+
+    const user = await this.userRepository.findById(userId)
+    if (!user) {
+      throw new Error('User not found')
+    }
+
+    const { User_Name, YOB, Phone, Gender } = data
+    if (!User_Name && !YOB && !Phone && !Gender) {
+      throw new Error('At least one field must be provided for update')
+    }
+
+    return await this.userRepository.updateUserProfile(userId, { User_Name, YOB, Phone, Gender })
+  }
+
+  async confirmBloodByStaff(userId: string, bloodTypeInput: string): Promise<any> {
+    if (!userId || !bloodTypeInput) {
+      throw new Error('User ID and Blood Type are required')
+    }
+
+    // Tách nhóm máu và RhFactor
+    const bloodGroup = bloodTypeInput.slice(0, -1).trim() // A, B, AB, O
+    const rhFactor = bloodTypeInput.slice(-1) // + hoặc -
+    console.log('bloodGroup: ', bloodGroup)
+    console.log('rhFactor: ', rhFactor)
+
+    const bloodType = await this.userRepository.findBloodTypeByGroupAndRh(bloodGroup, rhFactor)
+    if (!bloodType) {
+      throw new Error('Invalid Blood Type provided')
+    }
+
+    const result = await this.userRepository.updateUserBloodType(userId, bloodType.BloodType_ID)
+    return result
   }
 }

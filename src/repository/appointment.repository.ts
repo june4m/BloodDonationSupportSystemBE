@@ -2,6 +2,7 @@ import { param } from 'express-validator'
 import { Appointment } from './../models/schemas/slot.schema'
 
 import databaseServices from '~/services/database.services'
+import { AppointmentReminder } from '~/models/schemas/appointment.schema'
 
 export class AppointmentRepository {
   async getAllAppointmentList() {
@@ -10,11 +11,14 @@ export class AppointmentRepository {
   A.Appointment_ID AS Appointment_ID,
   U.User_Name AS Name,
   U.Email AS Email,
-  B.Blood_group
+  U.Phone As Phone,
+  S.Slot_Date AS DATE,
+  B.Blood_group,
+  A.Volume
 FROM AppointmentGiving A
 JOIN Users U ON A.User_ID = U.User_ID
-JOIN BloodType B ON U.BloodType_ID = B.BloodType_ID
-WHERE A.Volume IS NULL`
+JOIN Slot S ON A.Slot_ID = S.Slot_ID
+JOIN BloodType B ON U.BloodType_ID = B.BloodType_ID`
     try {
       const result = await databaseServices.query(query)
       return result
@@ -101,18 +105,18 @@ WHERE A.Volume IS NULL`
       if (typeof Start_Time === 'string') {
         timeStr = Start_Time.substring(0, 8)
       } else if (Start_Time instanceof Date) {
-        timeStr = Start_Time.toTimeString().substring(0, 8)
+        timeStr = Start_Time.toISOString().substring(11, 19) // Lấy đúng giờ, phút, giây
       } else {
         timeStr = '00:00:00'
       }
-      const historyText = `Donated ${Volume}ml on ${dateStr} at ${timeStr}\n`
+      const historyText = `Đã hiến ${Volume}ml vào ngày ${dateStr} lúc ${timeStr} | `
 
       //lấy history hiện tại
       const getHistoryQuery = `SELECT History FROM Users WHERE User_ID = ?`
       const historyResult = await databaseServices.query(getHistoryQuery, [User_ID])
       const currentHistory = historyResult[0]?.History || ''
 
-      //cập nhật lại History
+      //nối history mới vào
       const newHistory = currentHistory + historyText
       const updateHistoryQuery = `UPDATE Users SET History = ? WHERE User_ID = ?`
       await databaseServices.query(updateHistoryQuery, [newHistory, User_ID])
@@ -120,6 +124,28 @@ WHERE A.Volume IS NULL`
     } catch (error) {
       console.log('Failed to update user history: ', error)
       throw error
+    }
+  }
+  async findBeetweenDate(start: Date, end: Date): Promise<AppointmentReminder[]> {
+    try {
+      const sql = `
+      SELECT
+        A.Appointment_ID,
+        U.User_Name,
+        U.Email,
+        S.Slot_Date,
+        CONVERT(varchar(8), S.Start_Time, 108) AS Start_Time
+      FROM AppointmentGiving A
+      JOIN Users U   ON A.User_ID = U.User_ID
+      JOIN Slot  S   ON A.Slot_ID = S.Slot_ID
+      WHERE S.Slot_Date >= ? AND S.Slot_Date < ?
+      ORDER BY S.Slot_Date, S.Start_Time
+    `;
+      const result = await databaseServices.queryParam(sql, [start, end]);
+      return result.recordset ?? result;
+    } catch (error) {
+      console.error('Error in findBeetweenDate:', error);
+      throw new Error('Failed to retrieve appointments between dates');
     }
   }
 }

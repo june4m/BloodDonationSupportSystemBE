@@ -1,5 +1,6 @@
-import { Appointment } from '~/models/schemas/appointment.schema'
+import { Appointment, AppointmentReminder } from '~/models/schemas/appointment.schema'
 import { AppointmentRepository } from './../repository/appointment.repository'
+import databaseServices from './database.services'
 
 export class appointmentServices {
   private appointmentRepository: AppointmentRepository
@@ -45,6 +46,16 @@ export class appointmentServices {
       return appointments
     } catch (error) {
       throw error
+    }
+  }
+  async findBeetweenDate (start: Date, end: Date): Promise<AppointmentReminder[]> {
+    try {
+
+      const appointments = await this.appointmentRepository.findBeetweenDate(start, end);
+      return appointments;
+    } catch (error) {
+      console.error('Error in findBeetweenDate:', error);
+      throw new Error('Failed to retrieve appointments between dates');
     }
   }
 }
