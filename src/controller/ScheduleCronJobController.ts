@@ -1,13 +1,15 @@
+import { AppointmentServices } from '~/services/appointment.services';
+
 import { sendEmail } from './EmailController';
 import cron from 'node-cron';
 import moment from 'moment-timezone';
-import { appointmentServices } from '~/services/appointment.services';
+
 import { sendEmailService } from '~/services/email.services'; // Adjust the import to the correct sendEmail function
 
 class ScheduleCronJobController {
-    private appointmentService: appointmentServices;
+    private appointmentService: AppointmentServices;
     constructor() {
-        this.appointmentService = new appointmentServices();
+        this.appointmentService = new AppointmentServices();
     }
     
     public  init(){
@@ -17,7 +19,6 @@ class ScheduleCronJobController {
                 try {
                     const tomorrowStart = moment().tz('Asia/Ho_Chi_Minh').add(1, 'day').startOf('day').toDate();
                     const tomorrowEnd = moment().tz('Asia/Ho_Chi_Minh').add(1, 'day').endOf('day').toDate();
-
                     // Lấy danh sách các cuộc hẹn vào ngày mai
                     const appointments = await this.appointmentService.findBeetweenDate(tomorrowStart, tomorrowEnd);
 
