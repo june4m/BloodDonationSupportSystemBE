@@ -9,6 +9,7 @@ export class AppointmentRepository {
     console.log('Appointment repo getAppointmentList')
     const query = `SELECT 
       A.Appointment_ID AS Appointment_ID,
+      U.User_ID AS User_ID,
       U.User_Name AS Name,
       U.Email AS Email,
       U.Phone As Phone,
@@ -142,7 +143,7 @@ export class AppointmentRepository {
       FROM AppointmentGiving A
       JOIN Users U   ON A.User_ID = U.User_ID
       JOIN Slot  S   ON A.Slot_ID = S.Slot_ID
-      WHERE S.Slot_Date >= ? AND S.Slot_Date < ?
+      WHERE S.Slot_Date >= ? AND S.Slot_Date <= ?
       ORDER BY S.Slot_Date, S.Start_Time
     `;
       const result = await databaseServices.queryParam(sql, [start, end]);

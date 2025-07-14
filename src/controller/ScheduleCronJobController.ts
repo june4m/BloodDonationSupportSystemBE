@@ -1,13 +1,14 @@
 import { sendEmail } from './EmailController';
 import cron from 'node-cron';
 import moment from 'moment-timezone';
-import { appointmentServices } from '~/services/appointment.services';
+
 import { sendEmailService } from '~/services/email.services'; // Adjust the import to the correct sendEmail function
+import { AppointmentServices } from '~/services/appointment.services';
 
 class ScheduleCronJobController {
-    private appointmentService: appointmentServices;
+    private appointmentService: AppointmentServices;
     constructor() {
-        this.appointmentService = new appointmentServices();
+        this.appointmentService = new AppointmentServices();
     }
     
     public  init(){

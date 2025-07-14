@@ -6,6 +6,7 @@ import router from './routers/users.routers'
 //import router from './routes'
 import cookieParser from 'cookie-parser'
 import emailRouter from './routers/email.routers'
+import ScheduleCronJobController from './controller/ScheduleCronJobController'
 const app = express()
 const port = 3000
 
@@ -19,6 +20,10 @@ app.use(cookieParser())
 app.use('/api', router)
 app.use('/email', emailRouter)
 // Instantiate the controller
+
+// Khởi động cron job tự động
+const scheduleCronJobController = new ScheduleCronJobController()
+scheduleCronJobController.init()
 
 // Start server
 app.listen(port, () => {
