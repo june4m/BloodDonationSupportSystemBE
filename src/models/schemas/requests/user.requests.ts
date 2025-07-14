@@ -1,3 +1,4 @@
+import { Appointment } from './../slot.schema';
 import { JwtPayload } from 'jsonwebtoken'
 import { ParsedQs } from 'qs'
 import * as core from 'express-serve-static-core'

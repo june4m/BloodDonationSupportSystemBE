@@ -37,23 +37,23 @@ export class UserRepository {
         U.User_Name       AS user_name,
         U.User_Role       AS user_role,
         U.Phone           AS phone,
+        U.Gender          AS gender,
         U.Address         AS address,
         CONVERT(VARCHAR(10), U.YOB, 23) AS date_of_birth,
         U.BloodType_ID    AS bloodtype_id,
         B.Blood_group     AS blood_group,
-        (
-          SELECT STRING_AGG(bg, ', ')
-          FROM (
+        (SELECT STRING_AGG(bg, ', ')
+		      FROM (
             SELECT DISTINCT BT2.Blood_group AS bg
             FROM   BloodCompatibility BC
             JOIN   BloodType BT2 ON BC.Receiver_Blood_ID = BT2.BloodType_ID
             WHERE  BC.Component_ID   = 'CP001'
-              AND  BC.Is_Compatible  = 1
-              AND  BC.Donor_Blood_ID = U.BloodType_ID
+            AND  BC.Is_Compatible  = 1
+            AND  BC.Donor_Blood_ID = U.BloodType_ID
           ) AS distinct_groups
-        ) AS rbc_compatible_to
+	      ) AS rbc_compatible_to
       FROM Users U
-      JOIN BloodType B ON U.BloodType_ID = B.BloodType_ID
+      LEFT JOIN BloodType B ON U.BloodType_ID = B.BloodType_ID 
       WHERE U.User_ID = ?;
       `,
       [userId]
@@ -114,6 +114,7 @@ export class UserRepository {
       throw error
     }
   }
+
   async createAccount(body: Pick<RegisterReqBody, 'email' | 'password' | 'name' | 'date_of_birth'>): Promise<User> {
     const { email, password, name, date_of_birth } = body
     const lastRow = await databaseServices.query(
@@ -138,7 +139,7 @@ export class UserRepository {
 
   async updateUserProfile(
     userId: string,
-    data: { User_Name?: string; YOB?: string; Phone?: string; Gender?: string }
+    data: { User_Name?: string; YOB?: string; Address?: string; Phone?: string; Gender?: string }
   ): Promise<any> {
     let query = 'UPDATE Users SET'
     const params: any[] = []
@@ -151,6 +152,10 @@ export class UserRepository {
     if (data.YOB) {
       updates.push(' YOB = ?')
       params.push(data.YOB)
+    }
+    if (data.Address) {
+      updates.push(' Address = ?')
+      params.push(data.Address)
     }
     if (data.Phone) {
       updates.push(' Phone = ?')
@@ -189,5 +194,15 @@ export class UserRepository {
     const query = `UPDATE Users SET BloodType_ID = ? WHERE User_ID = ?`
     const result = await databaseServices.queryParam(query, [bloodTypeId, userId])
     return result
+  }
+
+  public async getUserById(userId: string): Promise<any> {
+    const query = `
+    SELECT * FROM Users
+    WHERE User_ID = ?
+  `
+    const result = await databaseServices.queryParam(query, [userId])
+    console.log('result getUserById: ', result)
+    return result.recordset.length > 0 ? result.recordset[0] : null
   }
 }
