@@ -157,7 +157,8 @@ class StaffController{
     public async handleEmergencyRequest(req: any, res: any): Promise<void> {
         try {
             const emergencyId = req.params.emergencyId; // Lấy emergencyId từ URL
-            const { Priority, Status, Potential_ID, Appointment_ID } = req.body;
+            const { Priority, Status,  Appointment_ID } = req.body;
+            const Potential_ID = req.params.Potential_ID || null; 
             const Staff_ID = req.user?.user_id;
     
             if (!emergencyId || !Priority || !Status) {

@@ -130,17 +130,32 @@ export class StaffRepository {
     }
     public async getAllEmergencyRequests(): Promise<EmergencyRequestReqBody[]> {
         try {
-            const query = `SELECT * FROM EmergencyRequest`;
+            const query = `SELECT 
+                            U.User_Name,
+                            ER.Requester_ID,
+                            B.Blood_group + B.RHFactor AS BloodType,
+                            ER.Volume, 
+                            ER.Needed_Before,
+                            ER.Priority,
+                            ER.sourceType,
+                            ER.Potential_ID,
+                            ER.Place,
+                            ER.Status
+                        FROM EmergencyRequest ER
+                        JOIN Users U ON ER.Requester_ID = U.User_ID
+                        JOIN BloodType B ON ER.BloodType_ID = B.BloodType_ID;`;
             const result = await databaseServices.query(query);
             return result.map((item: any) => ({
-                Emergency_ID: item.Emergency_ID,
                 Requester_ID: item.Requester_ID,
+                User_Name: item.User_Name,
+                BloodType: item.BloodType,
                 Volume: item.Volume,
-                BloodType_ID: item.BloodType_ID,
                 Needed_Before: item.Needed_Before,
-                Status: item.Status,
-                Created_At: item.Created_At,
-                Updated_At: item.Updated_At
+                Priority: item.Priority,
+                sourceType: item.sourceType,
+                Potential_ID: item.Potential_ID,
+                Place: item.Place,
+                Status: item.Status
             })) as EmergencyRequestReqBody[];
             
         } catch (error) {
