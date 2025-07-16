@@ -129,7 +129,7 @@ router.get('/getBloodBank',
   authorize(['staff']),
   staffController.getBloodBank)
 
-router.get('/getProfileRequester/:userId',
+router.get('/getProfileER/:userId',
   verifyToken,
   authorize(['staff']),
   staffController.getProfileRequesterById)
