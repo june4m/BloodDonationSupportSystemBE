@@ -54,6 +54,8 @@ export interface EmergencyRequestReqBody {
   Appointment_ID?: string
   Staff_ID?: string
   Slot_ID?: string
+  sourceType?: string
+  Place?: string
 }
 export interface UpdateEmergencyRequestReqBody {
   Emergency_ID: string;

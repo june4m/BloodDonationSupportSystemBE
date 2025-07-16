@@ -1,5 +1,7 @@
 
+import moment from "moment";
 import { PotentialDonor } from "~/models/schemas/potentialDonor.schema";
+import { InfoRequesterEmergency, PotentialDonorCriteria } from "~/models/schemas/requests/user.requests";
 import { EmergencyRequestReqBody, UpdateEmergencyRequestReqBody } from "~/models/schemas/slot.schema";
 
 import { User } from "~/models/schemas/user.schema";
@@ -205,4 +207,174 @@ export class StaffRepository {
             throw error;
         }
     }
+    
+    public async getProfileRequesterById(User_Id: string): Promise<InfoRequesterEmergency []> {
+        try {
+            const query = `
+            SELECT E.Requester_ID as User_Id,
+                    U.User_Name,
+                    U.YOB as Date_Of_Birth,
+                    U.Address As Full_Address,
+                    U.Phone,
+                    U.Email,
+                    U.Gender 
+                        FROM EmergencyRequest E JOIN Users U 
+                        ON E.Requester_ID = U.User_ID 
+                        WHERE E.Requester_ID = ?
+                        AND U.Status = 'Active'`;
+            const rows: any[] = await databaseServices.query(query, [User_Id]);
+            return rows.map(item => {
+                const parts = item.Full_Address.split(',').map((p: string) => p.trim());
+                const ward    = parts[1] || '';
+                const city    = parts[2] || '';
+                return {
+                        User_ID:       item.User_Id,
+                        User_Name:     item.User_Name,
+                        Date_Of_Birth: moment(item.Date_Of_Birth).format('YYYY-MM-DD'),
+                        Full_Address:  item.Full_Address,
+                        WardOrCommune: ward,
+                        City:city,
+                        Phone:item.Phone,
+                        Email:item.Email,
+                        Gender:item.Gender
+                        };
+                    });
+        } catch (error) {
+            console.error('Error in getProfileRequesterById:', error);
+            throw error;
+        }
+    }
+  /**
+   * Lấy danh sách potential theo 3 tiêu chí
+   *  1) cùng Xã/Phường/Quận, Thành phố=> tiêu chí khoảng cách nè
+   *  2) nhóm máu tương thích => Cùng nhóm
+   *  3) lần hiến gần nhất >= 3 tháng
+   */
+    public async getPotentialDonorCriteria(
+        requesterId: string
+    ): Promise<PotentialDonorCriteria[]> {
+        // 1) Lấy nhóm máu từ EmergencyRequest
+        const req = (await databaseServices.query(
+        `
+        SELECT ER.BloodType_ID AS requestedBTID
+        FROM EmergencyRequest ER
+        WHERE ER.Requester_ID = ?
+            AND ER.Status       = 'Pending'
+        `,
+        [requesterId]
+        )) as any[];
+
+        if (!req.length) return [];
+        const requestedBTID = req[0].requestedBTID;
+
+        // 2) Chạy batch T‑SQL bạn cung cấp
+        const rows = (await databaseServices.query(
+        `
+        DECLARE @BTID       VARCHAR(20)  = ?;       -- nhóm máu người nhận
+        DECLARE @ReceiverID NVARCHAR(20) = ?;       -- requesterId
+        DECLARE @ADDR       NVARCHAR(200);
+        DECLARE @PHUONG     NVARCHAR(100);
+        DECLARE @QUAN       NVARCHAR(100);
+
+        -- Lấy address của requester
+        SELECT @ADDR = Address
+        FROM Users
+        WHERE User_ID = @ReceiverID;
+
+        -- Tách phường & quận
+        SET @PHUONG = LTRIM(RTRIM(PARSENAME(REPLACE(@ADDR, ', ', '.'), 2)));
+        SET @QUAN   = LTRIM(RTRIM(PARSENAME(REPLACE(@ADDR, ', ', '.'), 1)));
+
+        WITH DonorMatches AS (
+            SELECT
+            PD.Potential_ID            AS potentialId,
+            U.User_ID                  AS userId,
+            U.User_Name                AS userName,
+            B.Blood_group + B.RHFactor AS bloodType,
+            U.History                  AS history,
+            U.Address                  AS address,
+
+            -- parse ngày hiến gần nhất từ History
+            TRY_CONVERT(
+                DATE,
+                SUBSTRING(
+                U.History,
+                CHARINDEX(' on ', U.History) + LEN(' on '),
+                10
+                ),
+                23
+            ) AS donationDate
+            FROM PotentialDonor PD
+            JOIN Users U ON PD.User_ID = U.User_ID
+            JOIN BloodType B ON U.BloodType_ID = B.BloodType_ID
+            JOIN BloodCompatibility BC
+            ON BC.Donor_Blood_ID    = U.BloodType_ID
+            AND BC.Receiver_Blood_ID = @BTID
+            AND BC.Is_Compatible     = 1
+            WHERE
+            U.Status      = 'Active'
+            AND U.History IS NOT NULL
+            AND CHARINDEX(' on ', U.History) > 0
+            AND CHARINDEX(' at', U.History) > CHARINDEX(' on ', U.History)
+        )
+        SELECT
+            dm.*,
+            DATEDIFF(MONTH, dm.donationDate, GETDATE()) AS monthsSince,
+            CASE
+            WHEN
+                LTRIM(RTRIM(PARSENAME(REPLACE(dm.address, ', ', '.'), 2))) = @PHUONG
+                AND LTRIM(RTRIM(PARSENAME(REPLACE(dm.address, ', ', '.'), 1))) = @QUAN
+            THEN 1
+            WHEN
+                LTRIM(RTRIM(PARSENAME(REPLACE(dm.address, ', ', '.'), 1))) = @QUAN
+            THEN 2
+            ELSE NULL
+            END AS proximity
+        FROM DonorMatches dm
+        WHERE
+            dm.donationDate IS NOT NULL
+            AND DATEDIFF(MONTH, dm.donationDate, GETDATE()) >= 3
+            AND CASE
+                WHEN
+                    LTRIM(RTRIM(PARSENAME(REPLACE(dm.address, ', ', '.'), 2))) = @PHUONG
+                    AND LTRIM(RTRIM(PARSENAME(REPLACE(dm.address, ', ', '.'), 1))) = @QUAN
+                THEN 1
+                WHEN
+                    LTRIM(RTRIM(PARSENAME(REPLACE(dm.address, ', ', '.'), 1))) = @QUAN
+                THEN 2
+                END = (
+                SELECT MIN(
+                    CASE
+                    WHEN
+                        LTRIM(RTRIM(PARSENAME(REPLACE(address, ', ', '.'), 2))) = @PHUONG
+                        AND LTRIM(RTRIM(PARSENAME(REPLACE(address, ', ', '.'), 1))) = @QUAN
+                    THEN 1
+                    WHEN
+                        LTRIM(RTRIM(PARSENAME(REPLACE(address, ', ', '.'), 1))) = @QUAN
+                    THEN 2
+                    END
+                )
+                FROM DonorMatches
+                )
+        ORDER BY dm.userName;
+        `,
+        // bind vào hai dấu hỏi tương ứng
+        [requestedBTID, requesterId]
+        )) as any[];
+
+        // 3) Map về DTO
+        return rows.map(r => ({
+        potentialId:  r.potentialId,
+        userId:       r.userId,
+        userName:     r.userName,
+        bloodType:    r.bloodType,
+        lastDonation: r.donationDate
+            ? (r.donationDate as Date).toISOString().slice(0, 10)
+            : "",
+        address:      r.address,
+        proximity:    r.proximity,      // 1 = same ward, 2 = same city
+        monthsSince:  r.monthsSince     // >= 3
+        }));
+    }
+    
 }

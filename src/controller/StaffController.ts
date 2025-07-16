@@ -1,3 +1,4 @@
+import { log } from 'console';
 import { UpdateMeReqBody } from './../models/schemas/requests/user.requests';
 import { Appointment } from './../models/schemas/slot.schema';
 import { body, param } from 'express-validator';
@@ -17,6 +18,8 @@ class StaffController{
         this.getAllEmergencyRequests = this.getAllEmergencyRequests.bind(this);
         this.handleEmergencyRequest = this.handleEmergencyRequest.bind(this);
         this.getBloodBank = this.getBloodBank.bind(this);
+        this.getProfileRequesterById = this.getProfileRequesterById.bind(this);
+        this.getPotentialDonorCriteria = this.getPotentialDonorCriteria.bind(this);
     }
     public async getPotentialList(req: any, res: any): Promise<void> {
         try{
@@ -206,6 +209,61 @@ class StaffController{
             res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
                 success: false,
                 message: 'Failed to retrieve blood bank',
+                error: error.message || 'Internal Server Error'
+            });
+        }
+    }
+    public async getProfileRequesterById(req: any, res: any): Promise<void> {
+        try {
+            const User_Id = req.params.userId; 
+            if (!User_Id) {
+                res.status(HTTP_STATUS.BAD_REQUEST).json({
+                    success: false,
+                    message: 'User_Id is required',
+                });
+                return;
+            }
+            const requesterProfile = await this.staffServices.getProfileRequester(User_Id);
+            console.log('Requester Profile:', requesterProfile); // Debug thông tin người yêu cầu
+            
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                data: requesterProfile,
+                message: 'Requester profile retrieved successfully'
+            });
+        } catch (error: any) {
+            console.error('Error in getProfileRequesterById:', error);
+            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: 'Failed to retrieve requester profile',
+                error: error.message || 'Internal Server Error'
+            });
+        }
+    }
+    public async getPotentialDonorCriteria(req: any, res: any): Promise<void> {
+        try {
+            const requesterId = req.params.requesterId;
+            
+            if (!requesterId) {
+                res.status(HTTP_STATUS.BAD_REQUEST).json({
+                    success: false,
+                    message: 'Requester ID is required',
+                });
+                return;
+            }
+
+            const potentialDonors = await this.staffServices.getPotentialDonorCriteria(requesterId);
+            
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                data: potentialDonors,
+                message: 'Potential donors retrieved successfully based on criteria'
+            });
+        } catch (error: any) {
+            console.error('Error in getPotentialDonorCriteria:', error);
+            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: 'Failed to retrieve potential donors',
                 error: error.message || 'Internal Server Error'
             });
         }

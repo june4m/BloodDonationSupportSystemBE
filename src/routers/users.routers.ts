@@ -129,4 +129,15 @@ router.get('/getBloodBank',
   authorize(['staff']),
   staffController.getBloodBank)
 
+router.get('/getProfileRequester/:userId',
+  verifyToken,
+  authorize(['staff']),
+  staffController.getProfileRequesterById)
+
+router.get('/getPotentialDonorPlus/:requesterId', 
+  verifyToken,
+  authorize(['staff']),
+  staffController.getPotentialDonorCriteria);
+
+
 export default router
