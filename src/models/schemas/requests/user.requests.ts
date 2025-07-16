@@ -53,9 +53,7 @@ export interface InfoRequesterEmergency{
   User_ID: string;
   User_Name: string;
   Date_Of_Birth: string;
-  Full_Address: string;    
-  WardOrCommune: string;   
-  City: string;            
+  Full_Address: string;               
   Phone: string;
   Email: string;
   Gender: string;
