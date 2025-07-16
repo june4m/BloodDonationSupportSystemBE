@@ -91,7 +91,7 @@ class StaffController{
     }    
     public async createEmergencyRequest(req: any, res: any): Promise<void> {
         try {
-            const { BloodType_ID, Volume, Needed_Before } = req.body;
+            const { BloodType_ID, Volume, Needed_Before,reason_Need } = req.body;
     
             // Kiểm tra dữ liệu đầu vào
             if (!BloodType_ID || !Volume || !Needed_Before) {
@@ -111,7 +111,7 @@ class StaffController{
             if (isSpam) {
                 res.status(429).json({
                     success: false,
-                    message: 'You have already submitted a request recently. Please wait before submitting another request.',
+                    message: 'Bạn đang có một yêu cầu khẩn cấp đang chờ xử lý. Vui lòng chờ đến khi hoàn thành mới được tạo thêm.',
                 });
                 return;
             }
@@ -124,6 +124,7 @@ class StaffController{
                 Needed_Before,
                 Status: 'Pending',
                 Created_At: new Date().toISOString(),
+                reason_Need
             });
     
             res.status(200).json({

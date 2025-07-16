@@ -80,9 +80,9 @@ export class StaffRepository {
 
             const query = `
             INSERT INTO EmergencyRequest (
-                Emergency_ID, Requester_ID, Volume, BloodType_ID, Needed_Before, Status, Created_At, Updated_At
+                Emergency_ID, Requester_ID, Volume, BloodType_ID, Needed_Before, Status, Created_At, Updated_At, reason_Need
             )
-            VALUES (?, ?, ?, ?, ?, ?, ?, GETDATE())
+            VALUES (?, ?, ?, ?, ?, ?, ?, GETDATE(), ?)
         `;
             await databaseServices.query(query, [
                 newEmergencyId,
@@ -92,6 +92,7 @@ export class StaffRepository {
                 data.Needed_Before,
                 data.Status,
                 data.Created_At,
+                data.reason_Need
             ]);
 
             return { Emergency_ID: newEmergencyId, ...data };
@@ -100,21 +101,24 @@ export class StaffRepository {
             throw error;
         }
     }
-    public async checkRecentEmergencyRequest(userId: string): Promise<boolean> {
+    public async checkRecentEmergencyRequest(
+        userId: string
+      ): Promise<boolean> {
         try {
-            const query = `
-                SELECT COUNT(*) AS count
-                FROM EmergencyRequest
-                WHERE Requester_ID = ? AND Created_At >= DATEADD(SECOND, -10, GETDATE())
-            `;
-            const result = await databaseServices.query(query, [userId]);
-            console.log('Spam check result:', result[0].count); // Debug kết quả
-            return result[0].count > 0; // Trả về true nếu đã có yêu cầu trong 1 giờ qua
+          const query = `
+            SELECT COUNT(*) AS cnt
+            FROM EmergencyRequest
+            WHERE Requester_ID = ?
+              AND Status       <> 'Complete'
+          `;
+          const result = await databaseServices.query(query, [userId]);
+          // Nếu cnt > 0 nghĩa là vẫn còn request chưa complete
+          return result[0].cnt > 0;
         } catch (error) {
-            console.error('Error in checkRecentEmergencyRequest:', error);
-            throw error;
+          console.error('Error in checkRecentEmergencyRequest:', error);
+          throw error;
         }
-    }
+      }
     async checkPotentialDonorExists(userId: string): Promise<boolean> {
         try {
             const query = `
@@ -345,7 +349,7 @@ export class StaffRepository {
             lastDonation: r.donationDate
                 ? (r.donationDate as Date).toISOString().slice(0, 10)
                 : "",
-            address: r.address,
+            address: r.Address,
             proximity: r.proximity,      // 1 = same ward, 2 = same city
             monthsSince: r.monthsSince     // >= 3
         }));

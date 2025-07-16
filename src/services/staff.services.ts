@@ -67,7 +67,7 @@ export class staffServices{
     public async isSpamRequest(userId: string): Promise<boolean> {
       try {
           const isSpam = await this.staffRepository.checkRecentEmergencyRequest(userId);
-          console.log('isSpam:', isSpam); // Debug kết quả
+          console.log('isSpam:', isSpam); 
           return isSpam;
       } catch (error) {
           console.error('Error in isSpamRequest:', error);
