@@ -217,29 +217,23 @@ export class StaffRepository {
     public async getProfileRequesterById(User_Id: string): Promise<InfoRequesterEmergency[]> {
         try {
             const query = `
-            SELECT E.Requester_ID as User_Id,
-                    U.User_Name,
-                    U.YOB as Date_Of_Birth,
-                    U.Address As Full_Address,
-                    U.Phone,
-                    U.Email,
-                    U.Gender 
-                        FROM EmergencyRequest E JOIN Users U 
-                        ON E.Requester_ID = U.User_ID 
-                        WHERE E.Requester_ID = ?
-                        AND U.Status = 'Active'`;
+            SELECT U.User_ID as User_Id,
+                   U.User_Name,
+                   U.YOB as Date_Of_Birth,
+                   U.Address As Full_Address,
+                   U.Phone,
+                   U.Email,
+                   U.Gender 
+            FROM Users U
+            WHERE U.User_ID = ?
+              AND U.Status = 'Active'`;
             const rows: any[] = await databaseServices.query(query, [User_Id]);
             return rows.map(item => {
-                const parts = item.Full_Address.split(',').map((p: string) => p.trim());
-                const ward = parts[1] || '';
-                const city = parts[2] || '';
                 return {
                     User_ID: item.User_Id,
                     User_Name: item.User_Name,
                     Date_Of_Birth: moment(item.Date_Of_Birth).format('YYYY-MM-DD'),
                     Full_Address: item.Full_Address,
-                    WardOrCommune: ward,
-                    City: city,
                     Phone: item.Phone,
                     Email: item.Email,
                     Gender: item.Gender
