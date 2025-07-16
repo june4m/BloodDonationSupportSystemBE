@@ -145,12 +145,12 @@ export class AppointmentRepository {
       JOIN Slot  S   ON A.Slot_ID = S.Slot_ID
       WHERE S.Slot_Date >= ? AND S.Slot_Date <= ?
       ORDER BY S.Slot_Date, S.Start_Time
-    `;
-      const result = await databaseServices.queryParam(sql, [start, end]);
-      return result.recordset ?? result;
+    `
+      const result = await databaseServices.queryParam(sql, [start, end])
+      return result.recordset ?? result
     } catch (error) {
-      console.error('Error in findBeetweenDate:', error);
-      throw new Error('Failed to retrieve appointments between dates');
+      console.error('Error in findBeetweenDate:', error)
+      throw new Error('Failed to retrieve appointments between dates')
     }
   }
 
