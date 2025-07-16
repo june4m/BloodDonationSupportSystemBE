@@ -152,6 +152,7 @@ export class StaffRepository {
                         LEFT JOIN Users D ON PD.User_ID = D.User_ID;`;
             const result = await databaseServices.query(query);
             return result.map((item: any) => ({
+                Emergency_ID: item.Emergency_ID,
                 Requester_ID: item.Requester_ID,
                 User_Name: item.User_Name,
                 BloodType_ID: item.BloodType_ID,
@@ -292,6 +293,7 @@ WITH DonorMatches AS (
     PD.Potential_ID AS potentialId,
     U.User_ID       AS userId,
     U.User_Name     AS userName,
+    U.Email AS Email,
     B.Blood_group + B.RHFactor AS bloodType,
     U.Address,
     U.History,
@@ -345,9 +347,10 @@ ORDER BY userName;
             lastDonation: r.donationDate
                 ? (r.donationDate as Date).toISOString().slice(0, 10)
                 : "",
-            address: r.address,
+            address: r.Address,
             proximity: r.proximity,      // 1 = same ward, 2 = same city
-            monthsSince: r.monthsSince     // >= 3
+            monthsSince: r.monthsSince ,
+            email: r.Email,    // >= 3
         }));
     }
 

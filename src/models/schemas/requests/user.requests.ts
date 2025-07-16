@@ -65,4 +65,5 @@ export interface PotentialDonorCriteria {
   lastDonation: string;  
   address: string;
   potentialId: string;
+  email: string;
 }
