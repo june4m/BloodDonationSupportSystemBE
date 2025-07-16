@@ -138,7 +138,7 @@ router.get('/getPotentialDonorPlus/:emergencyId',
   verifyToken,
   authorize(['staff']),
   staffController.getPotentialDonorCriteria);
-router.post('/sendEmergencyEmail',
+router.post('/sendEmergencyEmail/:donorEmail/:donorName',
   verifyToken,
   authorize(['staff']),
   staffController.sendEmergencyEmailFixed);

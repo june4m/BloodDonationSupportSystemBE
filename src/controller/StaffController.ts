@@ -272,12 +272,12 @@ class StaffController{
     }
     public async sendEmergencyEmailFixed(req: any, res: any): Promise<void> {
         try {
-            const { donorEmail, donorName } = req.body;
+            const { donorEmail, donorName } = req.params;
             
             if (!donorEmail || !donorName) {
                 res.status(HTTP_STATUS.BAD_REQUEST).json({
                     success: false,
-                    message: 'Donor email and name are required'
+                    message: 'Donor email and name are required in params'
                 });
                 return;
             }
