@@ -96,6 +96,11 @@ class UserController {
         res.status(400).json({ message: 'Passwords do not match' })
         return
       }
+      const emailExists = await this.userService.checkEmailExists(email)
+      if (emailExists) {
+        ResponseHandle.responseError(res, null, 'Email already exists', 400)
+        return
+      }
       const hashedPassword = await bcrypt.hash(password, 10) // Mã hóa password
       const result = await this.userService.register({
         email,

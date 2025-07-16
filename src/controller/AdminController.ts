@@ -11,7 +11,6 @@ class AdminController {
     this.adminService = new AdminService()
     this.signupStaffAccount = this.signupStaffAccount.bind(this)
     this.updateUserRole = this.updateUserRole.bind(this)
-    console.log(this.adminService)
   }
 
   public async signupStaffAccount(req: Request<{}, {}, RegisterReqBody>, res: Response): Promise<void> {

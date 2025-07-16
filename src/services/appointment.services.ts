@@ -1,4 +1,4 @@
-import { Appointment } from '~/models/schemas/appointment.schema'
+import { Appointment, AppointmentReminder } from '~/models/schemas/appointment.schema'
 import { AppointmentRepository } from './../repository/appointment.repository'
 import { PatientDetailRepository } from '~/repository/patient.repository'
 import { UserRepository } from '~/repository/user.repository'
@@ -178,6 +178,16 @@ export class AppointmentServices {
       return { success: true, message: 'Bạn đã hủy cuộc hẹn thành công!' }
     } catch (error: any) {
       return { success: true, message: error.message || 'Failed to delete patient_detail and appointment' }
+    }
+  }
+
+  async findBeetweenDate(start: Date, end: Date): Promise<AppointmentReminder[]> {
+    try {
+      const appointments = await this.appointmentRepository.findBeetweenDate(start, end)
+      return appointments
+    } catch (error) {
+      console.error('Error in findBeetweenDate:', error)
+      throw new Error('Failed to retrieve appointments between dates')
     }
   }
 }

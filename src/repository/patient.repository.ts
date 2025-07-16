@@ -32,7 +32,7 @@ export class PatientDetailRepository {
       console.log('numericPart: ', numericPart)
       const nextId = numericPart + 1
       console.log('nextId: ', nextId)
-      newPatientId = 'S' + String(nextId).padStart(3, '0') // => 'S006'
+      newPatientId = 'P' + String(nextId).padStart(3, '0') // => 'S006'
       console.log('newPatientId: ', newPatientId)
     }
 

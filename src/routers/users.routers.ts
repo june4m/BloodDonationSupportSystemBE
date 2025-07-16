@@ -109,4 +109,16 @@ router.put(
   appointmentController.cancelAppointmentForMember
 )
 
+router.post('/requestEmergencyBlood', verifyToken, authorize(['member']), staffController.createEmergencyRequest)
+router.get('/getEmergencyRequestList', verifyToken, authorize(['staff']), staffController.getAllEmergencyRequests)
+
+router.post(
+  '/handleEmergencyRequest/:emergencyId',
+  verifyToken,
+  authorize(['staff']),
+  staffController.handleEmergencyRequest
+)
+
+router.get('/getBloodBank', verifyToken, authorize(['staff']), staffController.getBloodBank)
+
 export default router
