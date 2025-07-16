@@ -8,6 +8,7 @@ import AppointmentController from '~/controller/AppointmentControler'
 import StaffController from '~/controller/StaffController'
 import AdminController from '~/controller/AdminController'
 import { PatientController } from '~/controller/PatientController'
+import BlogController from '~/controller/BlogController'
 const router = Router()
 const userController = new UserController()
 const slotController = new SlotController()
@@ -15,6 +16,7 @@ const appointmentController = new AppointmentController()
 const staffController = new StaffController()
 const adminController = new AdminController()
 const patientController = new PatientController()
+const blogController = new BlogController()
 // const appointmentController = new AppointmentController()
 
 router.post('/signup/staff', verifyToken, authorize(['admin']), adminController.signupStaffAccount)
@@ -109,24 +111,22 @@ router.put(
   appointmentController.cancelAppointmentForMember
 )
 
-router.post('/requestEmergencyBlood',
-  verifyToken, 
-  authorize(['member']),
-  staffController.createEmergencyRequest
+router.post('/requestEmergencyBlood', verifyToken, authorize(['member']), staffController.createEmergencyRequest)
+router.get('/getEmergencyRequestList', verifyToken, authorize(['staff']), staffController.getAllEmergencyRequests)
+
+router.post(
+  '/handleEmergencyRequest/:emergencyId',
+  verifyToken,
+  authorize(['staff']),
+  staffController.handleEmergencyRequest
 )
-router.get('/getEmergencyRequestList',
-  verifyToken,
-  authorize(['staff']),
-  staffController.getAllEmergencyRequests)
 
-router.post('/handleEmergencyRequest/:emergencyId',
-  verifyToken,
-  authorize(['staff']),   
-  staffController.handleEmergencyRequest)
+router.get('/getBloodBank', verifyToken, authorize(['staff']), staffController.getBloodBank)
 
-router.get('/getBloodBank',
-  verifyToken,
-  authorize(['staff']),
-  staffController.getBloodBank)
+router.get('/blogs', blogController.getBlogs)
+router.get('/blogs/:blogId', blogController.getBlogById)
+router.post('/blogs/create', verifyToken, authorize(['admin']), blogController.createBlog)
+router.put('/blogs/:blogId', verifyToken, authorize(['admin']), blogController.updateBlog)
+router.delete('/blogs/:blogId', verifyToken, authorize(['admin']), blogController.deleteBlog)
 
 export default router

@@ -14,7 +14,6 @@ export class AppointmentServices {
     this.userRepository = new UserRepository()
   }
 
-
   async getAppointmentById(appointmentId: string): Promise<Appointment> {
     console.log('Appointment Service, getAppointmentById')
 
@@ -182,14 +181,13 @@ export class AppointmentServices {
     }
   }
 
-  async findBeetweenDate (start: Date, end: Date): Promise<AppointmentReminder[]> {
+  async findBeetweenDate(start: Date, end: Date): Promise<AppointmentReminder[]> {
     try {
-
-      const appointments = await this.appointmentRepository.findBeetweenDate(start, end);
-      return appointments;
+      const appointments = await this.appointmentRepository.findBeetweenDate(start, end)
+      return appointments
     } catch (error) {
-      console.error('Error in findBeetweenDate:', error);
-      throw new Error('Failed to retrieve appointments between dates');
+      console.error('Error in findBeetweenDate:', error)
+      throw new Error('Failed to retrieve appointments between dates')
     }
   }
 }

@@ -111,8 +111,8 @@ export class SlotService {
         nextDonationDate.setMonth(nextDonationDate.getMonth() + 3)
         throw new Error(
           `Bạn chỉ có thể hiến máu một lần trong 3 tháng. ` +
-          `Lần hiến máu gần nhất của bạn là vào ngày ${lastDate.toISOString().split('T')[0]}. ` +
-          `Bạn có thể hiến máu lại vào ngày ${nextDonationDate.toISOString().split('T')[0]}.`
+            `Lần hiến máu gần nhất của bạn là vào ngày ${lastDate.toISOString().split('T')[0]}. ` +
+            `Bạn có thể hiến máu lại vào ngày ${nextDonationDate.toISOString().split('T')[0]}.`
         )
       }
     }
