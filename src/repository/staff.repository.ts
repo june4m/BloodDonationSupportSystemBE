@@ -275,64 +275,64 @@ export class StaffRepository {
         const rows = (await databaseServices.query(
             `
         DECLARE @BTID VARCHAR(20) = ? ;         -- Nhóm máu người nhận
-DECLARE @ReceiverID NVARCHAR(20) = ? ;   -- ID người nhận
+        DECLARE @ReceiverID NVARCHAR(20) = ? ;   -- ID người nhận
 
-DECLARE @ADDR NVARCHAR(200);
-DECLARE @PHUONG NVARCHAR(100);
-DECLARE @QUAN NVARCHAR(100);
+        DECLARE @ADDR NVARCHAR(200);
+        DECLARE @PHUONG NVARCHAR(100);
+        DECLARE @QUAN NVARCHAR(100);
 
--- Lấy địa chỉ người nhận
-SELECT @ADDR = Address FROM Users WHERE User_ID = @ReceiverID;
+        -- Lấy địa chỉ người nhận
+        SELECT @ADDR = Address FROM Users WHERE User_ID = @ReceiverID;
 
--- Tách phường & quận từ địa chỉ
-SET @PHUONG = LTRIM(RTRIM(PARSENAME(REPLACE(@ADDR, ', ', '.'), 2)));
-SET @QUAN   = LTRIM(RTRIM(PARSENAME(REPLACE(@ADDR, ', ', '.'), 1)));
+        -- Tách phường & quận từ địa chỉ
+        SET @PHUONG = LTRIM(RTRIM(PARSENAME(REPLACE(@ADDR, ', ', '.'), 2)));
+        SET @QUAN   = LTRIM(RTRIM(PARSENAME(REPLACE(@ADDR, ', ', '.'), 1)));
 
--- Tìm người hiến phù hợp, không trùng userId
-WITH DonorMatches AS (
-  SELECT
-    PD.Potential_ID AS potentialId,
-    U.User_ID       AS userId,
-    U.User_Name     AS userName,
-    B.Blood_group + B.RHFactor AS bloodType,
-    U.Address,
-    U.History,
-    TRY_CONVERT(DATE, SUBSTRING(U.History, CHARINDEX(' on ', U.History) + 4, 10)) AS donationDate
-  FROM PotentialDonor PD
-  JOIN Users U ON PD.User_ID = U.User_ID
-  JOIN BloodType B ON U.BloodType_ID = B.BloodType_ID
-  JOIN BloodCompatibility BC ON BC.Donor_Blood_ID = U.BloodType_ID
-                              AND BC.Receiver_Blood_ID = @BTID
-                              AND BC.Is_Compatible = 1
-  WHERE 
-    U.Status = 'Active'
-    AND U.History IS NOT NULL
-    AND CHARINDEX(' on ', U.History) > 0
-    AND CHARINDEX(' at', U.History) > CHARINDEX(' on ', U.History)
-),
-Filtered AS (
-  SELECT *,
-         DATEDIFF(MONTH, donationDate, GETDATE()) AS monthsSince,
-         CASE
-           WHEN LTRIM(RTRIM(PARSENAME(REPLACE(Address, ', ', '.'), 2))) = @PHUONG
-            AND LTRIM(RTRIM(PARSENAME(REPLACE(Address, ', ', '.'), 1))) = @QUAN THEN 1
-           WHEN LTRIM(RTRIM(PARSENAME(REPLACE(Address, ', ', '.'), 1))) = @QUAN THEN 2
-           ELSE NULL
-         END AS proximity
-  FROM DonorMatches
-  WHERE donationDate IS NOT NULL AND DATEDIFF(MONTH, donationDate, GETDATE()) >= 3
-),
-Ranked AS (
-  SELECT *, ROW_NUMBER() OVER (PARTITION BY userId ORDER BY proximity) AS rn
-  FROM Filtered
-  WHERE proximity IS NOT NULL
-)
+        -- Tìm người hiến phù hợp, không trùng userId
+        WITH DonorMatches AS (
+        SELECT
+            PD.Potential_ID AS potentialId,
+            U.User_ID       AS userId,
+            U.User_Name     AS userName,
+            B.Blood_group + B.RHFactor AS bloodType,
+            U.Address,
+            U.History,
+            TRY_CONVERT(DATE, SUBSTRING(U.History, CHARINDEX(' on ', U.History) + 4, 10)) AS donationDate
+        FROM PotentialDonor PD
+        JOIN Users U ON PD.User_ID = U.User_ID
+        JOIN BloodType B ON U.BloodType_ID = B.BloodType_ID
+        JOIN BloodCompatibility BC ON BC.Donor_Blood_ID = U.BloodType_ID
+                                    AND BC.Receiver_Blood_ID = @BTID
+                                    AND BC.Is_Compatible = 1
+        WHERE 
+            U.Status = 'Active'
+            AND U.History IS NOT NULL
+            AND CHARINDEX(' on ', U.History) > 0
+            AND CHARINDEX(' at', U.History) > CHARINDEX(' on ', U.History)
+        ),
+        Filtered AS (
+        SELECT *,
+                DATEDIFF(MONTH, donationDate, GETDATE()) AS monthsSince,
+                CASE
+                WHEN LTRIM(RTRIM(PARSENAME(REPLACE(Address, ', ', '.'), 2))) = @PHUONG
+                    AND LTRIM(RTRIM(PARSENAME(REPLACE(Address, ', ', '.'), 1))) = @QUAN THEN 1
+                WHEN LTRIM(RTRIM(PARSENAME(REPLACE(Address, ', ', '.'), 1))) = @QUAN THEN 2
+                ELSE NULL
+                END AS proximity
+        FROM DonorMatches
+        WHERE donationDate IS NOT NULL AND DATEDIFF(MONTH, donationDate, GETDATE()) >= 3
+        ),
+        Ranked AS (
+        SELECT *, ROW_NUMBER() OVER (PARTITION BY userId ORDER BY proximity) AS rn
+        FROM Filtered
+        WHERE proximity IS NOT NULL
+        )
 
-SELECT *
-FROM Ranked
-WHERE rn = 1
-  AND proximity = (SELECT MIN(proximity) FROM Ranked)
-ORDER BY userName;
+        SELECT *
+        FROM Ranked
+        WHERE rn = 1
+        AND proximity = (SELECT MIN(proximity) FROM Ranked)
+        ORDER BY userName;
 
         `,
             [requestedBTID, requesterId]
