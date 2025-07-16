@@ -143,10 +143,13 @@ export class StaffRepository {
                             ER.sourceType,
                             ER.Potential_ID,
                             ER.Place,
-                            ER.Status
+                            ER.Status,
+                            D.User_ID                       AS Donor_ID
                         FROM EmergencyRequest ER
                         JOIN Users U ON ER.Requester_ID = U.User_ID
-                        JOIN BloodType B ON ER.BloodType_ID = B.BloodType_ID;`;
+                        JOIN BloodType B ON ER.BloodType_ID = B.BloodType_ID
+                        LEFT JOIN PotentialDonor PD ON ER.Potential_ID = PD.Potential_ID
+                        LEFT JOIN Users D ON PD.User_ID = D.User_ID;`;
             const result = await databaseServices.query(query);
             return result.map((item: any) => ({
                 Requester_ID: item.Requester_ID,
@@ -159,7 +162,8 @@ export class StaffRepository {
                 sourceType: item.sourceType,
                 Potential_ID: item.Potential_ID,
                 Place: item.Place,
-                Status: item.Status
+                Status: item.Status,
+                Donor_ID: item.Donor_ID,
             })) as EmergencyRequestReqBody[];
 
         } catch (error) {
