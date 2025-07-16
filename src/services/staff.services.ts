@@ -118,6 +118,21 @@ export class staffServices{
           console.error('Error in getPotentialDonorCriteria:', error);
           throw error;
       }
-  }
+    }
+    public async sendEmergencyEmailFixed(
+      donorEmail: string,
+      donorName: string
+    ): Promise<any> {
+        try {
+            const result = await this.staffRepository.sendEmergencyEmailFixed(
+                donorEmail,
+                donorName
+            );
+            return result;
+        } catch (error) {
+            console.error('Error in sendEmergencyEmailFixed:', error);
+            throw error;
+        }
+    }
     
 }

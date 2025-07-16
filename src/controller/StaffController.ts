@@ -20,6 +20,7 @@ class StaffController{
         this.getBloodBank = this.getBloodBank.bind(this);
         this.getProfileRequesterById = this.getProfileRequesterById.bind(this);
         this.getPotentialDonorCriteria = this.getPotentialDonorCriteria.bind(this);
+        this.sendEmergencyEmailFixed = this.sendEmergencyEmailFixed.bind(this);
     }
     public async getPotentialList(req: any, res: any): Promise<void> {
         try{
@@ -266,6 +267,38 @@ class StaffController{
                 success: false,
                 message: 'Failed to retrieve potential donors',
                 error: error.message || 'Internal Server Error'
+            });
+        }
+    }
+    public async sendEmergencyEmailFixed(req: any, res: any): Promise<void> {
+        try {
+            const { donorEmail, donorName } = req.body;
+            
+            if (!donorEmail || !donorName) {
+                res.status(HTTP_STATUS.BAD_REQUEST).json({
+                    success: false,
+                    message: 'Donor email and name are required'
+                });
+                return;
+            }
+
+            const result = await this.staffServices.sendEmergencyEmailFixed(
+                donorEmail,
+                donorName
+            );
+            
+            res.status(HTTP_STATUS.OK).json({
+                success: result.success,
+                message: result.message,
+                data: result.data
+            });
+            
+        } catch (error: any) {
+            console.error('Error in sendEmergencyEmailFixed:', error);
+            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: 'Failed to send emergency email',
+                error: error.message
             });
         }
     }

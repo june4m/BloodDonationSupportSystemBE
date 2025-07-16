@@ -138,6 +138,10 @@ router.get('/getPotentialDonorPlus/:emergencyId',
   verifyToken,
   authorize(['staff']),
   staffController.getPotentialDonorCriteria);
+router.post('/sendEmergencyEmail',
+  verifyToken,
+  authorize(['staff']),
+  staffController.sendEmergencyEmailFixed);
 
 
 export default router
