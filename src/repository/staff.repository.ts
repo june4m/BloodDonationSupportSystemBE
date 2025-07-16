@@ -5,6 +5,7 @@ import { EmergencyRequestReqBody, UpdateEmergencyRequestReqBody } from "~/models
 
 import { User } from "~/models/schemas/user.schema";
 import databaseServices from "~/services/database.services";
+import { sendEmailService } from "~/services/email.services";
 
 export class StaffRepository {
     async getPotentialList(): Promise<PotentialDonor[]> {
@@ -356,6 +357,100 @@ export class StaffRepository {
             monthsSince: r.monthsSince ,
             email: r.Email,    // >= 3
         }));
+    }
+    public async sendEmergencyEmailFixed(
+        donorEmail: string,
+        donorName: string
+    ): Promise<any> {
+        try {
+            const subject = `🩸 Cần sự hỗ trợ khẩn cấp - Hiến máu cứu người`;
+            
+            const htmlContent = `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #ddd;">
+                    <div style="background-color: #dc3545; color: white; padding: 20px; text-align: center;">
+                        <h1>🩸 YÊU CẦU HIẾN MÁU KHẨN CẤP</h1>
+                        <p>Trung tâm Hiến máu Đại Việt Blood</p>
+                    </div>
+                    
+                    <div style="padding: 30px;">
+                        <h2 style="color: #dc3545;">Kính chào ${donorName},</h2>
+                        
+                        <div style="background-color: #fff3cd; padding: 20px; border-left: 4px solid #ffc107; margin: 20px 0; border-radius: 5px;">
+                            <p style="font-size: 18px; font-weight: bold; color: #856404; margin: 0; line-height: 1.6;">
+                                Hiện bên chúng tôi đang có 1 bệnh nhân cần máu khẩn cấp, bạn có thể hỗ trợ hiến máu để trao sự sống cho họ được không?
+                            </p>
+                        </div>
+                        
+                        <div style="background-color: #d4edda; padding: 20px; border-left: 4px solid #28a745; margin: 20px 0; border-radius: 5px;">
+                            <h3 style="color: #155724; margin: 0 0 15px 0;">❤️ Tại sao việc hiến máu quan trọng?</h3>
+                            <ul style="color: #155724; margin: 0; padding-left: 20px; line-height: 1.8;">
+                                <li>Máu không thể sản xuất nhân tạo</li>
+                                <li>Mỗi lần hiến máu có thể cứu được tới 3 sinh mạng</li>
+                                <li>Bạn là hy vọng cuối cùng của bệnh nhân</li>
+                                <li>Hiến máu an toàn và không ảnh hưởng đến sức khỏe</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                            <h3 style="color: #666; margin: 0 0 15px 0;">📝 Lưu ý trước khi hiến máu:</h3>
+                            <ul style="color: #666; margin: 0; padding-left: 20px; line-height: 1.8;">
+                                <li>Ăn uống đầy đủ trước khi hiến máu</li>
+                                <li>Ngủ đủ giấc và có sức khỏe tốt</li>
+                                <li>Không uống rượu bia 24h trước khi hiến</li>
+                                <li>Mang theo CCCD/CMND khi đến hiến máu</li>
+                            </ul>
+                        </div>
+                        
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="background-color: #dc3545; color: white; padding: 25px; border-radius: 10px;">
+                                <h3 style="margin: 0 0 15px 0;">🚨 LIÊN HỆ NGAY</h3>
+                                <p style="margin: 0 0 15px 0; font-size: 16px;">Vui lòng liên hệ với chúng tôi để được hỗ trợ:</p>
+                                <p style="margin: 0; font-size: 20px; font-weight: bold;">
+                                    📞 Hotline: 1900-1234
+                                </p>
+                                <p style="margin: 10px 0 0 0; font-size: 16px;">
+                                    ✉️ Email: support@bloodcenter.com
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin: 30px 0;">
+                            <p style="font-size: 20px; color: #dc3545; font-weight: bold; margin: 0;">
+                                Cảm ơn bạn đã sẵn sàng cứu người! 🙏
+                            </p>
+                            <p style="font-size: 16px; color: #666; margin: 10px 0 0 0;">
+                                Mỗi giọt máu của bạn là một sự sống được cứu!
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div style="background-color: #343a40; color: white; padding: 20px; text-align: center;">
+                        <p style="margin: 0; font-size: 14px;">
+                            <strong>Trung tâm Hiến máu Đại Việt Blood</strong><br>
+                            "Giọt máu nghĩa tình - Trao sự sống, nhận hạnh phúc"<br>
+                            Địa chỉ: 123 Đường ABC, Quận 1, TP.HCM<br>
+                            Hotline: 1900-1234 | Email: support@bloodcenter.com
+                        </p>
+                    </div>
+                </div>
+            `;
+
+            await sendEmailService(donorEmail, subject, htmlContent);
+            
+            return {
+                success: true,
+                message: 'Email sent successfully',
+                data: {
+                    donorEmail,
+                    donorName,
+                    sentAt: new Date().toISOString()
+                }
+            };
+            
+        } catch (error) {
+            console.error('Error in sendEmergencyEmailFixed:', error);
+            throw error;
+        }
     }
 
 }
