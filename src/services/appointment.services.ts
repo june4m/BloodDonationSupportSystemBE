@@ -182,7 +182,7 @@ export class AppointmentServices {
     }
   }
 
-   async findBeetweenDate (start: Date, end: Date): Promise<AppointmentReminder[]> {
+  async findBeetweenDate (start: Date, end: Date): Promise<AppointmentReminder[]> {
     try {
 
       const appointments = await this.appointmentRepository.findBeetweenDate(start, end);

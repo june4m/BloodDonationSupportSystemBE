@@ -21,10 +21,9 @@ app.use('/api', router)
 app.use('/email', emailRouter)
 // Instantiate the controller
 
-// Khởi động cron job tự động
+// tạo cronjob tự động, do không có router nên phải tạo trong này luôn nhe ae
 const scheduleCronJobController = new ScheduleCronJobController()
 scheduleCronJobController.init()
-
 // Start server
 app.listen(port, () => {
   console.log(`Server running on http://localhost:${port}`)
