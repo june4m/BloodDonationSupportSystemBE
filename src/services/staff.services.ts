@@ -110,9 +110,9 @@ export class staffServices{
           throw error;
       }
     }
-    public async getPotentialDonorCriteria(requesterId: string): Promise<any> {
+    public async getPotentialDonorCriteria(emergencyId: string): Promise<any> {
       try {
-          const potentialDonors = await this.staffRepository.getPotentialDonorCriteria(requesterId);
+          const potentialDonors = await this.staffRepository.getPotentialDonorCriteria(emergencyId);
           return potentialDonors;
       } catch (error) {
           console.error('Error in getPotentialDonorCriteria:', error);

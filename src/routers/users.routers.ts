@@ -134,7 +134,7 @@ router.get('/getProfileRequester/:userId',
   authorize(['staff']),
   staffController.getProfileRequesterById)
 
-router.get('/getPotentialDonorPlus/:requesterId', 
+router.get('/getPotentialDonorPlus/:emergencyId', 
   verifyToken,
   authorize(['staff']),
   staffController.getPotentialDonorCriteria);

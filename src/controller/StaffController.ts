@@ -242,17 +242,17 @@ class StaffController{
     }
     public async getPotentialDonorCriteria(req: any, res: any): Promise<void> {
         try {
-            const requesterId = req.params.requesterId;
+            const emergencyId = req.params.emergencyId;
             
-            if (!requesterId) {
+            if (!emergencyId) {
                 res.status(HTTP_STATUS.BAD_REQUEST).json({
                     success: false,
-                    message: 'Requester ID is required',
+                    message: 'Emergency ID is required',
                 });
                 return;
             }
 
-            const potentialDonors = await this.staffServices.getPotentialDonorCriteria(requesterId);
+            const potentialDonors = await this.staffServices.getPotentialDonorCriteria(emergencyId);
             
             res.status(HTTP_STATUS.OK).json({
                 success: true,
