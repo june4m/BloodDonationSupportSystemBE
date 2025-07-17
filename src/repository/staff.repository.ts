@@ -500,12 +500,24 @@ export class StaffRepository {
                 WHERE Emergency_ID = ?
             `;
             const result = await databaseServices.query(query, [reasonReject, staffId, emergencyId]);
-    
+
             if (result.affectedRows === 0) {
                 throw new Error('Emergency request not found or unable to reject');
             }
-    
-            return { success: true, message: 'Emergency request rejected successfully' };
+
+            // Lấy thông tin chi tiết của yêu cầu sau khi cập nhật
+            const selectQuery = `
+                SELECT Emergency_ID, Status, reason_Reject, Staff_ID, Updated_At, isDeleted
+                FROM EmergencyRequest
+                WHERE Emergency_ID = ? AND isDeleted = '1'
+            `;
+            const updatedRequest = await databaseServices.query(selectQuery, [emergencyId]);
+
+            return {
+                success: true,
+                message: 'Emergency request rejected successfully',
+                data: updatedRequest[0], // Trả về thông tin chi tiết của yêu cầu
+            };
         } catch (error) {
             console.error('Error in rejectEmergencyRequest:', error);
             throw error;
