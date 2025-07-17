@@ -309,7 +309,7 @@ class StaffController{
     public async assignPotentialToEmergency(req: any, res: any): Promise<void> {
         try {
             const { emergencyId, potentialId } = req.params;
-            const staffId = req.user?.User_ID; // Lấy từ token
+            const staffId = req.user?.user_id; // Lấy từ token
             console.log('Staff ID:', staffId);
             if (!emergencyId || !potentialId) {
                 res.status(HTTP_STATUS.BAD_REQUEST).json({
@@ -318,7 +318,13 @@ class StaffController{
                 });
                 return;
             }
-    
+            if (!staffId) {
+                res.status(HTTP_STATUS.UNAUTHORIZED).json({
+                    success: false,
+                    message: 'Unauthorized: Staff ID is required'
+                });
+                return;
+            }
             const result = await this.staffServices.addPotentialDonorByStaffToEmergency(
                 emergencyId,
                 potentialId,
@@ -341,7 +347,7 @@ class StaffController{
     public async rejectEmergencyRequest(req: any, res: any): Promise<void> {
         try {
             const { emergencyId } = req.params; 
-            const staffId = req.user?.User_ID; 
+            const staffId = req.user?.user_id; 
             const { reason_Reject } = req.body; // Lấy lý do từ chối từ body
 
             if (!emergencyId) {

@@ -495,7 +495,8 @@ export class StaffRepository {
                 SET Status = 'Rejected',
                     reason_Reject = ?,
                     Staff_ID = ?,
-                    Updated_At = GETDATE()
+                    Updated_At = GETDATE(),
+                    isDeleted = '0'
                 WHERE Emergency_ID = ?
             `;
             const result = await databaseServices.query(query, [reasonReject, staffId, emergencyId]);
