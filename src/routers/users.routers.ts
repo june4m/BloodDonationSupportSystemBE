@@ -153,7 +153,8 @@ router.put('/updateEmergencyRequest/:emergencyId/:potentialId',
   staffController.assignPotentialToEmergency);
 
 router.put('/rejectEmergency/:emergencyId/reject',
-  verifyToken,authorize(['staff']),
+  verifyToken,
+  authorize(['staff']),
   staffController.rejectEmergencyRequest);
 
 router.put('/cancelEmergencyByMember/:emergencyId/cancel',
@@ -177,5 +178,5 @@ router.put('/bannedUser/:userId',
     verifyToken,
     authorize(['admin']),
     adminController.bannedUser);
-
+    
 export default router

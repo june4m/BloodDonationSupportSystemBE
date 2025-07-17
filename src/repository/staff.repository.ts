@@ -488,7 +488,28 @@ export class StaffRepository {
             throw error;
         }
     }
-
+    public async rejectEmergencyRequest(emergencyId: string, staffId: string, reasonReject: string): Promise<any> {
+        try {
+            const query = `
+                UPDATE EmergencyRequest
+                SET Status = 'Rejected',
+                    reason_Reject = ?,
+                    Staff_ID = ?,
+                    Updated_At = GETDATE()
+                WHERE Emergency_ID = ?
+            `;
+            const result = await databaseServices.query(query, [reasonReject, staffId, emergencyId]);
+    
+            if (result.affectedRows === 0) {
+                throw new Error('Emergency request not found or unable to reject');
+            }
+    
+            return { success: true, message: 'Emergency request rejected successfully' };
+        } catch (error) {
+            console.error('Error in rejectEmergencyRequest:', error);
+            throw error;
+        }
+    }
     public async checkPotentialInOtherEmergency(potentialId: string): Promise<boolean> {
         try {
             const query = `

@@ -152,14 +152,9 @@ export class staffServices{
             throw error;
         }
     }
-    public async rejectEmergencyRequest(emergencyId: string, staffId: string): Promise<any> {
+    public async rejectEmergencyRequest(emergencyId: string, staffId: string, reason_Reject: string): Promise<any> {
       try {
-          const result = await this.staffRepository.updateEmergencyRequest({
-              Emergency_ID: emergencyId,
-              Staff_ID: staffId,
-              isDeleted: 1, // Đánh dấu bản ghi là bị xóa
-              Updated_At: new Date().toISOString(),
-          }as UpdateEmergencyRequestReqBody);
+          const result = await this.staffRepository.rejectEmergencyRequest(emergencyId, staffId, reason_Reject);
           return result;
       } catch (error) {
           console.error('Error in rejectEmergencyRequest:', error);

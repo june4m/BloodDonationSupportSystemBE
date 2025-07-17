@@ -342,7 +342,8 @@ class StaffController{
         try {
             const { emergencyId } = req.params; 
             const staffId = req.user?.User_ID; 
-    
+            const { reason_Reject } = req.body; // Lấy lý do từ chối từ body
+
             if (!emergencyId) {
                 res.status(400).json({
                     success: false,
@@ -350,7 +351,7 @@ class StaffController{
                 });
                 return;
             }
-    
+
             if (!staffId) {
                 res.status(401).json({
                     success: false,
@@ -358,10 +359,18 @@ class StaffController{
                 });
                 return;
             }
-    
+
+            if (!reason_Reject) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Reason for rejection is required',
+                });
+                return;
+            }
+
             // Gọi service để xử lý logic từ chối yêu cầu
-            const result = await this.staffServices.rejectEmergencyRequest(emergencyId, staffId);
-    
+            const result = await this.staffServices.rejectEmergencyRequest(emergencyId, staffId, reason_Reject);
+
             res.status(200).json({
                 success: true,
                 message: 'Emergency request rejected successfully',
