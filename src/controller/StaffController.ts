@@ -164,8 +164,8 @@ class StaffController{
     }
     public async handleEmergencyRequest(req: any, res: any): Promise<void> {
         try {
-            const emergencyId = req.params.emergencyId; // Lấy emergencyId từ URL
-            const { Priority, Status,  Appointment_ID } = req.body;
+            const emergencyId = req.params.emergencyId; 
+            const { Priority, Status,  Place, sourceType, isDeleted} = req.body;
             const Potential_ID = req.params.Potential_ID || null; 
             const Staff_ID = req.user?.user_id;
     
@@ -182,7 +182,8 @@ class StaffController{
                 Priority,
                 Status,
                 Potential_ID: Potential_ID || null,
-                Appointment_ID: Appointment_ID || null,
+                Place: Place || null,
+                sourceType: sourceType || null,
                 Staff_ID,
                 Updated_At: new Date().toISOString(),
             });

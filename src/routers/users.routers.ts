@@ -159,7 +159,7 @@ router.put('/rejectEmergency/:emergencyId/reject',
 router.put('/cancelEmergencyByMember/:emergencyId/cancel',
   verifyToken,authorize(['member']),
   staffController.cancelEmergencyRequestByMember);
-router.get('/deletedEmergencyRequestsByMember', 
+router.get('/getInfoEmergencyRequestsByMember', 
   verifyToken, 
   authorize(['member']), 
   staffController.getInfoEmergencyRequestsByMember);

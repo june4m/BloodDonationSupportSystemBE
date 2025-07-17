@@ -193,14 +193,6 @@ export class StaffRepository {
                 fieldsToUpdate.push('Status = ?');
                 values.push(data.Status);
             }
-            if (data.Potential_ID !== undefined) {
-                fieldsToUpdate.push('Potential_ID = ?');
-                values.push(data.Potential_ID);
-            }
-            if (data.Appointment_ID !== undefined) {
-                fieldsToUpdate.push('Appointment_ID = ?');
-                values.push(data.Appointment_ID);
-            }
             if (data.Staff_ID !== undefined) {
                 fieldsToUpdate.push('Staff_ID = ?');
                 values.push(data.Staff_ID);
