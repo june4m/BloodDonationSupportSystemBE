@@ -43,17 +43,16 @@ The backend exposes RESTful APIs that support:
 ---
 
 ## 📁 Project Structure
-
 src/
 ├── constant/ # App-wide constants
 ├── controller/ # Route handlers
-├── middleware/ # Middleware functions 
+├── middleware/ # Middleware functions
 ├── models/ # Request/response schemas, database models
 ├── repository/ # DB interaction logic
 ├── routers/ # Express route definitions
-├── services/ # Business logic 
-├── utils/ # Helper utilities 
-├── index.ts # App entry point
+├── services/ # Business logic
+├── utils/ # Helper utilities
+└── index.ts # App entry point
 
 ---
 
