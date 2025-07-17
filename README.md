@@ -62,22 +62,34 @@ src/
 Create a `.env` file in the root directory with the following variables:
 
 ```env
-# Server
-PORT=3000
+## 🛠 Environment Variables (.env)
 
-# Database
-DB_HOST=your_sql_server_host
-DB_USER=your_sql_user
-DB_PASSWORD=your_password
-DB_NAME=BloodDonationDB
+Create a `.env` file in the root directory with the following variables:
 
-# JWT
-ACCESS_TOKEN_SECRET=your_jwt_secret
-ACCESS_TOKEN_EXPIRE_IN=1h
+```env
+# Database Configuration
+DB_USERNAME=your_db_username
+DB_PASSWORD=your_db_password
+DB_NAME=BloodDonationSupportSystem
+DB_SERVER=localhost
+DB_PORT=1433
 
-# Email Service (Nodemailer)
-EMAIL_USER=your_email@example.com
-EMAIL_PASS=your_email_password
+# JWT Secrets
+JWT_SECRET=your_base_jwt_secret
+JWT_SECRET_ACCESS_TOKEN=your_access_token_secret
+JWT_SECRET_REFRESH_TOKEN=your_refresh_token_secret
+JWT_SECRET_EMAIL_VERIFY_TOKEN=your_email_verify_secret
+JWT_SECRET_FORGOT_PASSWORD_TOKEN=your_forgot_password_secret
+
+# Token Expiration Settings
+ACCESS_TOKEN_EXPIRE_IN=15m
+REFRESH_TOKEN_EXPIRE_IN=100d
+EMAIL_VERIFY_TOKEN_EXPIRE_IN=7d
+FORGOT_PASSWORD_TOKEN_EXPIRE_IN=7d
+
+# Email Configuration (for Nodemailer)
+EMAIL_USERNAME=your_email@example.com
+EMAIL_PASSWORD=your_email_app_password
 
 🚀 Getting Started
 1. Clone the repository
