@@ -165,7 +165,7 @@ class StaffController{
     public async handleEmergencyRequest(req: any, res: any): Promise<void> {
         try {
             const emergencyId = req.params.emergencyId; 
-            const { Priority, Status,  Place, sourceType, isDeleted} = req.body;
+            const { Priority, Status,  Place, sourceType} = req.body;
             const Potential_ID = req.params.Potential_ID || null; 
             const Staff_ID = req.user?.user_id;
     
