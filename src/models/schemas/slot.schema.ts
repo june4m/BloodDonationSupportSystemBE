@@ -66,6 +66,9 @@ export interface UpdateEmergencyRequestReqBody {
   Appointment_ID?: string; // Tùy chọn
   Staff_ID: string;
   Updated_At: string;
+  sourceType?: string;
+  Place?: string;
+  isDeleted?: 0 | 1;
 }
 export class SlotFactory {
   static createDetailSlot(data: Slot, isCSV: boolean = false): slotDTO {

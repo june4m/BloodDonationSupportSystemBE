@@ -149,12 +149,13 @@ export class StaffRepository {
                             ER.Potential_ID,
                             ER.Place,
                             ER.Status,
-                            D.User_ID                       AS Donor_ID
+                            D.User_ID                       AS Donor_ID,
+							ER.isDeleted
                         FROM EmergencyRequest ER
                         JOIN Users U ON ER.Requester_ID = U.User_ID
                         JOIN BloodType B ON ER.BloodType_ID = B.BloodType_ID
                         LEFT JOIN PotentialDonor PD ON ER.Potential_ID = PD.Potential_ID
-                        LEFT JOIN Users D ON PD.User_ID = D.User_ID;`;
+                        LEFT JOIN Users D ON PD.User_ID = D.User_ID WHERE ER.isDeleted = '1';`;
             const result = await databaseServices.query(query);
             return result.map((item: any) => ({
                 Emergency_ID: item.Emergency_ID,
@@ -179,27 +180,66 @@ export class StaffRepository {
     }
     public async updateEmergencyRequest(data: UpdateEmergencyRequestReqBody): Promise<any> {
         try {
+            const fieldsToUpdate: string[] = [];
+            const values: any[] = [];
+    
+            if (data.Priority !== undefined) {
+                fieldsToUpdate.push('Priority = ?');
+                values.push(data.Priority);
+            }
+            if (data.Status !== undefined) {
+                fieldsToUpdate.push('Status = ?');
+                values.push(data.Status);
+            }
+            if (data.Potential_ID !== undefined) {
+                fieldsToUpdate.push('Potential_ID = ?');
+                values.push(data.Potential_ID);
+            }
+            if (data.Appointment_ID !== undefined) {
+                fieldsToUpdate.push('Appointment_ID = ?');
+                values.push(data.Appointment_ID);
+            }
+            if (data.Staff_ID !== undefined) {
+                fieldsToUpdate.push('Staff_ID = ?');
+                values.push(data.Staff_ID);
+            }
+            if (data.Updated_At !== undefined) {
+                fieldsToUpdate.push('Updated_At = ?');
+                values.push(data.Updated_At);
+            }
+            if (data.sourceType !== undefined) {
+                fieldsToUpdate.push('sourceType = ?');
+                values.push(data.sourceType);
+            }
+            if (data.Place !== undefined) {
+                fieldsToUpdate.push('Place = ?');
+                values.push(data.Place);
+            }
+            if (data.isDeleted !== undefined) {
+                fieldsToUpdate.push('isDeleted = ?');
+                values.push(data.isDeleted);
+            }
+    
+            if (fieldsToUpdate.length === 0) {
+                throw new Error('No fields provided for update');
+            }
+    
             const query = `
                 UPDATE EmergencyRequest
-                SET Priority = ?, Status = ?, Potential_ID = ?, Appointment_ID = ?, Staff_ID = ?, Updated_At = ?
+                SET ${fieldsToUpdate.join(', ')}
                 WHERE Emergency_ID = ?
             `;
-            await databaseServices.query(query, [
-                data.Priority,
-                data.Status,
-                data.Potential_ID,
-                data.Appointment_ID,
-                data.Staff_ID,
-                data.Updated_At,
-                data.Emergency_ID,
-            ]);
-
+            values.push(data.Emergency_ID);
+    
+            await databaseServices.query(query, values);
+    
             return { success: true, message: 'Emergency request updated successfully' };
         } catch (error) {
             console.error('Error in updateEmergencyRequest:', error);
             throw error;
         }
     }
+    
     public async getBloodBank(): Promise<any[]> {
         try {
             const query = `SELECT BloodBank_ID, BloodUnit_ID, Volume,Storage_Date, Status, Last_Update FROM BloodBank`;
@@ -461,7 +501,7 @@ export class StaffRepository {
                 SELECT COUNT(*) AS count
                 FROM EmergencyRequest
                 WHERE Potential_ID = ?
-                  AND Status <> 'Complete'
+                  AND Status <> 'Completed'
             `;
             const result = await databaseServices.query(query, [potentialId]);
             return result[0].count > 0; // Nếu count > 0 nghĩa là Potential_ID đang được sử dụng trong Emergency khác chưa hoàn thành
@@ -511,6 +551,53 @@ export class StaffRepository {
             };
         } catch (error) {
             console.error('Error in addPotentialDonorByStaffToEmergency:', error);
+            throw error;
+        }
+    }
+    public async cancelEmergencyRequestByMember(emergencyId: string, memberId: string): Promise<any> {
+        try {
+            const query = `
+                UPDATE EmergencyRequest
+                SET isDeleted = 1, Updated_At = GETDATE()
+                WHERE Emergency_ID = ? AND Requester_ID = ?
+            `;
+            const result = await databaseServices.query(query, [emergencyId, memberId]);
+    
+            if (result.affectedRows === 0) {
+                throw new Error('Emergency request not found or unauthorized');
+            }
+    
+            return { success: true, message: 'Emergency request canceled by member successfully' };
+        } catch (error) {
+            console.error('Error in cancelEmergencyRequestByMember:', error);
+            throw error;
+        }
+    }
+    public async getInfoEmergencyRequestsByMember(memberId: string): Promise<EmergencyRequestReqBody[]> {
+        try {
+            const query = `
+                SELECT Emergency_ID, Requester_ID,reason_Need, BloodType_ID, Volume, Needed_Before, Status, Created_At, Updated_At, isDeleted,reason_Reject
+                FROM EmergencyRequest
+                WHERE Requester_ID = ?  AND isDeleted = '1'
+                ORDER BY Created_At DESC
+            `;
+            const result = await databaseServices.query(query, [memberId]);
+    
+            return result.map((item: any) => ({
+                Emergency_ID: item.Emergency_ID,
+                Requester_ID: item.Requester_ID,
+                reason_Need: item.reason_Need,
+                BloodType_ID: item.BloodType_ID,
+                Volume: item.Volume,
+                Needed_Before: item.Needed_Before,
+                Status: item.Status,
+                Created_At: item.Created_At,
+                Updated_At: item.Updated_At,
+                isDeleted: item.isDeleted,
+                reason_Reject: item.reason_Reject,
+            }));
+        } catch (error) {
+            console.error('Error in getEmergencyRequestsByMember:', error);
             throw error;
         }
     }

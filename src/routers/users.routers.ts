@@ -111,8 +111,12 @@ router.put(
   appointmentController.cancelAppointmentForMember
 )
 
-router.post('/requestEmergencyBlood', verifyToken, authorize(['member']), staffController.createEmergencyRequest)
-router.get('/getEmergencyRequestList', verifyToken, authorize(['staff']), staffController.getAllEmergencyRequests)
+router.post('/requestEmergencyBlood', 
+  verifyToken, authorize(['member']),
+  staffController.createEmergencyRequest)
+router.get('/getEmergencyRequestList',
+  verifyToken, authorize(['staff']),
+  staffController.getAllEmergencyRequests)
 
 router.post(
   '/handleEmergencyRequest/:emergencyId',
@@ -148,4 +152,15 @@ router.put('/updateEmergencyRequest/:emergencyId/:potentialId',
   authorize(['staff']),
   staffController.assignPotentialToEmergency);
 
+router.put('/rejectEmergency/:emergencyId/reject',
+  verifyToken,authorize(['staff']),
+  staffController.rejectEmergencyRequest);
+
+router.put('/cancelEmergencyByMember/:emergencyId/cancel',
+  verifyToken,authorize(['member']),
+  staffController.cancelEmergencyRequestByMember);
+router.get('/deletedEmergencyRequestsByMember', 
+  verifyToken, 
+  authorize(['member']), 
+  staffController.getInfoEmergencyRequestsByMember);
 export default router

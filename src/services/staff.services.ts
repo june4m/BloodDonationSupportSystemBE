@@ -152,5 +152,38 @@ export class staffServices{
             throw error;
         }
     }
+    public async rejectEmergencyRequest(emergencyId: string, staffId: string): Promise<any> {
+      try {
+          const result = await this.staffRepository.updateEmergencyRequest({
+              Emergency_ID: emergencyId,
+              Staff_ID: staffId,
+              isDeleted: 1, // Đánh dấu bản ghi là bị xóa
+              Updated_At: new Date().toISOString(),
+          }as UpdateEmergencyRequestReqBody);
+          return result;
+      } catch (error) {
+          console.error('Error in rejectEmergencyRequest:', error);
+          throw error;
+      }
+    }
+    public async cancelEmergencyRequestByMember(emergencyId: string, memberId: string): Promise<any> {
+      try {
+          const result = await this.staffRepository.cancelEmergencyRequestByMember(emergencyId, memberId);
+          return result;
+      } catch (error) {
+          console.error('Error in cancelEmergencyRequestByMember:', error);
+          throw error;
+      }
+    }
+    public async getInfoEmergencyRequestsByMember(memberId: string): Promise<EmergencyRequestReqBody[]> {
+      try {
+          const emergencyRequests = await this.staffRepository.getInfoEmergencyRequestsByMember(memberId);
+          return emergencyRequests;
+      } catch (error) {
+          console.error('Error in getDeletedEmergencyRequestsByMember:', error);
+          throw error;
+      }
+    }
+  
     
 }
