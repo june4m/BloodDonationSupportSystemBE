@@ -501,6 +501,11 @@ export class StaffRepository {
             `;
             const result = await databaseServices.query(query, [reasonReject, staffId, emergencyId]);
 
+            // Kiểm tra kết quả trả về
+            if (!result || typeof result.affectedRows !== 'number') {
+                throw new Error('Invalid query result');
+            }
+
             if (result.affectedRows === 0) {
                 throw new Error('Emergency request not found or unable to reject');
             }
@@ -509,7 +514,7 @@ export class StaffRepository {
             const selectQuery = `
                 SELECT Emergency_ID, Status, reason_Reject, Staff_ID, Updated_At, isDeleted
                 FROM EmergencyRequest
-                WHERE Emergency_ID = ? AND isDeleted = '1'
+                WHERE Emergency_ID = ?
             `;
             const updatedRequest = await databaseServices.query(selectQuery, [emergencyId]);
 
