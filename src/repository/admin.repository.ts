@@ -96,6 +96,7 @@ class AdminRepository {
       throw new Error('Failed to update user role')
     }
   }
+  
 }
 
 export default AdminRepository

@@ -150,6 +150,7 @@ export class StaffRepository {
                             ER.Place,
                             ER.Status,
                             D.User_ID                       AS Donor_ID,
+                            ER.reason_Need,
 							ER.isDeleted
                         FROM EmergencyRequest ER
                         JOIN Users U ON ER.Requester_ID = U.User_ID
@@ -170,6 +171,7 @@ export class StaffRepository {
                 Potential_ID: item.Potential_ID,
                 Place: item.Place,
                 Status: item.Status,
+                reason_Need: item.reason_Need,
                 Donor_ID: item.Donor_ID,
             })) as EmergencyRequestReqBody[];
 
