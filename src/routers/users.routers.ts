@@ -111,8 +111,12 @@ router.put(
   appointmentController.cancelAppointmentForMember
 )
 
-router.post('/requestEmergencyBlood', verifyToken, authorize(['member']), staffController.createEmergencyRequest)
-router.get('/getEmergencyRequestList', verifyToken, authorize(['staff']), staffController.getAllEmergencyRequests)
+router.post('/requestEmergencyBlood', 
+  verifyToken, authorize(['member']),
+  staffController.createEmergencyRequest)
+router.get('/getEmergencyRequestList',
+  verifyToken, authorize(['staff']),
+  staffController.getAllEmergencyRequests)
 
 router.post(
   '/handleEmergencyRequest/:emergencyId',
@@ -143,5 +147,36 @@ router.post('/sendEmergencyEmail/:donorEmail/:donorName',
   authorize(['staff']),
   staffController.sendEmergencyEmailFixed);
 
+router.put('/updateEmergencyRequest/:emergencyId/:potentialId',
+  verifyToken,
+  authorize(['staff']),
+  staffController.assignPotentialToEmergency);
 
+router.put('/rejectEmergency/:emergencyId/reject',
+  verifyToken,
+  authorize(['staff']),
+  staffController.rejectEmergencyRequest);
+
+router.put('/cancelEmergencyByMember/:emergencyId/cancel',
+  verifyToken,authorize(['member']),
+  staffController.cancelEmergencyRequestByMember);
+router.get('/getInfoEmergencyRequestsByMember', 
+  verifyToken, 
+  authorize(['member']), 
+  staffController.getInfoEmergencyRequestsByMember);
+
+router.get('/getAllUsers',
+    verifyToken,
+    authorize(['admin']),
+    adminController.getAllUserList);
+router.put('/unbanUser/:userId',
+    verifyToken,
+    authorize(['admin']),
+    adminController.unbanUser);
+
+router.put('/bannedUser/:userId',
+    verifyToken,
+    authorize(['admin']),
+    adminController.bannedUser);
+    
 export default router

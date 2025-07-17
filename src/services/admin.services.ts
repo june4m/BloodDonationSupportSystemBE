@@ -1,6 +1,6 @@
 import { USERS_MESSAGES } from '~/constant/message'
 import { RegisterReqBody } from '~/models/schemas/requests/user.requests'
-import { User } from '~/models/schemas/user.schema'
+import { User, Users } from '~/models/schemas/user.schema'
 import AdminRepository from '~/repository/admin.repository'
 
 export class AdminService {
@@ -64,6 +64,32 @@ export class AdminService {
       return updatedUser
     } catch (error) {
       throw error
+    }
+  }
+  public async getAllUserList(): Promise<Users[]> {
+    try {
+      const users = await this.adminRepository.getAllUsers()
+      return users;
+    } catch (error) {
+      throw new Error('Failed to get user list')
+    }
+  }
+  public async bannedUser(userId: string): Promise<any>{
+    try {
+      const result = await this.adminRepository.bannedUser(userId);
+      return result;
+
+    } catch (error) {
+      throw new Error('Failed to ban user');
+    }
+  }
+  public async unbanUser(userId: string):Promise<any>{
+    try {
+      const result = await this.adminRepository.unbanUser(userId);
+      return result;
+    } catch (error) {
+      throw new Error('Failed to unban user');
+
     }
   }
 }

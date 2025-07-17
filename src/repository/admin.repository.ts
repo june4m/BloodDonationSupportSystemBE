@@ -1,5 +1,5 @@
 import { RegisterReqBody } from '~/models/schemas/requests/user.requests'
-import { User } from '~/models/schemas/user.schema'
+import { User, Users } from '~/models/schemas/user.schema'
 import databaseServices from '~/services/database.services'
 
 class AdminRepository {
@@ -94,6 +94,77 @@ class AdminRepository {
       return result
     } catch (error) {
       throw new Error('Failed to update user role')
+    }
+  }
+  async bannedUser(userId: string): Promise<any> {
+    try {
+        const query = `
+            UPDATE Users
+            SET isDelete = '0'
+            WHERE User_ID = ?
+        `;
+        const result = await databaseServices.query(query, [userId]);
+
+        if (result.affectedRows === 0) {
+            throw new Error('User not found or unable to ban user');
+        }
+
+        return { success: true, message: 'User has been banned successfully' };
+    } catch (error) {
+        console.error('Error in bannedUser:', error);
+        throw error;
+    }
+  }
+  async unbanUser(userId: string): Promise<any> {
+    try {
+        const query = `
+            UPDATE Users
+            SET isDelete = '1'
+            WHERE User_ID = ?
+        `;
+        const result = await databaseServices.query(query, [userId]);
+
+        if (result.affectedRows === 0) {
+            throw new Error('User not found or unable to ban user');
+        }
+
+        return { success: true, message: 'User has been banned successfully' };
+    } catch (error) {
+        console.error('Error in bannedUser:', error);
+        throw error;
+    }
+  }
+  async getAllUsers(): Promise<Users[]> {
+    try {
+      const sql = `SELECT 
+            User_ID,
+            User_Name,
+            Email,
+            Phone,
+            Gender,
+            YOB,
+            BloodType_ID,
+            Status,
+            User_Role,
+            isDelete,
+            Donation_Count
+            FROM Users`;
+      const users = await databaseServices.query(sql)
+      return users.map((user: any) => ({
+        User_ID: user.User_ID,
+        User_Name: user.User_Name,
+        Email: user.Email,
+        Phone: user.Phone,
+        Gender: user.Gender,
+        YOB: user.YOB,
+        BloodType_ID: user.BloodType_ID,
+        Status: user.Status,
+        User_Role: user.User_Role,
+        isDelete: user.isDelete,
+        Donation_Count: user.Donation_Count
+      }))
+    } catch (error) {
+      throw new Error('Failed to get user list')
     }
   }
 }

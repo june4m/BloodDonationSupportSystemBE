@@ -14,7 +14,19 @@ export interface User {
   password: string
   user_role?: 'admin' | 'staff' | 'member'
 }
-
+export interface Users {  
+    User_ID: string
+    User_Name: string
+    Email: string
+    Phone: string
+    Gender: string
+    YOB: string
+    BloodType_ID: string
+    Status: string
+    User_Role: string
+    isDeleted: string
+    Donation_Count: string
+}
 export interface Auth {
   success: boolean
   message?: string

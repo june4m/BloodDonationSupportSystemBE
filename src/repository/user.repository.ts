@@ -20,7 +20,7 @@ export class UserRepository {
         User_Name AS user_name,
         User_Role AS user_role
       FROM Users
-      WHERE LOWER(Email) = LOWER(?)
+      WHERE LOWER(Email) = LOWER(?) AND isDelete = '1';
       `,
       [email]
     )
@@ -54,7 +54,7 @@ export class UserRepository {
 	      ) AS rbc_compatible_to
       FROM Users U
       LEFT JOIN BloodType B ON U.BloodType_ID = B.BloodType_ID 
-      WHERE U.User_ID = ?;
+      WHERE U.User_ID = ? AND U.isDelete = '1';
       `,
       [userId]
     )
@@ -84,7 +84,7 @@ export class UserRepository {
       if (Object.keys(allowedUpdates).length === 0) {
         throw new Error('No valid fields to update')
       }
-      const query = `UPDATE Users SET ? WHERE User_ID = ?`
+      const query = `UPDATE Users SET ? WHERE User_ID = ? AND isDelete = '1'`
       const result = await Database.query(query, [allowedUpdates, userId])
       if (result.affectedRows === 0) {
         throw new Error('No user found or update failed')
@@ -100,7 +100,7 @@ export class UserRepository {
 
   async updateBloodType(userId: string, bloodType: string): Promise<User> {
     try {
-      const query = `UPDATE Users SET Blood_Type = ? WHERE User_ID = ?`
+      const query = `UPDATE Users SET Blood_Type = ? WHERE User_ID = ? AND isDelete = '1'`
       const result = await Database.query(query, [bloodType, userId])
       if (result.affectedRows === 0) {
         throw new Error('No user found or update failed')
@@ -129,8 +129,8 @@ export class UserRepository {
     }
     const sql = `
       INSERT INTO Users
-        (User_ID, User_Name, YOB, Email, Password,Status, User_Role, Admin_ID)
-      VALUES (@param1, @param2, @param3, @param4, @param5,'Active', 'member','U001')
+        (User_ID, User_Name, YOB, Email, Password,Status, User_Role, Admin_ID, isDelete)
+      VALUES (@param1, @param2, @param3, @param4, @param5,'Active', 'member','U001','1')
       `
     await databaseServices.queryParam(sql, [newId, name, date_of_birth, email, password])
     const created = await databaseServices.query(`SELECT * FROM Users WHERE User_ID = @param1`, [newId])
@@ -199,7 +199,7 @@ export class UserRepository {
   public async getUserById(userId: string): Promise<any> {
     const query = `
     SELECT * FROM Users
-    WHERE User_ID = ?
+    WHERE User_ID = ? AND isDelete = '1'
   `
     const result = await databaseServices.queryParam(query, [userId])
     console.log('result getUserById: ', result)

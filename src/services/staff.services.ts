@@ -134,5 +134,51 @@ export class staffServices{
             throw error;
         }
     }
+    public async addPotentialDonorByStaffToEmergency(
+      emergencyId: string,
+      potentialId: string,
+      staffId: string
+    ): Promise<any> {
+        try {
+            // Gọi repository để thực hiện logic
+            const result = await this.staffRepository.addPotentialDonorByStaffToEmergency(
+                emergencyId,
+                potentialId,
+                staffId
+            );
+            return result;
+        } catch (error) {
+            console.error('Error in addPotentialDonorByStaffToEmergency:', error);
+            throw error;
+        }
+    }
+    public async rejectEmergencyRequest(emergencyId: string, staffId: string, reason_Reject: string): Promise<any> {
+      try {
+          const result = await this.staffRepository.rejectEmergencyRequest(emergencyId, staffId, reason_Reject);
+          return result;
+      } catch (error) {
+          console.error('Error in rejectEmergencyRequest:', error);
+          throw error;
+      }
+    }
+    public async cancelEmergencyRequestByMember(emergencyId: string, memberId: string): Promise<any> {
+      try {
+          const result = await this.staffRepository.cancelEmergencyRequestByMember(emergencyId, memberId);
+          return result;
+      } catch (error) {
+          console.error('Error in cancelEmergencyRequestByMember:', error);
+          throw error;
+      }
+    }
+    public async getInfoEmergencyRequestsByMember(memberId: string): Promise<EmergencyRequestReqBody[]> {
+      try {
+          const emergencyRequests = await this.staffRepository.getInfoEmergencyRequestsByMember(memberId);
+          return emergencyRequests;
+      } catch (error) {
+          console.error('Error in getDeletedEmergencyRequestsByMember:', error);
+          throw error;
+      }
+    }
+  
     
 }

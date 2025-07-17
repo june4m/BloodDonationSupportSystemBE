@@ -21,6 +21,9 @@ class StaffController{
         this.getProfileRequesterById = this.getProfileRequesterById.bind(this);
         this.getPotentialDonorCriteria = this.getPotentialDonorCriteria.bind(this);
         this.sendEmergencyEmailFixed = this.sendEmergencyEmailFixed.bind(this);
+        this.assignPotentialToEmergency = this.assignPotentialToEmergency.bind(this);
+        this.rejectEmergencyRequest = this.rejectEmergencyRequest.bind(this);
+        this.getInfoEmergencyRequestsByMember = this.getInfoEmergencyRequestsByMember.bind(this);
     }
     public async getPotentialList(req: any, res: any): Promise<void> {
         try{
@@ -161,8 +164,8 @@ class StaffController{
     }
     public async handleEmergencyRequest(req: any, res: any): Promise<void> {
         try {
-            const emergencyId = req.params.emergencyId; // Lấy emergencyId từ URL
-            const { Priority, Status,  Appointment_ID } = req.body;
+            const emergencyId = req.params.emergencyId; 
+            const { Priority, Status,  Place, sourceType} = req.body;
             const Potential_ID = req.params.Potential_ID || null; 
             const Staff_ID = req.user?.user_id;
     
@@ -179,7 +182,8 @@ class StaffController{
                 Priority,
                 Status,
                 Potential_ID: Potential_ID || null,
-                Appointment_ID: Appointment_ID || null,
+                Place: Place || null,
+                sourceType: sourceType || null,
                 Staff_ID,
                 Updated_At: new Date().toISOString(),
             });
@@ -299,6 +303,148 @@ class StaffController{
                 success: false,
                 message: 'Failed to send emergency email',
                 error: error.message
+            });
+        }
+    }
+    public async assignPotentialToEmergency(req: any, res: any): Promise<void> {
+        try {
+            const { emergencyId, potentialId } = req.params;
+            const staffId = req.user?.User_ID; // Lấy từ token
+            console.log('Staff ID:', staffId);
+            if (!emergencyId || !potentialId) {
+                res.status(HTTP_STATUS.BAD_REQUEST).json({
+                    success: false,
+                    message: 'Emergency ID and Potential ID are required'
+                });
+                return;
+            }
+    
+            const result = await this.staffServices.addPotentialDonorByStaffToEmergency(
+                emergencyId,
+                potentialId,
+                staffId
+            );
+    
+            res.status(HTTP_STATUS.OK).json({
+                success: result.success,
+                message: result.message,
+                data: result.data
+            });
+        } catch (error: any) {
+            console.error('Error in assignPotentialToEmergency:', error);
+            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: error.message || 'Failed to assign potential donor to emergency'
+            });
+        }
+    }
+    public async rejectEmergencyRequest(req: any, res: any): Promise<void> {
+        try {
+            const { emergencyId } = req.params; 
+            const staffId = req.user?.User_ID; 
+            const { reason_Reject } = req.body; // Lấy lý do từ chối từ body
+
+            if (!emergencyId) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Emergency ID is required',
+                });
+                return;
+            }
+
+            if (!staffId) {
+                res.status(401).json({
+                    success: false,
+                    message: 'Unauthorized: Staff ID is required',
+                });
+                return;
+            }
+
+            if (!reason_Reject) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Reason for rejection is required',
+                });
+                return;
+            }
+
+            // Gọi service để xử lý logic từ chối yêu cầu
+            const result = await this.staffServices.rejectEmergencyRequest(emergencyId, staffId, reason_Reject);
+
+            res.status(200).json({
+                success: true,
+                message: 'Emergency request rejected successfully',
+                data: result,
+            });
+        } catch (error: any) {
+            console.error('Error in rejectEmergencyRequest:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to reject emergency request',
+                error: error.message || 'Internal server error',
+            });
+        }
+    }
+    public async cancelEmergencyRequestByMember(req: any, res: any): Promise<void> {
+        try {
+            const { emergencyId } = req.params; 
+            const memberId = req.user?.User_ID; 
+    
+            if (!emergencyId) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Emergency ID is required',
+                });
+                return;
+            }
+    
+            if (!memberId) {
+                res.status(401).json({
+                    success: false,
+                    message: 'Unauthorized: Member ID is required',
+                });
+                return;
+            }
+
+            const result = await this.staffServices.cancelEmergencyRequestByMember(emergencyId, memberId);
+            res.status(200).json({
+                success: true,
+                message: 'Emergency request canceled by member successfully',
+                data: result,
+            });
+        } catch (error: any) {
+            console.error('Error in cancelEmergencyRequestByMember:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to cancel emergency request by member',
+                error: error.message || 'Internal server error',
+            });
+        }
+    }
+    public async getInfoEmergencyRequestsByMember(req: any, res: any): Promise<void> {
+        try {
+            const memberId = req.user?.User_ID; // Lấy Member_ID từ token (được gắn bởi middleware)
+    
+            if (!memberId) {
+                res.status(401).json({
+                    success: false,
+                    message: 'Unauthorized: Member ID is required',
+                });
+                return;
+            }
+            const emergencyRequests = await this.staffServices.getInfoEmergencyRequestsByMember(memberId);
+    
+            res.status(200).json({
+                success: true,
+                message: 'Get Info your Emergency requests retrieved successfully',
+                data: emergencyRequests,
+            });
+        } catch (error: any) {
+            console.error('Error in getInfoEmergencyRequestsByMember:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to retrieve info emergency requests',
+                error: error.message || 'Internal server error',
             });
         }
     }
