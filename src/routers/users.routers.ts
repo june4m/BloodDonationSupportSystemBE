@@ -163,4 +163,19 @@ router.get('/getInfoEmergencyRequestsByMember',
   verifyToken, 
   authorize(['member']), 
   staffController.getInfoEmergencyRequestsByMember);
+
+router.get('/getAllUsers',
+    verifyToken,
+    authorize(['admin']),
+    adminController.getAllUserList);
+router.put('/unbanUser/:userId',
+    verifyToken,
+    authorize(['admin']),
+    adminController.unbanUser);
+
+router.put('/bannedUser/:userId',
+    verifyToken,
+    authorize(['admin']),
+    adminController.bannedUser);
+
 export default router

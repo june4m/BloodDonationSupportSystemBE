@@ -11,6 +11,9 @@ class AdminController {
     this.adminService = new AdminService()
     this.signupStaffAccount = this.signupStaffAccount.bind(this)
     this.updateUserRole = this.updateUserRole.bind(this)
+    this.getAllUserList = this.getAllUserList.bind(this)
+    this.bannedUser = this.bannedUser.bind(this)
+    this.unbanUser = this.unbanUser.bind(this)
   }
 
   public async signupStaffAccount(req: Request<{}, {}, RegisterReqBody>, res: Response): Promise<void> {
@@ -61,6 +64,35 @@ class AdminController {
     } catch (error) {
       console.error('Error updating role:', error)
       ResponseHandle.responseError(res, error, 'Failed to update role', 500)
+    }
+  }
+  public async getAllUserList(req: Request, res: Response): Promise<void> {
+    try {
+      const users = await this.adminService.getAllUserList()
+      ResponseHandle.responseSuccess(res, users, 'User list retrieved successfully', 200)
+    } catch (error) {
+      console.error('Error retrieving user list:', error)
+      ResponseHandle.responseError(res, error, 'Failed to retrieve user list', 500)
+    }
+  }
+  public async bannedUser(req: Request, res: Response): Promise<void> {
+    try {
+      const { userId } = req.params
+      const result = await this.adminService.bannedUser(userId)
+      ResponseHandle.responseSuccess(res, result, 'User banned successfully', 200)
+    } catch (error) {
+      console.error('Error banning user:', error)
+      ResponseHandle.responseError(res, error, 'Failed to ban user', 500)
+    }
+  }
+  public async unbanUser(req: Request, res: Response): Promise<void> {
+    try {
+      const { userId } = req.params
+      const result = await this.adminService.unbanUser(userId)
+      ResponseHandle.responseSuccess(res, result, 'User unbanned successfully', 200)
+    } catch (error) {
+      console.error('Error unbanning user:', error)
+      ResponseHandle.responseError(res, error, 'Failed to unban user', 500)
     }
   }
 }
