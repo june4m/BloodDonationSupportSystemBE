@@ -143,5 +143,9 @@ router.post('/sendEmergencyEmail/:donorEmail/:donorName',
   authorize(['staff']),
   staffController.sendEmergencyEmailFixed);
 
+router.put('/updateEmergencyRequest/:emergencyId/:potentialId',
+  verifyToken,
+  authorize(['staff']),
+  staffController.assignPotentialToEmergency);
 
 export default router

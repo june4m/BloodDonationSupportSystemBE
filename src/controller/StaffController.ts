@@ -21,6 +21,7 @@ class StaffController{
         this.getProfileRequesterById = this.getProfileRequesterById.bind(this);
         this.getPotentialDonorCriteria = this.getPotentialDonorCriteria.bind(this);
         this.sendEmergencyEmailFixed = this.sendEmergencyEmailFixed.bind(this);
+        this.assignPotentialToEmergency = this.assignPotentialToEmergency.bind(this);
     }
     public async getPotentialList(req: any, res: any): Promise<void> {
         try{
@@ -299,6 +300,38 @@ class StaffController{
                 success: false,
                 message: 'Failed to send emergency email',
                 error: error.message
+            });
+        }
+    }
+    public async assignPotentialToEmergency(req: any, res: any): Promise<void> {
+        try {
+            const { emergencyId, potentialId } = req.params;
+            const staffId = req.decoded_authorization.User_ID; // Lấy từ token
+            console.log('Staff ID:', staffId);
+            if (!emergencyId || !potentialId) {
+                res.status(HTTP_STATUS.BAD_REQUEST).json({
+                    success: false,
+                    message: 'Emergency ID and Potential ID are required'
+                });
+                return;
+            }
+    
+            const result = await this.staffServices.addPotentialDonorByStaffToEmergency(
+                emergencyId,
+                potentialId,
+                staffId
+            );
+    
+            res.status(HTTP_STATUS.OK).json({
+                success: result.success,
+                message: result.message,
+                data: result.data
+            });
+        } catch (error: any) {
+            console.error('Error in assignPotentialToEmergency:', error);
+            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: error.message || 'Failed to assign potential donor to emergency'
             });
         }
     }

@@ -134,5 +134,23 @@ export class staffServices{
             throw error;
         }
     }
+    public async addPotentialDonorByStaffToEmergency(
+      emergencyId: string,
+      potentialId: string,
+      staffId: string
+    ): Promise<any> {
+        try {
+            // Gọi repository để thực hiện logic
+            const result = await this.staffRepository.addPotentialDonorByStaffToEmergency(
+                emergencyId,
+                potentialId,
+                staffId
+            );
+            return result;
+        } catch (error) {
+            console.error('Error in addPotentialDonorByStaffToEmergency:', error);
+            throw error;
+        }
+    }
     
 }

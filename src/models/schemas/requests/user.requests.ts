@@ -52,6 +52,7 @@ export interface RefreshTokenReqBody {
 export interface InfoRequesterEmergency{
   User_ID: string;
   User_Name: string;
+  BloodGroup: string;
   Date_Of_Birth: string;
   Full_Address: string;               
   Phone: string;

@@ -226,11 +226,12 @@ export class StaffRepository {
             SELECT U.User_ID as User_Id,
                    U.User_Name,
                    U.YOB as Date_Of_Birth,
+				   B.Blood_group + B.RHFactor as BloodGroup,
                    U.Address As Full_Address,
                    U.Phone,
                    U.Email,
                    U.Gender 
-            FROM Users U
+            FROM Users U JOIN BloodType B ON U.BloodType_ID = B.BloodType_ID
             WHERE U.User_ID = ?
               AND U.Status = 'Active'`;
             const rows: any[] = await databaseServices.query(query, [User_Id]);
@@ -238,6 +239,7 @@ export class StaffRepository {
                 return {
                     User_ID: item.User_Id,
                     User_Name: item.User_Name,
+                    BloodGroup: item.BloodGroup,
                     Date_Of_Birth: moment(item.Date_Of_Birth).format('YYYY-MM-DD'),
                     Full_Address: item.Full_Address,
                     Phone: item.Phone,
@@ -449,6 +451,66 @@ export class StaffRepository {
             
         } catch (error) {
             console.error('Error in sendEmergencyEmailFixed:', error);
+            throw error;
+        }
+    }
+
+    public async checkPotentialInOtherEmergency(potentialId: string): Promise<boolean> {
+        try {
+            const query = `
+                SELECT COUNT(*) AS count
+                FROM EmergencyRequest
+                WHERE Potential_ID = ?
+                  AND Status <> 'Complete'
+            `;
+            const result = await databaseServices.query(query, [potentialId]);
+            return result[0].count > 0; // Nếu count > 0 nghĩa là Potential_ID đang được sử dụng trong Emergency khác chưa hoàn thành
+        } catch (error) {
+            console.error('Error in checkPotentialInOtherEmergency:', error);
+            throw error;
+        }
+    }
+    public async addPotentialDonorByStaffToEmergency(
+        emergencyId: string,
+        potentialId: string,
+        staffId: string
+    ): Promise<any> {
+        try {
+            
+            const isPotentialInOtherEmergency = await this.checkPotentialInOtherEmergency(potentialId);
+            if (isPotentialInOtherEmergency) {
+                throw new Error('Potential donor is already assigned to another emergency that is not complete');
+            }
+            const emergencyQuery = `
+                SELECT Emergency_ID, Status, Potential_ID 
+                FROM EmergencyRequest 
+                WHERE Emergency_ID = ? AND Status = 'Pending'
+            `;
+            const emergencyResult = await databaseServices.query(emergencyQuery, [emergencyId]);
+            if (!emergencyResult.length) {
+                throw new Error('Emergency request not found or not pending');
+            }
+            const updateQuery = `
+                UPDATE EmergencyRequest 
+                SET Potential_ID = ?, 
+                    Staff_ID = ?, 
+                    Updated_At = GETDATE()
+                WHERE Emergency_ID = ?
+            `;
+            await databaseServices.query(updateQuery, [potentialId, staffId, emergencyId]);
+    
+            return {
+                success: true,
+                message: 'Potential donor assigned to emergency successfully',
+                data: {
+                    Emergency_ID: emergencyId,
+                    Potential_ID: potentialId,
+                    Staff_ID: staffId,
+                    Updated_At: new Date(),
+                }
+            };
+        } catch (error) {
+            console.error('Error in addPotentialDonorByStaffToEmergency:', error);
             throw error;
         }
     }
