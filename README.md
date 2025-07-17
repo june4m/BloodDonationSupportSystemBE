@@ -41,20 +41,20 @@ The backend exposes RESTful APIs that support:
 | Environment Vars | dotenv                   |
 
 ---
-
 ## 📁 Project Structure
-src/
-├── constant/ # App-wide constants
-├── controller/ # Route handlers
-├── middleware/ # Middleware functions
-├── models/ # Request/response schemas, database models
-├── repository/ # DB interaction logic
-├── routers/ # Express route definitions
-├── services/ # Business logic
-├── utils/ # Helper utilities
-└── index.ts # App entry point
 
----
+```
+src/
+├── constant/       # App-wide constants
+├── controller/     # Route handlers
+├── middleware/     # Middleware functions
+├── models/         # Request/response schemas, database models
+├── repository/     # DB interaction logic
+├── routers/        # Express route definitions
+├── services/       # Business logic
+├── utils/          # Helper utilities
+└── index.ts        # App entry point
+```
 
 ## 🛠 Environment Variables (.env)
 
