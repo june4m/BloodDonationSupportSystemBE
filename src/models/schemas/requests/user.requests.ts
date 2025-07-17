@@ -49,3 +49,21 @@ export interface ChangePasswordReqBody {
 export interface RefreshTokenReqBody {
   refresh_token: string
 }
+export interface InfoRequesterEmergency{
+  User_ID: string;
+  User_Name: string;
+  Date_Of_Birth: string;
+  Full_Address: string;               
+  Phone: string;
+  Email: string;
+  Gender: string;
+}
+export interface PotentialDonorCriteria {
+  userId: string;
+  userName: string;
+  bloodType: string;
+  lastDonation: string;  
+  address: string;
+  potentialId: string;
+  email: string;
+}

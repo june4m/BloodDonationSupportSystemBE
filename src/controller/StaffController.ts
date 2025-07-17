@@ -1,3 +1,4 @@
+import { log } from 'console';
 import { UpdateMeReqBody } from './../models/schemas/requests/user.requests';
 import { Appointment } from './../models/schemas/slot.schema';
 import { body, param } from 'express-validator';
@@ -17,6 +18,9 @@ class StaffController{
         this.getAllEmergencyRequests = this.getAllEmergencyRequests.bind(this);
         this.handleEmergencyRequest = this.handleEmergencyRequest.bind(this);
         this.getBloodBank = this.getBloodBank.bind(this);
+        this.getProfileRequesterById = this.getProfileRequesterById.bind(this);
+        this.getPotentialDonorCriteria = this.getPotentialDonorCriteria.bind(this);
+        this.sendEmergencyEmailFixed = this.sendEmergencyEmailFixed.bind(this);
     }
     public async getPotentialList(req: any, res: any): Promise<void> {
         try{
@@ -88,7 +92,7 @@ class StaffController{
     }    
     public async createEmergencyRequest(req: any, res: any): Promise<void> {
         try {
-            const { BloodType_ID, Volume, Needed_Before } = req.body;
+            const { BloodType_ID, Volume, Needed_Before,reason_Need } = req.body;
     
             // Kiểm tra dữ liệu đầu vào
             if (!BloodType_ID || !Volume || !Needed_Before) {
@@ -108,7 +112,7 @@ class StaffController{
             if (isSpam) {
                 res.status(429).json({
                     success: false,
-                    message: 'You have already submitted a request recently. Please wait before submitting another request.',
+                    message: 'Bạn đang có một yêu cầu khẩn cấp đang chờ xử lý. Vui lòng chờ đến khi hoàn thành mới được tạo thêm.',
                 });
                 return;
             }
@@ -121,6 +125,7 @@ class StaffController{
                 Needed_Before,
                 Status: 'Pending',
                 Created_At: new Date().toISOString(),
+                reason_Need
             });
     
             res.status(200).json({
@@ -157,7 +162,8 @@ class StaffController{
     public async handleEmergencyRequest(req: any, res: any): Promise<void> {
         try {
             const emergencyId = req.params.emergencyId; // Lấy emergencyId từ URL
-            const { Priority, Status, Potential_ID, Appointment_ID } = req.body;
+            const { Priority, Status,  Appointment_ID } = req.body;
+            const Potential_ID = req.params.Potential_ID || null; 
             const Staff_ID = req.user?.user_id;
     
             if (!emergencyId || !Priority || !Status) {
@@ -206,6 +212,93 @@ class StaffController{
                 success: false,
                 message: 'Failed to retrieve blood bank',
                 error: error.message || 'Internal Server Error'
+            });
+        }
+    }
+    public async getProfileRequesterById(req: any, res: any): Promise<void> {
+        try {
+            const User_Id = req.params.userId; 
+            if (!User_Id) {
+                res.status(HTTP_STATUS.BAD_REQUEST).json({
+                    success: false,
+                    message: 'User_Id is required',
+                });
+                return;
+            }
+            const requesterProfile = await this.staffServices.getProfileRequester(User_Id);
+            console.log('Requester Profile:', requesterProfile); // Debug thông tin người yêu cầu
+            
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                data: requesterProfile,
+                message: 'Requester profile retrieved successfully'
+            });
+        } catch (error: any) {
+            console.error('Error in getProfileRequesterById:', error);
+            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: 'Failed to retrieve requester profile',
+                error: error.message || 'Internal Server Error'
+            });
+        }
+    }
+    public async getPotentialDonorCriteria(req: any, res: any): Promise<void> {
+        try {
+            const emergencyId = req.params.emergencyId;
+            
+            if (!emergencyId) {
+                res.status(HTTP_STATUS.BAD_REQUEST).json({
+                    success: false,
+                    message: 'Emergency ID is required',
+                });
+                return;
+            }
+
+            const potentialDonors = await this.staffServices.getPotentialDonorCriteria(emergencyId);
+            
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                data: potentialDonors,
+                message: 'Potential donors retrieved successfully based on criteria'
+            });
+        } catch (error: any) {
+            console.error('Error in getPotentialDonorCriteria:', error);
+            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: 'Failed to retrieve potential donors',
+                error: error.message || 'Internal Server Error'
+            });
+        }
+    }
+    public async sendEmergencyEmailFixed(req: any, res: any): Promise<void> {
+        try {
+            const { donorEmail, donorName } = req.params;
+            
+            if (!donorEmail || !donorName) {
+                res.status(HTTP_STATUS.BAD_REQUEST).json({
+                    success: false,
+                    message: 'Donor email and name are required in params'
+                });
+                return;
+            }
+
+            const result = await this.staffServices.sendEmergencyEmailFixed(
+                donorEmail,
+                donorName
+            );
+            
+            res.status(HTTP_STATUS.OK).json({
+                success: result.success,
+                message: result.message,
+                data: result.data
+            });
+            
+        } catch (error: any) {
+            console.error('Error in sendEmergencyEmailFixed:', error);
+            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: 'Failed to send emergency email',
+                error: error.message
             });
         }
     }

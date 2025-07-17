@@ -129,4 +129,19 @@ router.post('/blogs/create', verifyToken, authorize(['admin']), blogController.c
 router.put('/blogs/:blogId', verifyToken, authorize(['admin']), blogController.updateBlog)
 router.delete('/blogs/:blogId', verifyToken, authorize(['admin']), blogController.deleteBlog)
 
+router.get('/getProfileER/:userId',
+  verifyToken,
+  authorize(['staff']),
+  staffController.getProfileRequesterById)
+
+router.get('/getPotentialDonorPlus/:emergencyId', 
+  verifyToken,
+  authorize(['staff']),
+  staffController.getPotentialDonorCriteria);
+router.post('/sendEmergencyEmail/:donorEmail/:donorName',
+  verifyToken,
+  authorize(['staff']),
+  staffController.sendEmergencyEmailFixed);
+
+
 export default router
