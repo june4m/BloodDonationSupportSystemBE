@@ -84,7 +84,8 @@ export class UserService {
         password: user.password,
         user_id: user.user_id,
         user_name: user.user_name,
-        user_role: user.user_role || 'member'
+        user_role: user.user_role || 'member',
+        isDelete: user.isDelete,
       } as User
     }
     return null

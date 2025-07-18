@@ -12,7 +12,8 @@ export interface User {
   account_status?: string
   email: string
   password: string
-  user_role?: 'admin' | 'staff' | 'member'
+  user_role?: 'admin' | 'staff' | 'member',
+  isDelete?: boolean
 }
 export interface Users {  
     User_ID: string
