@@ -103,11 +103,20 @@ class AdminRepository {
             SET isDelete = '0'
             WHERE User_ID = ?
         `;
-        const result = await databaseServices.query(query, [userId]);
+        const result = await databaseServices.queryParam(query, [userId]);
 
-        if (result.affectedRows === 0) {
-            throw new Error('User not found or unable to ban user');
-        }
+        let affectedRows = 0;
+            if (result?.affectedRows !== undefined) {
+                affectedRows = result.affectedRows;
+            } else if (Array.isArray(result?.rowsAffected)) {
+                affectedRows = result.rowsAffected[0];
+            } else if (typeof result?.rowsAffected === "number") {
+                affectedRows = result.rowsAffected;
+            }
+
+            if (affectedRows <= 0) {
+                throw new Error('Ban failed: User not found or already banned');
+            }
 
         return { success: true, message: 'User has been banned successfully' };
     } catch (error) {
@@ -122,11 +131,20 @@ class AdminRepository {
             SET isDelete = '1'
             WHERE User_ID = ?
         `;
-        const result = await databaseServices.query(query, [userId]);
+        const result = await databaseServices.queryParam(query, [userId]);
 
-        if (result.affectedRows === 0) {
-            throw new Error('User not found or unable to ban user');
-        }
+        let affectedRows = 0;
+            if (result?.affectedRows !== undefined) {
+                affectedRows = result.affectedRows;
+            } else if (Array.isArray(result?.rowsAffected)) {
+                affectedRows = result.rowsAffected[0];
+            } else if (typeof result?.rowsAffected === "number") {
+                affectedRows = result.rowsAffected;
+            }
+
+            if (affectedRows <= 0) {
+                throw new Error('Unban failed or user not found');
+            }
 
         return { success: true, message: 'User has been banned successfully' };
     } catch (error) {
