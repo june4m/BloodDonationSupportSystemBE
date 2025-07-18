@@ -302,7 +302,7 @@ export class StaffRepository {
                ER.Requester_ID AS requesterID
         FROM EmergencyRequest ER
         WHERE ER.Emergency_ID = ? 
-            AND ER.Status = 'Pending'
+            AND ER.Status = 'Pending' OR ER.Status = 'Rejected'
         `,
             [emergencyId]
         )) as any[];
@@ -498,13 +498,36 @@ export class StaffRepository {
                     Updated_At = GETDATE()
                 WHERE Emergency_ID = ?
             `;
-            const result = await databaseServices.query(query, [reasonReject, staffId, emergencyId]);
-    
-            if (result.affectedRows === 0) {
+            const result = await databaseServices.queryParam(query, [reasonReject, staffId, emergencyId]);
+            console.log("Result: ", result);
+
+            // Sửa kiểm tra affectedRows cho đúng
+            let affectedRows = 0;
+            if (result?.affectedRows !== undefined) {
+                affectedRows = result.affectedRows;
+            } else if (Array.isArray(result?.rowsAffected)) {
+                affectedRows = result.rowsAffected[0];
+            } else if (typeof result?.rowsAffected === "number") {
+                affectedRows = result.rowsAffected;
+            }
+
+            if (affectedRows <= 0) {
                 throw new Error('Emergency request not found or unable to reject');
             }
-    
-            return { success: true, message: 'Emergency request rejected successfully' };
+
+            // Lấy thông tin chi tiết của yêu cầu sau khi cập nhật
+            const selectQuery = `
+                SELECT Emergency_ID, Status, reason_Reject, Staff_ID, Updated_At, isDeleted
+                FROM EmergencyRequest
+                WHERE Emergency_ID = ?
+            `;
+            const updatedRequest = await databaseServices.query(selectQuery, [emergencyId]);
+
+            return {
+                success: true,
+                message: 'Emergency request rejected successfully',
+                data: updatedRequest[0],
+            };
         } catch (error) {
             console.error('Error in rejectEmergencyRequest:', error);
             throw error;
@@ -573,13 +596,24 @@ export class StaffRepository {
         try {
             const query = `
                 UPDATE EmergencyRequest
-                SET isDeleted = 1, Updated_At = GETDATE()
+                SET isDeleted = '0',
+                Status = 'Rejected',
+                Updated_At = GETDATE()
                 WHERE Emergency_ID = ? AND Requester_ID = ?
             `;
             const result = await databaseServices.query(query, [emergencyId, memberId]);
     
-            if (result.affectedRows === 0) {
-                throw new Error('Emergency request not found or unauthorized');
+            let affectedRows = 0;
+            if (result?.affectedRows !== undefined) {
+                affectedRows = result.affectedRows;
+            } else if (Array.isArray(result?.rowsAffected)) {
+                affectedRows = result.rowsAffected[0];
+            } else if (typeof result?.rowsAffected === "number") {
+                affectedRows = result.rowsAffected;
+            }
+
+            if (affectedRows <= 0) {
+                throw new Error('Emergency request not found or unable to reject');
             }
     
             return { success: true, message: 'Emergency request canceled by member successfully' };
@@ -591,8 +625,8 @@ export class StaffRepository {
     public async getInfoEmergencyRequestsByMember(memberId: string): Promise<EmergencyRequestReqBody[]> {
         try {
             const query = `
-                SELECT Emergency_ID, Requester_ID,reason_Need, BloodType_ID, Volume, Needed_Before, Status, Created_At, Updated_At, isDeleted,reason_Reject
-                FROM EmergencyRequest
+                SELECT Emergency_ID, Requester_ID,reason_Need, BT.Blood_group + BT.RHFactor as BloodGroup, Volume, Needed_Before, Status, Created_At, Updated_At, isDeleted,reason_Reject
+                FROM EmergencyRequest E JOIN BloodType BT ON E.BloodType_ID = BT.BloodType_ID
                 WHERE Requester_ID = ?  AND isDeleted = '1'
                 ORDER BY Created_At DESC
             `;
@@ -602,7 +636,7 @@ export class StaffRepository {
                 Emergency_ID: item.Emergency_ID,
                 Requester_ID: item.Requester_ID,
                 reason_Need: item.reason_Need,
-                BloodType_ID: item.BloodType_ID,
+                BloodGroup: item.BloodGroup,
                 Volume: item.Volume,
                 Needed_Before: item.Needed_Before,
                 Status: item.Status,

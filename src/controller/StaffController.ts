@@ -24,6 +24,7 @@ class StaffController{
         this.assignPotentialToEmergency = this.assignPotentialToEmergency.bind(this);
         this.rejectEmergencyRequest = this.rejectEmergencyRequest.bind(this);
         this.getInfoEmergencyRequestsByMember = this.getInfoEmergencyRequestsByMember.bind(this);
+        this.cancelEmergencyRequestByMember = this.cancelEmergencyRequestByMember.bind(this);
     }
     public async getPotentialList(req: any, res: any): Promise<void> {
         try{
@@ -309,7 +310,7 @@ class StaffController{
     public async assignPotentialToEmergency(req: any, res: any): Promise<void> {
         try {
             const { emergencyId, potentialId } = req.params;
-            const staffId = req.user?.User_ID; // Lấy từ token
+            const staffId = req.user?.user_id; // Lấy từ token
             console.log('Staff ID:', staffId);
             if (!emergencyId || !potentialId) {
                 res.status(HTTP_STATUS.BAD_REQUEST).json({
@@ -318,7 +319,13 @@ class StaffController{
                 });
                 return;
             }
-    
+            if (!staffId) {
+                res.status(HTTP_STATUS.UNAUTHORIZED).json({
+                    success: false,
+                    message: 'Unauthorized: Staff ID is required'
+                });
+                return;
+            }
             const result = await this.staffServices.addPotentialDonorByStaffToEmergency(
                 emergencyId,
                 potentialId,
@@ -341,7 +348,7 @@ class StaffController{
     public async rejectEmergencyRequest(req: any, res: any): Promise<void> {
         try {
             const { emergencyId } = req.params; 
-            const staffId = req.user?.User_ID; 
+            const staffId = req.user?.user_id; 
             const { reason_Reject } = req.body; // Lấy lý do từ chối từ body
 
             if (!emergencyId) {
@@ -388,7 +395,7 @@ class StaffController{
     public async cancelEmergencyRequestByMember(req: any, res: any): Promise<void> {
         try {
             const { emergencyId } = req.params; 
-            const memberId = req.user?.User_ID; 
+            const memberId = req.user?.user_id; 
     
             if (!emergencyId) {
                 res.status(400).json({
@@ -423,7 +430,7 @@ class StaffController{
     }
     public async getInfoEmergencyRequestsByMember(req: any, res: any): Promise<void> {
         try {
-            const memberId = req.user?.User_ID; // Lấy Member_ID từ token (được gắn bởi middleware)
+            const memberId = req.user?.user_id; // Lấy Member_ID từ token (được gắn bởi middleware)
     
             if (!memberId) {
                 res.status(401).json({

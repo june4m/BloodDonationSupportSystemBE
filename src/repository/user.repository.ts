@@ -5,22 +5,25 @@ import { User } from '~/models/schemas/user.schema'
 import { RegisterReqBody } from '~/models/schemas/requests/user.requests'
 import databaseServices from '../services/database.services'
 import { parse } from 'path'
+import { log } from 'console'
 
 /**
  * Repository class for user-related with database
  */
 export class UserRepository {
-  async findByEmail(email: string): Promise<User> {
+  async findByEmail(email: string): Promise<User > {
+    log('Finding user by email:', email)
     const rows = await databaseServices.query(
       `
       SELECT
-        User_ID   AS user_id,
-        Email     AS email,
-        Password  AS password,
-        User_Name AS user_name,
-        User_Role AS user_role
-      FROM Users
-      WHERE LOWER(Email) = LOWER(?) AND isDelete = '1';
+            User_ID   AS user_id,
+            Email     AS email,
+            Password  AS password,
+            User_Name AS user_name,
+            User_Role AS user_role,
+            isDelete  AS isDelete
+        FROM Users
+        WHERE LOWER(Email) = LOWER(?);
       `,
       [email]
     )

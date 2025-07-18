@@ -41,6 +41,13 @@ class UserController {
         email,
         password
       }
+      const user = await this.userService.findUserLogin(email);
+        if (!user) {
+            return ResponseHandle.responseError(res, null, 'Không tìm thấy tài khoản', 404);
+        }
+        if (user.isDelete === false) {
+          return ResponseHandle.responseError(res, null, 'Tài khoản của bạn đã bị khóa', 403);
+      }
       const result = await this.userService.authUser(credentials as User)
       if (!result.success) {
         // Trả về lỗi với message rõ ràng

@@ -18,8 +18,8 @@ class AdminController {
 
   public async signupStaffAccount(req: Request<{}, {}, RegisterReqBody>, res: Response): Promise<void> {
     try {
-      const { email, password, confirm_password, name, date_of_birth } = req.body
-      if (!email || !password || !confirm_password || !name || !date_of_birth) {
+      const { email, password, confirm_password, name, date_of_birth,bloodType_id } = req.body
+      if (!email || !password || !confirm_password || !name || !date_of_birth ||!bloodType_id) {
         ResponseHandle.responseError(res, null, 'Email and password are required', 400)
         return
       }
@@ -32,7 +32,8 @@ class AdminController {
         email,
         password: hashedPassword,
         name,
-        date_of_birth
+        date_of_birth,
+        bloodType_id
       })
       ResponseHandle.responseSuccess(res, result, 'Staff account registered successfully', 201)
     } catch (error: any) {
