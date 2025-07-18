@@ -302,7 +302,7 @@ export class StaffRepository {
                ER.Requester_ID AS requesterID
         FROM EmergencyRequest ER
         WHERE ER.Emergency_ID = ? 
-            AND ER.Status = 'Pending'
+            AND ER.Status = 'Pending' OR ER.Status = 'Rejected'
         `,
             [emergencyId]
         )) as any[];
@@ -596,7 +596,9 @@ export class StaffRepository {
         try {
             const query = `
                 UPDATE EmergencyRequest
-                SET isDeleted = '0', Updated_At = GETDATE()
+                SET isDeleted = '0',
+                Status = 'Rejected',
+                Updated_At = GETDATE()
                 WHERE Emergency_ID = ? AND Requester_ID = ?
             `;
             const result = await databaseServices.query(query, [emergencyId, memberId]);
@@ -623,8 +625,8 @@ export class StaffRepository {
     public async getInfoEmergencyRequestsByMember(memberId: string): Promise<EmergencyRequestReqBody[]> {
         try {
             const query = `
-                SELECT Emergency_ID, Requester_ID,reason_Need, BloodType_ID, Volume, Needed_Before, Status, Created_At, Updated_At, isDeleted,reason_Reject
-                FROM EmergencyRequest
+                SELECT Emergency_ID, Requester_ID,reason_Need, BT.Blood_group + BT.RHFactor as BloodType, Volume, Needed_Before, Status, Created_At, Updated_At, isDeleted,reason_Reject
+                FROM EmergencyRequest E JOIN BloodType BT ON E.BloodType_ID = BT.BloodType_ID
                 WHERE Requester_ID = ?  AND isDeleted = '1'
                 ORDER BY Created_At DESC
             `;
