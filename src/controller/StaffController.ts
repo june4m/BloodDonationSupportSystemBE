@@ -24,6 +24,7 @@ class StaffController{
         this.assignPotentialToEmergency = this.assignPotentialToEmergency.bind(this);
         this.rejectEmergencyRequest = this.rejectEmergencyRequest.bind(this);
         this.getInfoEmergencyRequestsByMember = this.getInfoEmergencyRequestsByMember.bind(this);
+        this.cancelEmergencyRequestByMember = this.cancelEmergencyRequestByMember.bind(this);
     }
     public async getPotentialList(req: any, res: any): Promise<void> {
         try{
