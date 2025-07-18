@@ -27,10 +27,10 @@ export class AdminService {
   }
 
   public async signupStaffAccount(
-    body: Pick<RegisterReqBody, 'email' | 'password' | 'name' | 'date_of_birth'>
+    body: Pick<RegisterReqBody, 'email' | 'password' | 'name' | 'date_of_birth' | 'bloodType_id'>
   ): Promise<User> {
     console.log('signupStaffAccount AdminService')
-    const { email, password, name, date_of_birth } = body
+    const { email, password, name, date_of_birth, bloodType_id } = body
     console.log('email, password, confirm_password, name, date_of_birth')
 
     if (!(email && password && name && date_of_birth)) {
@@ -47,7 +47,8 @@ export class AdminService {
       email,
       password,
       name,
-      date_of_birth
+      date_of_birth,
+      bloodType_id
     })
     return newUser
   }
