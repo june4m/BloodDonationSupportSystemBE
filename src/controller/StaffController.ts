@@ -394,7 +394,7 @@ class StaffController{
     public async cancelEmergencyRequestByMember(req: any, res: any): Promise<void> {
         try {
             const { emergencyId } = req.params; 
-            const memberId = req.user?.User_ID; 
+            const memberId = req.user?.user_id; 
     
             if (!emergencyId) {
                 res.status(400).json({
@@ -429,7 +429,7 @@ class StaffController{
     }
     public async getInfoEmergencyRequestsByMember(req: any, res: any): Promise<void> {
         try {
-            const memberId = req.user?.User_ID; // Lấy Member_ID từ token (được gắn bởi middleware)
+            const memberId = req.user?.user_id; // Lấy Member_ID từ token (được gắn bởi middleware)
     
             if (!memberId) {
                 res.status(401).json({

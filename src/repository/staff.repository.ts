@@ -495,18 +495,23 @@ export class StaffRepository {
                 SET Status = 'Rejected',
                     reason_Reject = ?,
                     Staff_ID = ?,
-                    Updated_At = GETDATE(),
-                    isDeleted = '0'
+                    Updated_At = GETDATE()
                 WHERE Emergency_ID = ?
             `;
-            const result = await databaseServices.query(query, [reasonReject, staffId, emergencyId]);
+            const result = await databaseServices.queryParam(query, [reasonReject, staffId, emergencyId]);
+            console.log("Result: ", result);
 
-            // Kiểm tra kết quả trả về
-            if (!result || typeof result.affectedRows !== 'number') {
-                throw new Error('Invalid query result');
+            // Sửa kiểm tra affectedRows cho đúng
+            let affectedRows = 0;
+            if (result?.affectedRows !== undefined) {
+                affectedRows = result.affectedRows;
+            } else if (Array.isArray(result?.rowsAffected)) {
+                affectedRows = result.rowsAffected[0];
+            } else if (typeof result?.rowsAffected === "number") {
+                affectedRows = result.rowsAffected;
             }
 
-            if (result.affectedRows === 0) {
+            if (affectedRows <= 0) {
                 throw new Error('Emergency request not found or unable to reject');
             }
 
@@ -521,7 +526,7 @@ export class StaffRepository {
             return {
                 success: true,
                 message: 'Emergency request rejected successfully',
-                data: updatedRequest[0], // Trả về thông tin chi tiết của yêu cầu
+                data: updatedRequest[0],
             };
         } catch (error) {
             console.error('Error in rejectEmergencyRequest:', error);
@@ -591,13 +596,22 @@ export class StaffRepository {
         try {
             const query = `
                 UPDATE EmergencyRequest
-                SET isDeleted = 1, Updated_At = GETDATE()
+                SET isDeleted = '0', Updated_At = GETDATE()
                 WHERE Emergency_ID = ? AND Requester_ID = ?
             `;
             const result = await databaseServices.query(query, [emergencyId, memberId]);
     
-            if (result.affectedRows === 0) {
-                throw new Error('Emergency request not found or unauthorized');
+            let affectedRows = 0;
+            if (result?.affectedRows !== undefined) {
+                affectedRows = result.affectedRows;
+            } else if (Array.isArray(result?.rowsAffected)) {
+                affectedRows = result.rowsAffected[0];
+            } else if (typeof result?.rowsAffected === "number") {
+                affectedRows = result.rowsAffected;
+            }
+
+            if (affectedRows <= 0) {
+                throw new Error('Emergency request not found or unable to reject');
             }
     
             return { success: true, message: 'Emergency request canceled by member successfully' };
