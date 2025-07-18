@@ -625,7 +625,7 @@ export class StaffRepository {
     public async getInfoEmergencyRequestsByMember(memberId: string): Promise<EmergencyRequestReqBody[]> {
         try {
             const query = `
-                SELECT Emergency_ID, Requester_ID,reason_Need, BT.Blood_group + BT.RHFactor as BloodType, Volume, Needed_Before, Status, Created_At, Updated_At, isDeleted,reason_Reject
+                SELECT Emergency_ID, Requester_ID,reason_Need, BT.Blood_group + BT.RHFactor as BloodGroup, Volume, Needed_Before, Status, Created_At, Updated_At, isDeleted,reason_Reject
                 FROM EmergencyRequest E JOIN BloodType BT ON E.BloodType_ID = BT.BloodType_ID
                 WHERE Requester_ID = ?  AND isDeleted = '1'
                 ORDER BY Created_At DESC
@@ -636,7 +636,7 @@ export class StaffRepository {
                 Emergency_ID: item.Emergency_ID,
                 Requester_ID: item.Requester_ID,
                 reason_Need: item.reason_Need,
-                BloodType_ID: item.BloodType_ID,
+                BloodGroup: item.BloodGroup,
                 Volume: item.Volume,
                 Needed_Before: item.Needed_Before,
                 Status: item.Status,

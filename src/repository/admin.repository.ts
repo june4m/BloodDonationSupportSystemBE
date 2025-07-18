@@ -57,10 +57,10 @@ class AdminRepository {
   }
 
   async createStaffAccount(
-    body: Pick<RegisterReqBody, 'email' | 'password' | 'name' | 'date_of_birth'>
+    body: Pick<RegisterReqBody, 'email' | 'password' | 'name' | 'date_of_birth'| 'bloodType_id'>
   ): Promise<User> {
     console.log('createStaffAccount AdminRepo')
-    const { email, password, name, date_of_birth } = body
+    const { email, password, name, date_of_birth, bloodType_id } = body
     const lastRow = await databaseServices.query(
       `SELECT TOP 1 User_ID FROM Users
     ORDER BY CAST (SUBSTRING(User_ID,2,LEN(User_ID) - 1) AS INT) DESC`
@@ -74,10 +74,10 @@ class AdminRepository {
 
     const sql = `
     INSERT INTO Users
-      (User_ID, User_Name, YOB, Email, Password, Status, User_Role, Admin_ID)
-    VALUES (?, ?, ?, ?, ?, 'Active', 'staff', 'U001')
+      (User_ID, User_Name, YOB, Email, Password, Status, User_Role, Admin_ID,BloodType_ID)
+    VALUES (?, ?, ?, ?, ?, 'Active', 'staff', 'U001',?)
     `
-    await databaseServices.queryParam(sql, [newId, name, date_of_birth, email, password])
+    await databaseServices.queryParam(sql, [newId, name, date_of_birth, email, password,bloodType_id])
     const created = await databaseServices.query(`SELECT * FROM Users WHERE User_ID = ?`, [newId])
     return created[0]
   }
@@ -137,18 +137,18 @@ class AdminRepository {
   async getAllUsers(): Promise<Users[]> {
     try {
       const sql = `SELECT 
-            User_ID,
-            User_Name,
-            Email,
-            Phone,
-            Gender,
-            YOB,
-            BloodType_ID,
-            Status,
-            User_Role,
-            isDelete,
-            Donation_Count
-            FROM Users`;
+            U.User_ID,
+            U.User_Name,
+            U.Email,
+            U.Phone,
+            U.Gender,
+            U.YOB,
+            B.Blood_group + B.RHFactor AS BloodGroup,
+            U.Status,
+            U.User_Role,
+            U.isDelete,
+            U.Donation_Count
+            FROM Users U JOIN BloodType B ON U.BloodType_ID = B.BloodType_ID`;
       const users = await databaseServices.query(sql)
       return users.map((user: any) => ({
         User_ID: user.User_ID,
@@ -157,7 +157,7 @@ class AdminRepository {
         Phone: user.Phone,
         Gender: user.Gender,
         YOB: user.YOB,
-        BloodType_ID: user.BloodType_ID,
+        BloodGroup: user.BloodGroup,
         Status: user.Status,
         User_Role: user.User_Role,
         isDelete: user.isDelete,
