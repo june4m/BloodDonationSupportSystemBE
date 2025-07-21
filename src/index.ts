@@ -6,6 +6,7 @@ import router from './routers/users.routers'
 //import router from './routes'
 import cookieParser from 'cookie-parser'
 import emailRouter from './routers/email.routers'
+import forgotPasswordRouter from './routers/forgotPassword.routers'
 import ScheduleCronJobController from './controller/ScheduleCronJobController'
 const app = express()
 const port = 3000
@@ -19,6 +20,7 @@ app.use(express.json())
 app.use(cookieParser())
 app.use('/api', router)
 app.use('/email', emailRouter)
+app.use('/api', forgotPasswordRouter)
 // Instantiate the controller
 
 // tạo cronjob tự động, do không có router nên phải tạo trong này luôn nhe ae

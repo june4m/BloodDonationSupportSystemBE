@@ -11,7 +11,7 @@ import { log } from 'console'
  * Repository class for user-related with database
  */
 export class UserRepository {
-  async findByEmail(email: string): Promise<User > {
+  async findByEmail(email: string): Promise<User> {
     log('Finding user by email:', email)
     const rows = await databaseServices.query(
       `
@@ -207,5 +207,26 @@ export class UserRepository {
     const result = await databaseServices.queryParam(query, [userId])
     console.log('result getUserById: ', result)
     return result.recordset.length > 0 ? result.recordset[0] : null
+  }
+
+  // Forgot Password Methods - Sử dụng in-memory storage thay vì database table
+  async findByEmailOrPhone(identifier: string): Promise<User | null> {
+    const query = `
+      SELECT TOP 1
+        User_ID   AS user_id,
+        Email     AS email,
+        Phone     AS phone,
+        User_Name AS user_name,
+        User_Role AS user_role
+      FROM Users
+      WHERE (LOWER(Email) = LOWER(?) OR Phone = ?)
+    `
+    const rows = await databaseServices.queryParam(query, [identifier, identifier])
+    return rows.recordset.length > 0 ? rows.recordset[0] : null
+  }
+
+  async updatePassword(userId: string, hashedPassword: string): Promise<void> {
+    const query = `UPDATE Users SET Password = ? WHERE User_ID = ?`
+    await databaseServices.queryParam(query, [hashedPassword, userId])
   }
 }

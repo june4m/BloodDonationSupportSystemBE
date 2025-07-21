@@ -52,5 +52,22 @@ export const USERS_MESSAGES = {
     'Username must be a string and length must be 4 - 15, and contain only letters, numbers, and underscores, not only numbers',
   CHANGE_PASSWORD_SUCCESS: 'Change password successful',
   REFRESH_TOKEN_SUCCESS: 'Refresh token successful',
-  FILE_NOT_FOUND: 'File not found'
+  FILE_NOT_FOUND: 'File not found',
+
+  // Forgot Password Messages
+  FORGOT_PASSWORD_SUCCESS: 'Reset code has been sent to your email',
+  FORGOT_PASSWORD_IDENTIFIER_REQUIRED: 'Email or phone number is required',
+  FORGOT_PASSWORD_IDENTIFIER_INVALID: 'Invalid email or phone number format',
+  FORGOT_PASSWORD_USER_NOT_FOUND: 'No account found with this email or phone number',
+  FORGOT_PASSWORD_EMAIL_SEND_FAILED: 'Failed to send reset code. Please try again later',
+
+  RESET_TOKEN_REQUIRED: 'Reset code is required',
+  RESET_TOKEN_INVALID_FORMAT: 'Reset code must be 6 digits',
+  RESET_TOKEN_INVALID_OR_EXPIRED: 'Reset code is invalid or expired',
+  RESET_TOKEN_VERIFY_SUCCESS: 'Reset code verified successfully',
+
+  NEW_PASSWORD_REQUIRED: 'New password is required',
+  NEW_PASSWORD_TOO_SHORT: 'Password must be at least 6 characters',
+  RESET_PASSWORD_SUCCESS_NEW: 'Password has been reset successfully',
+  RESET_PASSWORD_FAILED: 'Failed to reset password. Please try again later'
 } as const //để k ai chỉnh đc
