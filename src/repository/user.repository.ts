@@ -11,7 +11,7 @@ import { log } from 'console'
  * Repository class for user-related with database
  */
 export class UserRepository {
-  async findByEmail(email: string): Promise<User > {
+  async findByEmail(email: string): Promise<User> {
     log('Finding user by email:', email)
     const rows = await databaseServices.query(
       `
@@ -207,5 +207,13 @@ export class UserRepository {
     const result = await databaseServices.queryParam(query, [userId])
     console.log('result getUserById: ', result)
     return result.recordset.length > 0 ? result.recordset[0] : null
+  }
+
+  public async updatePatientId(userId: string, patientId: string): Promise<void> {
+    console.log('updatePatientId repo')
+    const query = `UPDATE Users SET Patient_ID = ? WHERE User_ID = ?`
+    const result = await Database.query(query, [patientId, userId])
+    console.log('updatePatientId result: ', result)
+    return result
   }
 }

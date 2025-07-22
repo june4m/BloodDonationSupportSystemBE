@@ -1,8 +1,24 @@
-import { PatientDetail } from '~/models/schemas/patient.schema'
+import { PatientDetail, PatientDetailV2 } from '~/models/schemas/patient.schema'
 import databaseServices from '~/services/database.services'
 import Database from '../services/database.services'
 
 export class PatientDetailRepository {
+  public async createNextPatientId(): Promise<string> {
+    const sql = `
+    SELECT TOP 1 Patient_ID
+    FROM Patient_Detail
+    ORDER BY CAST(SUBSTRING(Patient_ID, 2, LEN(Patient_ID) - 1) AS INT) DESC
+  `
+    const result = await Database.query(sql)
+    let nextId = 'P001'
+    if (result.length > 0) {
+      const lastId = result[0].Patient_ID
+      const numeric = parseInt(lastId.slice(1)) + 1
+      nextId = 'P' + String(numeric).padStart(3, '0')
+    }
+    return nextId
+  }
+
   public async checkDuplicatePatientDetail(appointmentId: string): Promise<boolean> {
     const query = `
       SELECT COUNT(*) AS count 
@@ -54,6 +70,26 @@ export class PatientDetailRepository {
     } else {
       return { success: false }
     }
+  }
+
+  public async addPatientDetailV2(patientDetailData: PatientDetailV2): Promise<{ success: boolean }> {
+    console.log('addPatientDetailV2 Repo')
+    const query = `
+    INSERT INTO Patient_Detail (Patient_ID, Description, Status, MedicalHistory, Appointment_ID)
+    VALUES (?, ?, ?, ?, ?)
+  `
+    const params = [
+      patientDetailData.Patient_ID,
+      patientDetailData.Description,
+      patientDetailData.Status,
+      patientDetailData.MedicalHistory,
+      patientDetailData.Appointment_ID
+    ]
+    const result = await Database.queryParam(query, params)
+    const affected = result?.rowsAffected?.[0] ?? 0
+    console.log('affected: ', affected)
+
+    return { success: affected > 0 }
   }
 
   public async getPatientDetailByAppointmentId(appointmentId: string): Promise<any> {
@@ -113,5 +149,43 @@ export class PatientDetailRepository {
     const result = await databaseServices.queryParam(query, [appointmentId])
     console.log('Patient Repo Result: ', result)
     return result
+  }
+
+  public async getLatestPatientDetailOfUser(appointmentId: string): Promise<PatientDetailV2 | null> {
+    console.log('getLatestPatientDetailOfUser Repo')
+    const query = `
+    SELECT TOP 1 pd.*, ag.User_ID, s.Start_Time
+    FROM AppointmentGiving ag
+    JOIN Slot s ON ag.Slot_ID = s.Slot_ID
+    JOIN Patient_Detail pd ON ag.Appointment_ID = pd.Appointment_ID
+    WHERE ag.User_ID = ?
+    ORDER BY pd.Patient_ID DESC
+  `
+    const result = await Database.queryParam(query, [appointmentId])
+    console.log('Repo result: ', result)
+    if (result && result.recordset && result.recordset.length > 0) {
+      return result.recordset[0]
+    }
+    return null
+  }
+
+  public async getAllPatientDetailsByUserId(userId: string): Promise<PatientDetailV2[]> {
+    console.log('getAllPatientDetailsByUserId Repo')
+    const query = `
+    SELECT pd.*, ag.User_ID, s.Start_Time
+    FROM AppointmentGiving ag
+    JOIN Patient_Detail pd ON ag.Appointment_ID = pd.Appointment_ID
+    JOIN Slot s ON ag.Slot_ID = s.Slot_ID
+    WHERE ag.User_ID = ?
+    ORDER BY pd.Patient_ID DESC
+  `
+    const result = await Database.queryParam(query, [userId])
+    console.log('getAllPatientDetailsByUserId result:', result)
+
+    if (result && result.recordset) {
+      return result.recordset
+    }
+
+    return []
   }
 }

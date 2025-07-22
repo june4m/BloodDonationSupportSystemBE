@@ -80,18 +80,22 @@ export class AppointmentServices {
 
       if (currentStatus === 'Pending') {
         if (newStatus !== 'Processing' && newStatus !== 'Canceled') {
-          throw new Error('From Pending, you can only change status to Processing or Canceled')
+          throw new Error(
+            'Từ trạng thái Đang chờ xử lý, bạn chỉ có thể thay đổi trạng thái thành Đang xử lý hoặc Đã hủy!'
+          )
         }
       }
 
       if (currentStatus === 'Processing') {
         if (newStatus !== 'Completed' && newStatus !== 'Canceled') {
-          throw new Error('From Processing, you can only change status to Completed or Canceled')
+          throw new Error(
+            'Từ trạng thái Đang xử lý, bạn chỉ có thể thay đổi trạng thái thành Đã hoàn thành hoặc Đã hủy!'
+          )
         }
       }
 
       if (currentStatus === 'Completed' || currentStatus === 'Canceled') {
-        throw new Error('Appointment is already completed or canceled. Status cannot be updated.')
+        throw new Error('Không thể cập nhật trạng thái đối với cuộc hẹn đã hoàn tất hoặc bị hủy!')
       }
 
       const result = await this.appointmentRepository.updateAppointmentStatus(appointmentId, newStatus)
