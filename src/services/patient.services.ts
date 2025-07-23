@@ -173,7 +173,8 @@ export class PatientDetailService {
       const formattedList = list.map((item: any) => ({
         ...item,
         MedicalHistory: item.MedicalHistory ? new Date(item.MedicalHistory).toISOString().substring(0, 10) : null,
-        Start_Time: item.Start_Time ? new Date(item.Start_Time).toISOString().substring(11, 19) : null
+        Start_Time: item.Start_Time ? new Date(item.Start_Time).toISOString().substring(11, 19) : null,
+        End_Time: item.End_Time ? new Date(item.End_Time).toISOString().substring(11, 19) : null
       }))
 
       return { success: true, data: formattedList }

@@ -53,7 +53,7 @@ class SlotController {
     try {
       const slotId = req.body.Slot_ID
       const userId = req.user.user_id
-      console.log('User ID from token: ', req.user.User_ID)
+      console.log('User ID from token: ', req.user.user_id)
       // Thêm Appointment_ID rỗng để khớp kiểu
       const appointment = {
         Appointment_ID: '',

@@ -56,7 +56,7 @@ router.post(
 
 router.get('/appointment', verifyToken, authorize(['staff']), appointmentController.getAppointmentList)
 
-router.put('/profile', verifyToken, authorize(['member']), userController.updateProfile)
+router.put('/profile', verifyToken, authorize(['member', 'staff']), userController.updateProfile)
 
 router.put(
   '/users/:userId/confirmBloodTypeByStaff',

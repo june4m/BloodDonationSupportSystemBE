@@ -172,7 +172,7 @@ export class PatientDetailRepository {
   public async getAllPatientDetailsByUserId(userId: string): Promise<PatientDetailV2[]> {
     console.log('getAllPatientDetailsByUserId Repo')
     const query = `
-    SELECT pd.*, ag.User_ID, s.Start_Time
+    SELECT pd.*, ag.User_ID, s.Start_Time, s.End_Time
     FROM AppointmentGiving ag
     JOIN Patient_Detail pd ON ag.Appointment_ID = pd.Appointment_ID
     JOIN Slot s ON ag.Slot_ID = s.Slot_ID

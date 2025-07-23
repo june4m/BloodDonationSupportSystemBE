@@ -101,10 +101,14 @@ export class SlotService {
     console.log('UserID param:', data.User_ID)
     const lastDonation = await this.slotRepository.getLastDonationByUserId(data.User_ID)
     console.log('lastDonation:', lastDonation)
-    if (lastDonation) {
+
+    const currentSlot = await this.slotRepository.getSlotById(data.Slot_ID)
+    const nextSlotDate = new Date(currentSlot.Slot_Date)
+
+    if (lastDonation && lastDonation.Status !== 'Canceled') {
       const lastDate = new Date(lastDonation.donation_date)
-      const today = new Date()
-      const diffMonths = (today.getFullYear() - lastDate.getFullYear()) * 12 + (today.getMonth() - lastDate.getMonth())
+      const diffMonths =
+        (nextSlotDate.getFullYear() - lastDate.getFullYear()) * 12 + (nextSlotDate.getMonth() - lastDate.getMonth())
 
       if (diffMonths < 3) {
         const nextDonationDate = new Date(lastDate)
