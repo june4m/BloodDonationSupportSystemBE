@@ -3,7 +3,7 @@ import { PotentialDonor } from "~/models/schemas/potentialDonor.schema";
 import { InfoRequesterEmergency, PotentialDonorCriteria } from "~/models/schemas/requests/user.requests";
 import { EmergencyRequestReqBody, UpdateEmergencyRequestReqBody } from "~/models/schemas/slot.schema";
 
-import { User } from "~/models/schemas/user.schema";
+import { CreateReportReqBody, User } from "~/models/schemas/user.schema";
 import databaseServices from "~/services/database.services";
 import { sendEmailService } from "~/services/email.services";
 
@@ -539,7 +539,7 @@ export class StaffRepository {
                 SELECT COUNT(*) AS count
                 FROM EmergencyRequest
                 WHERE Potential_ID = ?
-                  AND Status <> 'Completed'
+                  AND Status <> 'Completed' OR  Status <> 'Rejected'
             `;
             const result = await databaseServices.query(query, [potentialId]);
             return result[0].count > 0; // Nếu count > 0 nghĩa là Potential_ID đang được sử dụng trong Emergency khác chưa hoàn thành
@@ -650,5 +650,195 @@ export class StaffRepository {
             throw error;
         }
     }
+    public async createReport(data: CreateReportReqBody): Promise<any> {
+        try {
+            const checkQuery = `
+                SELECT COUNT(*) AS count
+    FROM SummaryBlood
+    WHERE Staff_ID = ? AND CAST(Report_Date AS DATE) = CAST(GETDATE() AS DATE)
+            `;
+            const result = await databaseServices.query(checkQuery, [data.staff_id]);
 
+            if (result[0].count > 0) {
+                throw new Error('You can only create one report per day.');
+            }
+
+            // 1. Tạo ID mới cho SummaryBlood
+            const lastRow = await databaseServices.query(
+                `SELECT TOP 1 SummaryBlood_ID 
+                 FROM SummaryBlood
+                 ORDER BY CAST(SUBSTRING(SummaryBlood_ID, 3, LEN(SummaryBlood_ID) - 2) AS INT) DESC`
+            );
+
+            let newSummaryBloodId = 'SB001';
+            if (lastRow.length) {
+                const lastId = lastRow[0].SummaryBlood_ID as string;
+                const num = parseInt(lastId.slice(2), 10) + 1;
+                newSummaryBloodId = 'SB' + String(num).padStart(3, '0');
+            }
+
+            // 2. Insert vào bảng SummaryBlood
+            const summaryQuery = `
+                INSERT INTO SummaryBlood (
+                    SummaryBlood_ID, Title, Report_Date, Description, Staff_ID, Status
+                )
+                VALUES (?, ?, GETDATE(), ?, ?, 'Submitted')
+            `;
+            await databaseServices.queryParam(summaryQuery, [
+                newSummaryBloodId,
+                data.title || null,
+                data.description || null,
+                data.staff_id,
+            ]);
+
+            // 3. Lặp và insert vào SummaryBlood_Detail
+            if (data.details && data.details.length > 0) {
+                const lastDetail = await databaseServices.query(
+                    `SELECT TOP 1 Report_Detail_ID 
+                     FROM SummaryBlood_Detail
+                     ORDER BY CAST(SUBSTRING(Report_Detail_ID, 4, LEN(Report_Detail_ID) - 3) AS INT) DESC`
+                );
+
+                let nextDetailNum = 1;
+                if (lastDetail.length) {
+                    const lastId = lastDetail[0].Report_Detail_ID as string;
+                    nextDetailNum = parseInt(lastId.slice(3), 10) + 1;
+                }
+
+                const detailQuery = `
+                    INSERT INTO SummaryBlood_Detail (
+                        Report_Detail_ID, VolumeIn, VolumeOut, Note, SummaryBlood_ID
+                    )
+                    VALUES (?, ?, ?, ?, ?)
+                `;
+
+                for (const item of data.details) {
+                    const newDetailId = 'SBD' + String(nextDetailNum++).padStart(3, '0');
+
+                    await databaseServices.queryParam(detailQuery, [
+                        newDetailId,
+                        item.volumeIn || null,
+                        item.volumeOut || null,
+                        item.note || null,
+                        newSummaryBloodId,
+                    ]);
+                }
+            }
+
+            return {
+                success: true,
+                message: 'Report created successfully',
+                data: { SummaryBlood_ID: newSummaryBloodId },
+            };
+        } catch (error) {
+            console.error('Error in createReport:', error);
+            throw error;
+        }
+    }
+    public async updateReport(data: CreateReportReqBody): Promise<any> {
+        try {
+            // Lấy báo cáo gần nhất mà staff đã tạo trong ngày
+            const latestReport = await this.getLatestReportByStaff(data.staff_id);
+    
+            const fieldsToUpdate: string[] = [];
+            const values: any[] = [];
+    
+            if (data.title !== undefined) {
+                fieldsToUpdate.push('Title = ?');
+                values.push(data.title);
+            }
+            if (data.description !== undefined) {
+                fieldsToUpdate.push('Description = ?');
+                values.push(data.description);
+            }
+    
+            if (fieldsToUpdate.length === 0) {
+                throw new Error('No fields provided for update');
+            }
+    
+            const query = `
+                UPDATE SummaryBlood
+                SET ${fieldsToUpdate.join(', ')}
+                WHERE SummaryBlood_ID = ?
+            `;
+            values.push(latestReport.SummaryBlood_ID);
+    
+            await databaseServices.query(query, values);
+    
+            return { success: true, message: 'Report updated successfully', data: latestReport };
+        } catch (error) {
+            console.error('Error in updateReport:', error);
+            throw error;
+        }
+    }
+    public async updateBloodVolume(reportDetailId: string, volumeIn: number, volumeOut: number, note: string): Promise<any> {
+        try {
+            const fieldsToUpdate: string[] = [];
+            const values: any[] = [];
+    
+            if (volumeIn !== undefined) {
+                fieldsToUpdate.push('VolumeIn = ?');
+                values.push(volumeIn);
+            }
+            if (volumeOut !== undefined) {
+                fieldsToUpdate.push('VolumeOut = ?');
+                values.push(volumeOut);
+            }
+            if (note !== undefined) {
+                fieldsToUpdate.push('Note = ?');
+                values.push(note);
+            }
+    
+            if (fieldsToUpdate.length === 0) {
+                throw new Error('No fields provided for update');
+            }
+    
+            const query = `
+                UPDATE SummaryBlood_Detail
+                SET ${fieldsToUpdate.join(', ')}
+                WHERE Report_Detail_ID = ?
+            `;
+            values.push(reportDetailId);
+    
+            await databaseServices.query(query, values);
+    
+            return { success: true, message: 'Blood volume updated successfully' };
+        } catch (error) {
+            console.error('Error in updateBloodVolume:', error);
+            throw error;
+        }
+    }
+    public async getLatestReportByStaff(staffId: string): Promise<any> {
+        try {
+            const query = `
+                SELECT TOP 1 S.SummaryBlood_ID, Title, Report_Date, Description, Staff_ID, Status, 
+                             SD.Report_Detail_ID, SD.VolumeIn, SD.VolumeOut, SD.Note
+                FROM SummaryBlood S 
+                JOIN SummaryBlood_Detail SD ON S.SummaryBlood_ID = SD.SummaryBlood_ID
+                WHERE Staff_ID = ? AND CAST(Report_Date AS DATE) = CAST(GETDATE() AS DATE)
+                ORDER BY Report_Date DESC
+            `;
+            const result = await databaseServices.query(query, [staffId]);
+    
+            if (!result.length) {
+                throw new Error('No report found for today.');
+            }
+    
+            return result.map((item: any) => ({
+                SummaryBlood_ID: item.SummaryBlood_ID,
+                Title: item.Title,
+                Report_Date: item.Report_Date,
+                Description: item.Description,
+                Staff_ID: item.Staff_ID,
+                Status: item.Status,
+                Report_Detail_ID: item.Report_Detail_ID,
+                VolumeIn: item.VolumeIn,
+                VolumeOut: item.VolumeOut,
+                Note: item.Note,
+            }));
+        } catch (error) {
+            console.error('Error in getLatestReportByStaff:', error);
+            throw error;
+        }
+    }
 }

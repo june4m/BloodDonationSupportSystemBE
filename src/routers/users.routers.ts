@@ -131,7 +131,7 @@ router.post(
   staffController.handleEmergencyRequest
 )
 
-router.get('/getBloodBank', verifyToken, authorize(['staff']), staffController.getBloodBank)
+router.get('/getBloodBank', verifyToken, authorize(['staff','admin']), staffController.getBloodBank)
 
 router.get('/blogs', blogController.getBlogs)
 router.get('/blogs/:blogId', blogController.getBlogById)
@@ -186,4 +186,18 @@ router.put('/unbanUser/:userId', verifyToken, authorize(['admin']), adminControl
 
 router.put('/bannedUser/:userId', verifyToken, authorize(['admin']), adminController.bannedUser)
 
+router.post('/createReport',
+  verifyToken,
+  authorize(['staff']),
+  staffController.createReport)
+router.get('/getLatestReport',
+   verifyToken, 
+   authorize(['staff']),
+  staffController.getLatestReport)
+router.put(
+    '/updateBloodVolume',
+    verifyToken,
+    authorize(['staff']),
+    staffController.updateBloodVolume
+  );
 export default router

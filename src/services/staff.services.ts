@@ -4,6 +4,7 @@ import { promises } from 'dns';
 import { body } from 'express-validator';
 import { PotentialDonorCriteria } from '~/models/schemas/requests/user.requests';
 import { EmergencyRequestReqBody, UpdateEmergencyRequestReqBody } from '~/models/schemas/slot.schema';
+import { CreateReportReqBody } from '~/models/schemas/user.schema';
 
 import { StaffRepository } from "~/repository/staff.repository"
 
@@ -180,5 +181,31 @@ export class staffServices{
       }
     }
   
+    public async createReport(data: CreateReportReqBody): Promise<any> {
+      try {
+          return await this.staffRepository.createReport(data);
+      } catch (error) {
+          console.error('Error in createReport:', error);
+          throw error;
+      }
+    }
+    public async getLatestReportByStaff(staffId: string): Promise<any> {
+      try {
+          return await this.staffRepository.getLatestReportByStaff(staffId);
+      } catch (error) {
+          console.error('Error in getLatestReportByStaff:', error);
+          throw error;
+      }
+    }
+    public async updateBloodVolume(reportDetailId: string, volumeIn: number, volumeOut: number, note: string): Promise<any> {
+      try {
+          // Gọi repository để cập nhật dữ liệu
+          const result = await this.staffRepository.updateBloodVolume(reportDetailId, volumeIn, volumeOut, note);
+          return result;
+      } catch (error) {
+          console.error('Error in updateBloodVolume:', error);
+          throw error;
+      }
+  }
     
 }

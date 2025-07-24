@@ -6,6 +6,7 @@ import HTTP_STATUS from "~/constant/httpStatus";
 import { EmergencyRequestReqBody } from '~/models/schemas/slot.schema';
 
 import { staffServices } from "~/services/staff.services";
+import { CreateReportReqBody } from '~/models/schemas/user.schema';
 
 class StaffController{
     private staffServices: staffServices
@@ -25,6 +26,9 @@ class StaffController{
         this.rejectEmergencyRequest = this.rejectEmergencyRequest.bind(this);
         this.getInfoEmergencyRequestsByMember = this.getInfoEmergencyRequestsByMember.bind(this);
         this.cancelEmergencyRequestByMember = this.cancelEmergencyRequestByMember.bind(this);
+        this.createReport = this.createReport.bind(this);
+        this.getLatestReport = this.getLatestReport.bind(this);
+        this.updateBloodVolume = this.updateBloodVolume.bind(this);
     }
     public async getPotentialList(req: any, res: any): Promise<void> {
         try{
@@ -455,5 +459,100 @@ class StaffController{
             });
         }
     }
+    public async createReport(req: any, res: any): Promise<void> {
+        try {
+          const { title, description, details } = req.body;
+          const staff_id = req.user?.user_id;
+      
+          if (!staff_id || !details || !Array.isArray(details) || details.length === 0) {
+            res.status(400).json({
+              success: false,
+              message: 'Missing staff_id or details[]',
+            });
+            return;
+          }
+      
+          const reportData: CreateReportReqBody = {
+            title,
+            description,
+            staff_id,
+            details,
+          };
+      
+          const result = await this.staffServices.createReport(reportData);
+      
+          res.status(201).json({
+            success: true,
+            message: result.message,
+            data: result.data,
+          });
+        } catch (error: any) {
+          console.error('Error in createReport:', error);
+          res.status(500).json({
+            success: false,
+            message: 'Failed to create report',
+            error: error.message || 'Internal server error',
+          });
+        }
+    }
+    public async getLatestReport(req: any, res: any): Promise<void> {
+        try {
+            const staffId = req.user?.user_id; // Lấy Staff_ID từ token
+            
+            if (!staffId) {
+                res.status(HTTP_STATUS.UNAUTHORIZED).json({
+                    success: false,
+                    message: 'Unauthorized: Staff ID is required'
+                });
+                return;
+            }
+            
+            const latestReport = await this.staffServices.getLatestReportByStaff(staffId);
+            
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                data: latestReport,
+                message: 'Latest report retrieved successfully'
+            });
+        } catch (error: any) {
+            console.error('Error in getLatestReport:', error);
+            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: 'Failed to retrieve latest report',
+                error: error.message || 'Internal Server Error'
+            });
+        }
+    }
+    public async updateBloodVolume(req: any, res: any): Promise<void> {
+        try {
+            const { reportDetailId, volumeIn, volumeOut, note } = req.body;
+    
+            // Kiểm tra dữ liệu đầu vào
+            if (!reportDetailId) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Report_Detail_ID is required',
+                });
+                return;
+            }
+    
+            // Gọi service để cập nhật dữ liệu
+            const result = await this.staffServices.updateBloodVolume(reportDetailId, volumeIn, volumeOut, note);
+    
+            res.status(200).json({
+                success: true,
+                message: result.message,
+            });
+        } catch (error: any) {
+            console.error('Error in updateBloodVolume:', error);
+            res.status(500).json({
+                success: false,
+                message: 'Failed to update blood volume',
+                error: error.message || 'Internal server error',
+            });
+        }
+    }
+      
+    
 }
 export default StaffController;
