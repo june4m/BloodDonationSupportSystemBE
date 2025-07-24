@@ -186,4 +186,13 @@ router.put('/unbanUser/:userId', verifyToken, authorize(['admin']), adminControl
 
 router.put('/bannedUser/:userId', verifyToken, authorize(['admin']), adminController.bannedUser)
 
+router.get('/users/member', verifyToken, authorize(['admin', 'staff']), staffController.getAllActiveMembers)
+router.post('/potential/:userId', verifyToken, authorize(['staff']), userController.addPotential)
+router.put(
+  '/potential/:potentialId/status',
+  verifyToken,
+  authorize(['staff', 'admin']),
+  userController.updatePotentialStatus
+)
+
 export default router

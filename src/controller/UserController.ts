@@ -22,6 +22,8 @@ class UserController {
     this.getMe = this.getMe.bind(this)
     this.updateProfile = this.updateProfile.bind(this)
     this.confirmBloodByStaff = this.confirmBloodByStaff.bind(this)
+    this.addPotential = this.addPotential.bind(this)
+    this.updatePotentialStatus = this.updatePotentialStatus.bind(this)
   }
   public async login(req: Request<{}, {}, LoginReqBody>, res: Response): Promise<any> {
     console.log('Call Login')
@@ -41,12 +43,12 @@ class UserController {
         email,
         password
       }
-      const user = await this.userService.findUserLogin(email);
-        if (!user) {
-            return ResponseHandle.responseError(res, null, 'Không tìm thấy tài khoản', 404);
-        }
-        if (user.isDelete === false) {
-          return ResponseHandle.responseError(res, null, 'Tài khoản của bạn đã bị khóa', 403);
+      const user = await this.userService.findUserLogin(email)
+      if (!user) {
+        return ResponseHandle.responseError(res, null, 'Không tìm thấy tài khoản', 404)
+      }
+      if (user.isDelete === false) {
+        return ResponseHandle.responseError(res, null, 'Tài khoản của bạn đã bị khóa', 403)
       }
       const result = await this.userService.authUser(credentials as User)
       if (!result.success) {
@@ -220,6 +222,57 @@ class UserController {
       ResponseHandle.responseSuccess(res, result, 'Blood type confirmed successfully', 200)
     } catch (error: any) {
       ResponseHandle.responseError(res, error, error.message || 'Failed to confirm blood type', 400)
+    }
+  }
+
+  public async addPotential(req: Request, res: Response): Promise<void> {
+    try {
+      const userId = req.params.userId
+      const { Note } = req.body
+      const staffId = req.user?.user_id
+
+      if (!userId || !staffId) {
+        ResponseHandle.responseError(res, null, 'Missing required fields', 400)
+        return
+      }
+
+      const result = await this.userService.addPotential({
+        User_ID: userId,
+        Note,
+        Staff_ID: staffId
+      })
+
+      if (result.success) {
+        ResponseHandle.responseSuccess(res, result.data, result.message, 201)
+      } else {
+        ResponseHandle.responseError(res, null, result.message, 400)
+      }
+    } catch (error: any) {
+      console.error('addPotential Controller Error:', error)
+      ResponseHandle.responseError(res, error, 'Thêm người hiến máu tiềm năng thất bại', 500)
+    }
+  }
+
+  public async updatePotentialStatus(req: Request, res: Response): Promise<void> {
+    try {
+      const { potentialId } = req.params
+      const { Status } = req.body
+
+      if (!Status) {
+        ResponseHandle.responseError(res, null, 'The Status field is required!', 400)
+        return
+      }
+
+      const result = await this.userService.updatePotentialStatus(potentialId, Status)
+
+      if (result.success) {
+        ResponseHandle.responseSuccess(res, result.data, result.message, 200)
+      } else {
+        ResponseHandle.responseError(res, null, result.message, 400)
+      }
+    } catch (error: any) {
+      console.error('updatePotentialStatus Controller Error:', error)
+      ResponseHandle.responseError(res, error, 'Cập nhật trạng thái thất bại', 500)
     }
   }
 }

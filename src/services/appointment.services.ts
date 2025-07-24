@@ -72,7 +72,7 @@ export class AppointmentServices {
         throw new Error('Chưa có hồ sơ bệnh án đối với cuộc hẹn này!')
       }
 
-      const user = await this.userRepository.getUserById(patientDetail.User_ID)
+      const user = await this.userRepository.getUserByAppointmentId(appointmentId)
       console.log('user: ', user)
       if (!user || !user.BloodType_ID) {
         throw new Error('Chưa xác nhận nhóm máu cho bệnh nhân!')

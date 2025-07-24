@@ -186,7 +186,7 @@ export class AppointmentRepository {
       WHERE Appointment_ID = ?
     `
     const params = [newStatus, appointmentId]
-    const result = await databaseServices.query(query, params)
+    const result = await databaseServices.queryParam(query, params)
     console.log('result trong repository: ', result)
     if (result && result.rowsAffected && result.rowsAffected > 0) {
       return { success: true, message: 'Appointment status updated successfully' }
