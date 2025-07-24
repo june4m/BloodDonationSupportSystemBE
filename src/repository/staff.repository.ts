@@ -110,7 +110,7 @@ export class StaffRepository {
             SELECT COUNT(*) AS cnt
             FROM EmergencyRequest
             WHERE Requester_ID = ?
-              AND Status       <> 'Complete'
+              AND Status    NOT IN  ('Completed', 'Rejected')
           `;
           const result = await databaseServices.query(query, [userId]);
           // Nếu cnt > 0 nghĩa là vẫn còn request chưa complete
@@ -119,7 +119,7 @@ export class StaffRepository {
           console.error('Error in checkRecentEmergencyRequest:', error);
           throw error;
         }
-      }
+    }
     async checkPotentialDonorExists(userId: string): Promise<boolean> {
         try {
             const query = `
@@ -737,9 +737,19 @@ export class StaffRepository {
     }
     public async updateReport(data: CreateReportReqBody): Promise<any> {
         try {
-            // Lấy báo cáo gần nhất mà staff đã tạo trong ngày
-            const latestReport = await this.getLatestReportByStaff(data.staff_id);
+            // Kiểm tra xem báo cáo có tồn tại hay không
+            const checkQuery = `
+                SELECT COUNT(*) AS count
+                FROM SummaryBlood
+                WHERE SummaryBlood_ID = ? AND Staff_ID = ?
+            `;
+            const checkResult = await databaseServices.queryParam(checkQuery, [data.summaryBlood_Id, data.staff_id]);
     
+            if (!checkResult || checkResult.length === 0) {
+                throw new Error('Report not found or you do not have permission to update this report.');
+            }
+    
+            // Cập nhật thông tin báo cáo
             const fieldsToUpdate: string[] = [];
             const values: any[] = [];
     
@@ -752,71 +762,62 @@ export class StaffRepository {
                 values.push(data.description);
             }
     
-            if (fieldsToUpdate.length === 0) {
-                throw new Error('No fields provided for update');
+            if (fieldsToUpdate.length > 0) {
+                const updateQuery = `
+                    UPDATE SummaryBlood
+                    SET ${fieldsToUpdate.join(', ')}
+                    WHERE SummaryBlood_ID = ?
+                `;
+                values.push(data.summaryBlood_Id);
+                await databaseServices.query(updateQuery, values);
             }
     
-            const query = `
-                UPDATE SummaryBlood
-                SET ${fieldsToUpdate.join(', ')}
-                WHERE SummaryBlood_ID = ?
-            `;
-            values.push(latestReport.SummaryBlood_ID);
+            // Cập nhật chi tiết báo cáo nếu có
+            if (data.details && data.details.length > 0) {
+                for (const detail of data.details) {
+                    const detailFieldsToUpdate: string[] = [];
+                    const detailValues: any[] = [];
     
-            await databaseServices.query(query, values);
+                    if (detail.volumeIn !== undefined) {
+                        detailFieldsToUpdate.push('VolumeIn = ?');
+                        detailValues.push(detail.volumeIn);
+                    }
+                    if (detail.volumeOut !== undefined) {
+                        detailFieldsToUpdate.push('VolumeOut = ?');
+                        detailValues.push(detail.volumeOut);
+                    }
+                    if (detail.note !== undefined) {
+                        detailFieldsToUpdate.push('Note = ?');
+                        detailValues.push(detail.note);
+                    }
     
-            return { success: true, message: 'Report updated successfully', data: latestReport };
+                    if (detailFieldsToUpdate.length > 0) {
+                        const detailUpdateQuery = `
+                            UPDATE SummaryBlood_Detail
+                            SET ${detailFieldsToUpdate.join(', ')}
+                            WHERE Report_Detail_ID = ?
+                        `;
+                        detailValues.push(detail.Report_Detail_ID);
+                        await databaseServices.query(detailUpdateQuery, detailValues);
+                    }
+                }
+            }
+    
+            return { success: true, message: 'Report updated successfully' };
         } catch (error) {
             console.error('Error in updateReport:', error);
-            throw error;
-        }
-    }
-    public async updateBloodVolume(reportDetailId: string, volumeIn: number, volumeOut: number, note: string): Promise<any> {
-        try {
-            const fieldsToUpdate: string[] = [];
-            const values: any[] = [];
-    
-            if (volumeIn !== undefined) {
-                fieldsToUpdate.push('VolumeIn = ?');
-                values.push(volumeIn);
-            }
-            if (volumeOut !== undefined) {
-                fieldsToUpdate.push('VolumeOut = ?');
-                values.push(volumeOut);
-            }
-            if (note !== undefined) {
-                fieldsToUpdate.push('Note = ?');
-                values.push(note);
-            }
-    
-            if (fieldsToUpdate.length === 0) {
-                throw new Error('No fields provided for update');
-            }
-    
-            const query = `
-                UPDATE SummaryBlood_Detail
-                SET ${fieldsToUpdate.join(', ')}
-                WHERE Report_Detail_ID = ?
-            `;
-            values.push(reportDetailId);
-    
-            await databaseServices.query(query, values);
-    
-            return { success: true, message: 'Blood volume updated successfully' };
-        } catch (error) {
-            console.error('Error in updateBloodVolume:', error);
             throw error;
         }
     }
     public async getLatestReportByStaff(staffId: string): Promise<any> {
         try {
             const query = `
-                SELECT TOP 1 S.SummaryBlood_ID, Title, Report_Date, Description, Staff_ID, Status, 
-                             SD.Report_Detail_ID, SD.VolumeIn, SD.VolumeOut, SD.Note
-                FROM SummaryBlood S 
-                JOIN SummaryBlood_Detail SD ON S.SummaryBlood_ID = SD.SummaryBlood_ID
-                WHERE Staff_ID = ? AND CAST(Report_Date AS DATE) = CAST(GETDATE() AS DATE)
-                ORDER BY Report_Date DESC
+                SELECT S.SummaryBlood_ID, S.Title, S.Report_Date, S.Description, S.Staff_ID, S.Status,
+                       SD.Report_Detail_ID, SD.VolumeIn, SD.VolumeOut, SD.Note
+                FROM SummaryBlood S
+                LEFT JOIN SummaryBlood_Detail SD ON S.SummaryBlood_ID = SD.SummaryBlood_ID
+                WHERE S.Staff_ID = ? AND CAST(S.Report_Date AS DATE) = CAST(GETDATE() AS DATE)
+                ORDER BY S.Report_Date DESC
             `;
             const result = await databaseServices.query(query, [staffId]);
     
@@ -824,18 +825,35 @@ export class StaffRepository {
                 throw new Error('No report found for today.');
             }
     
-            return result.map((item: any) => ({
-                SummaryBlood_ID: item.SummaryBlood_ID,
-                Title: item.Title,
-                Report_Date: item.Report_Date,
-                Description: item.Description,
-                Staff_ID: item.Staff_ID,
-                Status: item.Status,
-                Report_Detail_ID: item.Report_Detail_ID,
-                VolumeIn: item.VolumeIn,
-                VolumeOut: item.VolumeOut,
-                Note: item.Note,
-            }));
+            // Group details by `SummaryBlood_ID`
+            const groupedReports = result.reduce((acc: any, item: any) => {
+                const { SummaryBlood_ID, Title, Report_Date, Description, Staff_ID, Status, Report_Detail_ID, VolumeIn, VolumeOut, Note } = item;
+    
+                if (!acc[SummaryBlood_ID]) {
+                    acc[SummaryBlood_ID] = {
+                        SummaryBlood_ID,
+                        Title,
+                        Report_Date,
+                        Description,
+                        Staff_ID,
+                        Status,
+                        Details: [],
+                    };
+                }
+    
+                if (Report_Detail_ID) {
+                    acc[SummaryBlood_ID].Details.push({
+                        Report_Detail_ID,
+                        VolumeIn,
+                        VolumeOut,
+                        Note,
+                    });
+                }
+    
+                return acc;
+            }, {});
+    
+            return Object.values(groupedReports)[0]; // Return the latest report
         } catch (error) {
             console.error('Error in getLatestReportByStaff:', error);
             throw error;

@@ -195,9 +195,9 @@ router.get('/getLatestReport',
    authorize(['staff']),
   staffController.getLatestReport)
 router.put(
-    '/updateBloodVolume',
+    '/updateReport/:summaryBlood_Id/:Report_Detail_ID',
     verifyToken,
     authorize(['staff']),
-    staffController.updateBloodVolume
-  );
+    staffController.updateReport
+);
 export default router

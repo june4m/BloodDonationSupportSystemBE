@@ -28,7 +28,8 @@ class StaffController{
         this.cancelEmergencyRequestByMember = this.cancelEmergencyRequestByMember.bind(this);
         this.createReport = this.createReport.bind(this);
         this.getLatestReport = this.getLatestReport.bind(this);
-        this.updateBloodVolume = this.updateBloodVolume.bind(this);
+        this.updateReport = this.updateReport.bind(this);
+        
     }
     public async getPotentialList(req: any, res: any): Promise<void> {
         try{
@@ -523,31 +524,45 @@ class StaffController{
             });
         }
     }
-    public async updateBloodVolume(req: any, res: any): Promise<void> {
+    public async updateReport(req: any, res: any): Promise<void> {
         try {
-            const { reportDetailId, volumeIn, volumeOut, note } = req.body;
+            const { title, description, details } = req.body;
+            const staff_id = req.user?.user_id; // Lấy Staff_ID từ token
+            const summaryBlood_Id = req.params.summaryBlood_Id; // Lấy từ params
+            const Report_Detail_ID = req.params.Report_Detail_ID; // Lấy từ params
     
-            // Kiểm tra dữ liệu đầu vào
-            if (!reportDetailId) {
+            if (!summaryBlood_Id || !staff_id || !Report_Detail_ID) {
                 res.status(400).json({
                     success: false,
-                    message: 'Report_Detail_ID is required',
+                    message: 'SummaryBlood_ID, Report_Detail_ID, and Staff_ID are required',
                 });
                 return;
             }
     
-            // Gọi service để cập nhật dữ liệu
-            const result = await this.staffServices.updateBloodVolume(reportDetailId, volumeIn, volumeOut, note);
+            const reportData: CreateReportReqBody = {
+                summaryBlood_Id,
+                title,
+                description,
+                staff_id,
+                details: [
+                    {
+                        Report_Detail_ID,
+                        ...details[0], // Nếu có nhiều chi tiết, bạn cần xử lý logic phù hợp
+                    },
+                ],
+            };
+    
+            const result = await this.staffServices.updateReport(reportData);
     
             res.status(200).json({
                 success: true,
                 message: result.message,
             });
         } catch (error: any) {
-            console.error('Error in updateBloodVolume:', error);
+            console.error('Error in updateReport:', error);
             res.status(500).json({
                 success: false,
-                message: 'Failed to update blood volume',
+                message: 'Failed to update report',
                 error: error.message || 'Internal server error',
             });
         }

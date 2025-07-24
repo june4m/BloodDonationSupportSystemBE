@@ -197,15 +197,13 @@ export class staffServices{
           throw error;
       }
     }
-    public async updateBloodVolume(reportDetailId: string, volumeIn: number, volumeOut: number, note: string): Promise<any> {
+    public async updateReport(data: CreateReportReqBody): Promise<any> {
       try {
-          // Gọi repository để cập nhật dữ liệu
-          const result = await this.staffRepository.updateBloodVolume(reportDetailId, volumeIn, volumeOut, note);
-          return result;
+          return await this.staffRepository.updateReport(data);
       } catch (error) {
-          console.error('Error in updateBloodVolume:', error);
+          console.error('Error in updateReport:', error);
           throw error;
       }
-  }
+    } 
     
 }
