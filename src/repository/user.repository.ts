@@ -264,10 +264,10 @@ export class UserRepository {
     }
 
     const insertQuery = `
-    INSERT INTO PotentialDonor (Potential_ID, User_ID, Status, Note, Staff_ID)
+    INSERT INTO PotentialDonor (Potential_ID, User_ID, Status, Note, Admin_ID)
     VALUES (?, ?, 'Approved', ?, ?)
     `
-    const params = [newPotentialId, potential.User_ID, potential.Note ?? null, potential.Staff_ID]
+    const params = [newPotentialId, potential.User_ID, potential.Note ?? null, potential.Admin_ID]
 
     const insertResult = await databaseServices.queryParam(insertQuery, params)
     return insertResult
@@ -297,18 +297,28 @@ export class UserRepository {
     return result?.recordset?.length > 0 ? result.recordset[0] : null
   }
 
-  public async getAllPotentialApproved(): Promise<any[]> {
-    console.log('getAllPotentialApproved Repo')
+  public async getAllPotential(): Promise<any[]> {
+    console.log('getAllPotential Repo')
+
     const query = `
-    SELECT *
-    FROM PotentialDonor
-    WHERE Status = 'Approved'
+    SELECT 
+      pd.Potential_ID,
+      pd.User_ID,
+      pd.Status,
+      pd.Note,
+      pd.Admin_ID,
+      u.User_Name,
+      u.Email
+    FROM PotentialDonor pd
+    JOIN Users u ON pd.User_ID = u.User_ID
     `
     const result = await databaseServices.query(query)
-    console.log('repo result: ', result)
+    console.log('repo result:', result)
+
     if (Array.isArray(result)) {
       return result
     }
+
     return result?.recordset ?? []
   }
 }

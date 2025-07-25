@@ -188,7 +188,7 @@ export class UserService {
 
   public async addPotential(potentialData: Omit<PotentialDonor, 'Potential_ID' | 'Status'>): Promise<any> {
     try {
-      if (!potentialData.User_ID || !potentialData.Staff_ID) {
+      if (!potentialData.User_ID || !potentialData.Admin_ID) {
         throw new Error('Missing required fields')
       }
 
@@ -236,19 +236,19 @@ export class UserService {
     }
   }
 
-  public async getAllPotentialApproved(): Promise<any> {
-    console.log('getAllPotentialApproved Services')
+  public async getAllPotential(): Promise<any> {
+    console.log('getAllPotential Service')
     try {
-      const list = await this.userRepository.getAllPotentialApproved()
-      console.log('list: ', list)
+      const list = await this.userRepository.getAllPotential()
+      console.log('list:', list)
 
       if (!list || list.length === 0) {
-        return { success: false, message: 'Không có người hiến máu tiềm năng nào được duyệt.' }
+        return { success: false, message: 'Không có người hiến máu tiềm năng nào.' }
       }
 
       return { success: true, data: list }
     } catch (error: any) {
-      console.error('getAllPotentialApproved Service Error:', error)
+      console.error('getAllPotential Service Error:', error)
       return { success: false, message: error.message }
     }
   }
