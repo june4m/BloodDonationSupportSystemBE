@@ -93,4 +93,12 @@ export class AdminService {
 
     }
   }
+  public async getAllReport():Promise<any>{
+      try {
+        const reports = await this.adminRepository.getAllReportByAdmin();
+        return reports;
+      } catch (error) {
+        throw new Error('Failed to get all report');
+    }
+  }
 }

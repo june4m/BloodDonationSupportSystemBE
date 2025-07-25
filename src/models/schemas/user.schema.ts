@@ -38,3 +38,15 @@ export interface Auth {
     user_role: 'admin' | 'staff' | 'member'
   }
 }
+export interface CreateReportReqBody {
+  staff_id: string;
+  title?: string;
+  description?: string;
+  summaryBlood_Id?: string;
+  details: {
+    Report_Detail_ID?: string;
+    volumeIn?: number;
+    volumeOut?: number;
+    note?: string;
+  }[];
+}
