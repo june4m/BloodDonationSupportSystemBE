@@ -200,4 +200,17 @@ router.put(
     authorize(['staff']),
     staffController.updateReport
 );
+router.get('/getAllBloodUnit',
+  verifyToken,
+  authorize(['staff', 'admin']),
+  staffController.getAllBloodUnit)
+
+router.post('/createBloodUnit',
+  verifyToken,
+  authorize(['staff']),
+  staffController.createBloodUnit)
+router.put('/updateBloodUnit/:bloodUnitId',
+  verifyToken,
+  authorize(['staff']),
+  staffController.updateBloodUnit)
 export default router

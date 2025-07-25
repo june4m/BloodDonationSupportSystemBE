@@ -29,7 +29,9 @@ class StaffController{
         this.createReport = this.createReport.bind(this);
         this.getLatestReport = this.getLatestReport.bind(this);
         this.updateReport = this.updateReport.bind(this);
-        
+        this.getAllBloodUnit = this.getAllBloodUnit.bind(this);
+        this.createBloodUnit = this.createBloodUnit.bind(this);
+        this.updateBloodUnit = this.updateBloodUnit.bind(this);
     }
     public async getPotentialList(req: any, res: any): Promise<void> {
         try{
@@ -564,6 +566,113 @@ class StaffController{
                 success: false,
                 message: 'Failed to update report',
                 error: error.message || 'Internal server error',
+            });
+        }
+    }
+    public async getAllBloodUnit(req: any, res: any): Promise<void> {
+        try {
+            const bloodUnits = await this.staffServices.getAllBloodUnit();
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                data: bloodUnits,
+                message: 'Blood units retrieved successfully'
+            });
+        } catch (error: any) {
+            console.error('Error in getAllBloodUnit:', error);
+            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: 'Failed to retrieve blood units',
+                error: error.message || 'Internal Server Error'
+            });
+        }
+    }
+    public async createBloodUnit(req: any, res: any): Promise<void> {
+        try {
+            const { BloodType_ID, Volume, Expiration_Date } = req.body;
+            const staffId = req.user?.user_id; 
+            if( !staffId) {
+                res.status(HTTP_STATUS.UNAUTHORIZED).json({
+                    success: false,
+                    message: 'Unauthorized: Staff ID is required'
+                });
+            }
+            if (!BloodType_ID || !Volume || !Expiration_Date || !staffId) {
+                res.status(HTTP_STATUS.BAD_REQUEST).json({
+                    success: false,
+                    message: 'BloodType_ID, Volume, Expiration_Date are required'
+                });
+                return;
+            }
+            const newBloodUnit = await this.staffServices.createBloodUnit({
+                BloodType_ID,
+                Volume,
+                Expiration_Date,
+                Collected_Date: new Date().toISOString().slice(0, 10), 
+                Staff_ID: staffId
+            });
+    
+            res.status(HTTP_STATUS.CREATED).json({
+                success: true,
+                data: newBloodUnit,
+                message: 'Blood unit created successfully'
+            });
+        } catch (error: any) {
+            console.error('Error in createBloodUnit:', error);
+            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: 'Failed to create blood unit',
+                error: error.message || 'Internal Server Error'
+            });
+        }
+    }
+    public async updateBloodUnit(req: any, res: any): Promise<void> {
+        try {
+            const { Status, Expiration_Date } = req.body; // Lấy từ body
+            const BloodUnit_ID = req.params.BloodUnit_ID; // Lấy từ params
+            const staffId = req.user?.user_id; // Lấy Staff_ID từ token
+    
+            if(!staffId){
+                res.status(HTTP_STATUS.UNAUTHORIZED).json({
+                    success: false,
+                    message: 'Unauthorized: Staff ID is required'
+                });
+                return;
+            }
+            if (!BloodUnit_ID ) {
+                res.status(HTTP_STATUS.BAD_REQUEST).json({
+                    success: false,
+                    message: 'BloodUnit_ID  are required'
+                });
+                return;
+            }
+    
+            if (!Status && !Expiration_Date) {
+                res.status(HTTP_STATUS.BAD_REQUEST).json({
+                    success: false,
+                    message: 'At least one field (Status or Expiration_Date) is required'
+                });
+                return;
+            }
+    
+          
+            const updatedBloodUnit = await this.staffServices.updateBloodUnitByStaff({
+                BloodUnit_ID,
+                Status,
+                Expiration_Date,
+                Staff_ID: staffId
+            });
+    
+            res.status(HTTP_STATUS.OK).json({
+                success: true,
+                data: updatedBloodUnit,
+                message: 'Blood unit updated successfully'
+            });
+        } catch (error: any) {
+            console.error('Error in updateBloodUnit:', error);
+            res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: 'Failed to update blood unit',
+                error: error.message || 'Internal Server Error'
             });
         }
     }

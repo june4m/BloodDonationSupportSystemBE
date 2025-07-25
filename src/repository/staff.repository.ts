@@ -1,5 +1,6 @@
 import moment from "moment";
 import { PotentialDonor } from "~/models/schemas/potentialDonor.schema";
+import { bloodUnitCreateReqBody, bloodUnitUpdateReqBody} from "~/models/schemas/requests/bloodbank.requests.schema";
 import { InfoRequesterEmergency, PotentialDonorCriteria } from "~/models/schemas/requests/user.requests";
 import { EmergencyRequestReqBody, UpdateEmergencyRequestReqBody } from "~/models/schemas/slot.schema";
 
@@ -236,17 +237,24 @@ export class StaffRepository {
     
     public async getBloodBank(): Promise<any[]> {
         try {
-            const query = `SELECT BloodBank_ID, BloodUnit_ID, Volume,Storage_Date, Status, Last_Update FROM BloodBank`;
+            const query = `SELECT B.BloodType_ID,
+                        BT.Blood_group + BT.RHFactor as BloodGroup,
+                        B.Volume,
+                        BU.Expiration_Date,
+                        BU.Status
+                        FROM BloodBank B 
+                        JOIN BloodType BT ON B.BloodType_ID = BT.BloodType_ID 
+                        JOIN BloodUnit BU ON BU.BloodType_ID = B.BloodType_ID
+                        WHERE BU.Status = 'Available'`;
             const result = await databaseServices.query(query);
 
             // Map kết quả trả về thành danh sách các đối tượng
             return result.map((item: any) => ({
-                BloodBank_ID: item.BloodBank_ID,
-                BloodUnit_ID: item.BloodUnit_ID,
+                BloodType_ID: item.BloodType_ID,
+                BloodGroup: item.BloodGroup,
                 Volume: item.Volume,
-                Storage_Date: item.Storage_Date,
+                Expiration_Date: item.Expiration_Date,
                 Status: item.Status,
-                Updated_At: item.Updated_At,
             }));
         } catch (error) {
             console.error('Error in getBloodBank:', error);
@@ -346,6 +354,7 @@ export class StaffRepository {
                                     AND BC.Receiver_Blood_ID = @BTID
                                     AND BC.Is_Compatible = 1
         WHERE 
+        PD.Status = 'Approved' AND
             U.Status = 'Active'
             AND U.History IS NOT NULL
             AND CHARINDEX(' on ', U.History) > 0
@@ -858,5 +867,157 @@ export class StaffRepository {
             console.error('Error in getLatestReportByStaff:', error);
             throw error;
         }
-    }
+    }                      
+    public async getAllBloodUnit(): Promise<bloodUnitUpdateReqBody[]> {
+        try {
+            const query = `SELECT BU.BloodUnit_ID,
+                        BU.BloodType_ID,
+                        BT.Blood_group + BT.RHFactor as BloodGroup,
+                        BU.Volume,
+						BU.Collected_Date,
+                        BU.Expiration_Date,
+                        BU.Status,
+                        BU.Staff_ID
+                        FROM BloodUnit BU 
+                        JOIN BloodType BT ON BU.BloodType_ID = BT.BloodType_ID`;
+            const result = await databaseServices.query(query);
+
+            // Map kết quả trả về thành danh sách các đối tượng
+            return result.map((item: any) => ({
+              BloodUnit_ID: item.BloodUnit_ID,
+                BloodType_ID: item.BloodType_ID,
+                BloodGroup: item.BloodGroup,
+                Volume: item.Volume,
+                Collected_Date: item.Collected_Date,
+                Expiration_Date: item.Expiration_Date,
+                Status: item.Status,
+                Staff_ID: item.Staff_ID
+            })) as bloodUnitUpdateReqBody[];
+        } catch (error) {
+            console.error('Error in getAllBloodUnitByStaff:', error);
+            throw error;
+        }
+    }  
+    public async createBloodUnitByStaff(data: bloodUnitCreateReqBody): Promise<any> {
+        try {
+            // Kiểm tra xem lô máu đã tồn tại trong ngày hay chưa
+            const checkQuery = `
+                SELECT COUNT(*) AS count
+                FROM BloodUnit
+                WHERE BloodType_ID = ? AND CAST(Collected_Date AS DATE) = CAST(GETDATE() AS DATE)
+            `;
+            const checkResult = await databaseServices.query(checkQuery, [data.BloodType_ID]);
+    
+            if (checkResult[0].count > 0) {
+                throw new Error('Blood unit for this blood type has already been created today.');
+            }
+    
+            // Tạo ID mới cho BloodUnit
+            const lastRow = await databaseServices.query(
+                `SELECT TOP 1 BloodUnit_ID 
+                 FROM BloodUnit
+                 ORDER BY CAST(SUBSTRING(BloodUnit_ID, 3, LEN(BloodUnit_ID) - 2) AS INT) DESC`
+            );
+    
+            let newBloodUnitId = 'BU001';
+            if (lastRow.length) {
+                const lastId = lastRow[0].BloodUnit_ID as string;
+                const num = parseInt(lastId.slice(2), 10) + 1;
+                newBloodUnitId = 'BU' + String(num).padStart(3, '0');
+            }
+    
+            // Thêm mới lô máu
+            const insertQuery = `
+                INSERT INTO BloodUnit (
+                    BloodUnit_ID, BloodType_ID, Volume, Collected_Date, Expiration_Date, Status, Staff_ID
+                )
+                VALUES (?, ?, ?, GETDATE(), ?, 'Available', ?)
+            `;
+            await databaseServices.query(insertQuery, [
+                newBloodUnitId,
+                data.BloodType_ID,
+                data.Volume,
+                data.Expiration_Date || null,
+                data.Status,
+                data.Staff_ID,
+            ]);
+    
+            return {
+                success: true,
+                message: 'Blood unit created successfully',
+                data: {
+                    BloodUnit_ID: newBloodUnitId,
+                    BloodType_ID: data.BloodType_ID,
+                    Volume: data.Volume,
+                    Collected_Date: new Date().toISOString().slice(0, 10),
+                    Expiration_Date: data.Expiration_Date || null,
+                    Status: data.Status || 'Available',
+                    Staff_ID: data.Staff_ID,
+                },
+            };
+        } catch (error) {
+            console.error('Error in createBloodUnitByStaff:', error);
+            throw error;
+        }
+    }          
+    public async updateBloodUnitByStaff(data: { BloodUnit_ID: string; Status?: string; Expiration_Date?: string; Staff_ID: string }): Promise<any> {
+        try {
+            // Kiểm tra xem lô máu có tồn tại hay không
+            const checkQuery = `
+                SELECT COUNT(*) AS count
+                FROM BloodUnit
+                WHERE BloodUnit_ID = ?
+            `;
+            const checkResult = await databaseServices.query(checkQuery, [data.BloodUnit_ID]);
+    
+            if (checkResult[0].count === 0) {
+                throw new Error('Blood unit not found.');
+            }
+    
+            // Cập nhật thông tin lô máu
+            const fieldsToUpdate: string[] = [];
+            const values: any[] = [];
+    
+            if (data.Status !== undefined) {
+                fieldsToUpdate.push('Status = ?');
+                values.push(data.Status);
+            }
+            if (data.Expiration_Date !== undefined) {
+                fieldsToUpdate.push('Expiration_Date = ?');
+                values.push(data.Expiration_Date);
+            }
+            if (data.Staff_ID !== undefined) {
+                fieldsToUpdate.push('Staff_ID = ?');
+                values.push(data.Staff_ID);
+            }
+    
+            if (fieldsToUpdate.length === 0) {
+                throw new Error('No fields provided for update.');
+            }
+    
+            const updateQuery = `
+                UPDATE BloodUnit
+                SET ${fieldsToUpdate.join(', ')}
+                WHERE BloodUnit_ID = ?
+            `;
+            values.push(data.BloodUnit_ID);
+    
+            await databaseServices.query(updateQuery, values);
+    
+            return {
+                success: true,
+                message: 'Blood unit updated successfully',
+                data: {
+                    BloodUnit_ID: data.BloodUnit_ID,
+                    Status: data.Status,
+                    Expiration_Date: data.Expiration_Date,
+                    Staff_ID: data.Staff_ID,
+                },
+            };
+        } catch (error) {
+            console.error('Error in updateBloodUnitByStaff:', error);
+            throw error;
+        }
+    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+    
 }
