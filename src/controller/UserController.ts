@@ -24,6 +24,7 @@ class UserController {
     this.confirmBloodByStaff = this.confirmBloodByStaff.bind(this)
     this.addPotential = this.addPotential.bind(this)
     this.updatePotentialStatus = this.updatePotentialStatus.bind(this)
+    this.getAllPotentialApproved = this.getAllPotentialApproved.bind(this)
   }
   public async login(req: Request<{}, {}, LoginReqBody>, res: Response): Promise<any> {
     console.log('Call Login')
@@ -273,6 +274,28 @@ class UserController {
     } catch (error: any) {
       console.error('updatePotentialStatus Controller Error:', error)
       ResponseHandle.responseError(res, error, 'Cập nhật trạng thái thất bại', 500)
+    }
+  }
+
+  public async getAllPotentialApproved(req: Request, res: Response): Promise<void> {
+    console.log('getAllPotentialApproved Controller')
+    try {
+      const result = await this.userService.getAllPotentialApproved()
+      console.log('Controller result: ', result)
+
+      if (result.success) {
+        ResponseHandle.responseSuccess(
+          res,
+          result.data,
+          'Lấy danh sách người hiến máu tiềm năng đã được chấp thuận thành công!',
+          200
+        )
+      } else {
+        ResponseHandle.responseError(res, null, result.message, 404)
+      }
+    } catch (error: any) {
+      console.error('getAllPotentialApproved Controller Error:', error)
+      ResponseHandle.responseError(res, error, 'Lỗi lấy danh sách người hiến máu tiềm năng đã được chấp thuận!', 500)
     }
   }
 }

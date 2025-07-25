@@ -203,6 +203,7 @@ router.put(
   authorize(['staff', 'admin']),
   userController.updatePotentialStatus
 )
+router.get('/potential/approved', verifyToken, authorize(['staff', 'admin']), userController.getAllPotentialApproved)
 
 router.post('/createReport', verifyToken, authorize(['staff']), staffController.createReport)
 router.get('/getLatestReport', verifyToken, authorize(['staff']), staffController.getLatestReport)

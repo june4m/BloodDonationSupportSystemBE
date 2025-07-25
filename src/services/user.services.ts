@@ -218,7 +218,7 @@ export class UserService {
 
       const allowedStatuses = ['Approved', 'Rejected']
       if (!allowedStatuses.includes(newStatus)) {
-        throw new Error('Chỉ được cập nhật thành "Approved" hoặc "Rejected"')
+        throw new Error('Chỉ được cập nhật thành Approved hoặc Rejected')
       }
 
       const potential = await this.userRepository.getPotentialById(potentialId)
@@ -228,14 +228,27 @@ export class UserService {
         throw new Error('Không tìm người hiến tiềm năng cần cập nhật')
       }
 
-      if (!['Pending', 'Approved'].includes(potential.Status)) {
-        throw new Error('Chỉ được cập nhật nếu trạng thái hiện tại là Pending hoặc Approved ')
-      }
-
       const result = await this.userRepository.updatePotentialStatus(potentialId, newStatus)
       return { success: true, data: result, message: 'Cập nhật trạng thái thành công!' }
     } catch (error: any) {
       console.error('updatePotentialStatus Service Error:', error)
+      return { success: false, message: error.message }
+    }
+  }
+
+  public async getAllPotentialApproved(): Promise<any> {
+    console.log('getAllPotentialApproved Services')
+    try {
+      const list = await this.userRepository.getAllPotentialApproved()
+      console.log('list: ', list)
+
+      if (!list || list.length === 0) {
+        return { success: false, message: 'Không có người hiến máu tiềm năng nào được duyệt.' }
+      }
+
+      return { success: true, data: list }
+    } catch (error: any) {
+      console.error('getAllPotentialApproved Service Error:', error)
       return { success: false, message: error.message }
     }
   }

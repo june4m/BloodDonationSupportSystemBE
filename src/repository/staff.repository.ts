@@ -1018,4 +1018,20 @@ export class StaffRepository {
       throw error
     }
   }
+
+  public async getAllActiveMembers(): Promise<any[]> {
+    console.log('getAllActiveMember Repo')
+    const query = `
+    SELECT *
+    FROM Users
+    WHERE User_Role = 'member' AND isDelete = 1
+  `
+    const result = await databaseServices.query(query)
+
+    if (Array.isArray(result)) {
+      return result
+    }
+
+    return result?.recordset ?? []
+  }
 }
