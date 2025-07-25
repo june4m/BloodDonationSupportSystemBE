@@ -32,32 +32,32 @@ export const sendEmail = async (req: Request, res: Response): Promise<void> => {
 
 export const sendRecoveryReminderEmail = async (req: Request, res: Response): Promise<void> => {
     try {
-        const { email, name } = req.body;
+        const { donorEmail, donorName } = req.params; 
 
-        // Kiểm tra các tham số bắt buộc
-        if (!email || !name) {
+   
+        if (!donorEmail || !donorName) {
             res.status(400).json({
                 status: 'error',
-                message: 'Email and name are required',
+                message: 'Email and Donor name are required',
             });
             return;
         }
 
-        // Gửi email
-        const subject = 'Recovery Reminder After Blood Donation';
+
+        const subject = 'Nhắc nhở phục hồi sau khi hiến máu';
         const htmlContent = `
-            <p>Dear ${name},</p>
-            <p>Thank you for donating blood! Please remember to:</p>
+            <p>Xin chào ${donorName},</p>
+            <p>Cảm ơn bạn đã hiến máu! Vui lòng nhớ:</p>
             <ul>
-                <li>Rest and avoid strenuous activities.</li>
-                <li>Stay hydrated by drinking plenty of fluids.</li>
-                <li>Eat nutritious food to recover quickly.</li>
+                <li>Nghỉ ngơi và tránh các hoạt động gắng sức.</li>
+                <li>Uống nhiều nước để giữ cơ thể đủ nước.</li>
+                <li>Ăn thực phẩm dinh dưỡng để phục hồi nhanh chóng.</li>
             </ul>
-            <p>We appreciate your contribution to saving lives!</p>
-            <p>Best regards,<br>Đại Việt Blood Team</p>
+            <p>Chúng tôi rất trân trọng sự đóng góp của bạn trong việc cứu sống mọi người!</p>
+            <p>Trân trọng,<br>Đội ngũ Đại Việt Blood</p>
         `;
 
-        const response = await sendEmailService(email, subject, htmlContent);
+        const response = await sendEmailService(donorEmail, subject, htmlContent);
         res.status(200).json({
             status: 'success',
             message: 'Recovery reminder email sent successfully',

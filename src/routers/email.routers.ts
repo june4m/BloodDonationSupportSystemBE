@@ -5,5 +5,5 @@ import { Request, Response } from "express";
 import { wrapAsync } from '~/utils/asyncHandler';
 const router = express.Router()
 router.post('/sendEmail', wrapAsync(sendEmail));
-router.post('/sendRecoveryReminderEmail',  wrapAsync(sendRecoveryReminderEmail));
+router.post('/sendRecoveryReminderEmail/:donorEmail/:donorName', wrapAsync(sendRecoveryReminderEmail));
 export default router
