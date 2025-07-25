@@ -1,8 +1,10 @@
 import { log } from 'console'
 import { promises } from 'dns'
 import { body } from 'express-validator'
+import { bloodUnitCreateReqBody, bloodUnitUpdateReqBody } from '~/models/schemas/requests/bloodbank.requests.schema'
 import { PotentialDonorCriteria } from '~/models/schemas/requests/user.requests'
 import { EmergencyRequestReqBody, UpdateEmergencyRequestReqBody } from '~/models/schemas/slot.schema'
+import { CreateReportReqBody } from '~/models/schemas/user.schema'
 
 import { StaffRepository } from '~/repository/staff.repository'
 
@@ -183,6 +185,62 @@ export class staffServices {
     } catch (error: any) {
       console.error('getAllActiveMembers Service Error:', error)
       return { success: false, message: error.message }
+    }
+  }
+
+  public async createReport(data: CreateReportReqBody): Promise<any> {
+    try {
+      return await this.staffRepository.createReport(data)
+    } catch (error) {
+      console.error('Error in createReport:', error)
+      throw error
+    }
+  }
+  public async getLatestReportByStaff(staffId: string): Promise<any> {
+    try {
+      return await this.staffRepository.getLatestReportByStaff(staffId)
+    } catch (error) {
+      console.error('Error in getLatestReportByStaff:', error)
+      throw error
+    }
+  }
+  public async updateReport(data: CreateReportReqBody): Promise<any> {
+    try {
+      return await this.staffRepository.updateReport(data)
+    } catch (error) {
+      console.error('Error in updateReport:', error)
+      throw error
+    }
+  }
+  public async getAllBloodUnit(): Promise<bloodUnitUpdateReqBody[]> {
+    try {
+      const bloodUnits = await this.staffRepository.getAllBloodUnit()
+      return bloodUnits
+    } catch (error) {
+      console.error('Error in getAllBloodUnit:', error)
+      throw error
+    }
+  }
+  public async createBloodUnit(data: bloodUnitCreateReqBody): Promise<any> {
+    try {
+      const bloodUnit = await this.staffRepository.createBloodUnitByStaff(data)
+      return bloodUnit
+    } catch (error) {
+      console.error('Error in createBloodUnit:', error)
+      throw error
+    }
+  }
+  public async updateBloodUnitByStaff(data: {
+    BloodUnit_ID: string
+    Status?: string
+    Expiration_Date?: string
+    Staff_ID: string
+  }): Promise<any> {
+    try {
+      return await this.staffRepository.updateBloodUnitByStaff(data)
+    } catch (error) {
+      console.error('Error in updateBloodUnitByStaff:', error)
+      throw error
     }
   }
 }

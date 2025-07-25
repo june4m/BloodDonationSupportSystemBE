@@ -8,6 +8,7 @@ import { EmergencyRequestReqBody } from '~/models/schemas/slot.schema'
 import { staffServices } from '~/services/staff.services'
 import { Request, Response } from 'express'
 import { ResponseHandle } from '~/utils/Response'
+import { CreateReportReqBody } from '~/models/schemas/user.schema'
 
 class StaffController {
   private staffServices: staffServices
@@ -28,6 +29,12 @@ class StaffController {
     this.getInfoEmergencyRequestsByMember = this.getInfoEmergencyRequestsByMember.bind(this)
     this.cancelEmergencyRequestByMember = this.cancelEmergencyRequestByMember.bind(this)
     this.getAllActiveMembers = this.getAllActiveMembers.bind(this)
+    this.createReport = this.createReport.bind(this)
+    this.getLatestReport = this.getLatestReport.bind(this)
+    this.updateReport = this.updateReport.bind(this)
+    this.getAllBloodUnit = this.getAllBloodUnit.bind(this)
+    this.createBloodUnit = this.createBloodUnit.bind(this)
+    this.updateBloodUnit = this.updateBloodUnit.bind(this)
   }
   public async getPotentialList(req: any, res: any): Promise<void> {
     try {
@@ -465,6 +472,222 @@ class StaffController {
     } catch (error) {
       console.error('getAllActiveMembers Controller Error:', error)
       ResponseHandle.responseError(res, error, 'Lỗi khi lấy danh sách member!', 500)
+    }
+  }
+
+  public async createReport(req: any, res: any): Promise<void> {
+    try {
+      const { title, description, details } = req.body
+      const staff_id = req.user?.user_id
+
+      if (!staff_id || !details || !Array.isArray(details) || details.length === 0) {
+        res.status(400).json({
+          success: false,
+          message: 'Missing staff_id or details[]'
+        })
+        return
+      }
+
+      const reportData: CreateReportReqBody = {
+        title,
+        description,
+        staff_id,
+        details
+      }
+
+      const result = await this.staffServices.createReport(reportData)
+
+      res.status(201).json({
+        success: true,
+        message: result.message,
+        data: result.data
+      })
+    } catch (error: any) {
+      console.error('Error in createReport:', error)
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create report',
+        error: error.message || 'Internal server error'
+      })
+    }
+  }
+  public async getLatestReport(req: any, res: any): Promise<void> {
+    try {
+      const staffId = req.user?.user_id // Lấy Staff_ID từ token
+
+      if (!staffId) {
+        res.status(HTTP_STATUS.UNAUTHORIZED).json({
+          success: false,
+          message: 'Unauthorized: Staff ID is required'
+        })
+        return
+      }
+
+      const latestReport = await this.staffServices.getLatestReportByStaff(staffId)
+
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        data: latestReport,
+        message: 'Latest report retrieved successfully'
+      })
+    } catch (error: any) {
+      console.error('Error in getLatestReport:', error)
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: 'Failed to retrieve latest report',
+        error: error.message || 'Internal Server Error'
+      })
+    }
+  }
+  public async updateReport(req: any, res: any): Promise<void> {
+    try {
+      const { title, description, details } = req.body
+      const staff_id = req.user?.user_id // Lấy Staff_ID từ token
+      const summaryBlood_Id = req.params.summaryBlood_Id // Lấy từ params
+      const Report_Detail_ID = req.params.Report_Detail_ID // Lấy từ params
+
+      if (!summaryBlood_Id || !staff_id || !Report_Detail_ID) {
+        res.status(400).json({
+          success: false,
+          message: 'SummaryBlood_ID, Report_Detail_ID, and Staff_ID are required'
+        })
+        return
+      }
+
+      const reportData: CreateReportReqBody = {
+        summaryBlood_Id,
+        title,
+        description,
+        staff_id,
+        details: [
+          {
+            Report_Detail_ID,
+            ...details[0] // Nếu có nhiều chi tiết, bạn cần xử lý logic phù hợp
+          }
+        ]
+      }
+
+      const result = await this.staffServices.updateReport(reportData)
+
+      res.status(200).json({
+        success: true,
+        message: result.message
+      })
+    } catch (error: any) {
+      console.error('Error in updateReport:', error)
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update report',
+        error: error.message || 'Internal server error'
+      })
+    }
+  }
+  public async getAllBloodUnit(req: any, res: any): Promise<void> {
+    try {
+      const bloodUnits = await this.staffServices.getAllBloodUnit()
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        data: bloodUnits,
+        message: 'Blood units retrieved successfully'
+      })
+    } catch (error: any) {
+      console.error('Error in getAllBloodUnit:', error)
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: 'Failed to retrieve blood units',
+        error: error.message || 'Internal Server Error'
+      })
+    }
+  }
+  public async createBloodUnit(req: any, res: any): Promise<void> {
+    try {
+      const { BloodType_ID, Volume, Expiration_Date } = req.body
+      const staffId = req.user?.user_id
+      if (!staffId) {
+        res.status(HTTP_STATUS.UNAUTHORIZED).json({
+          success: false,
+          message: 'Unauthorized: Staff ID is required'
+        })
+      }
+      if (!BloodType_ID || !Volume || !Expiration_Date) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: 'BloodType_ID, Volume, Expiration_Date are required'
+        })
+        return
+      }
+      const newBloodUnit = await this.staffServices.createBloodUnit({
+        BloodType_ID,
+        Volume,
+        Expiration_Date,
+        Collected_Date: new Date().toISOString().slice(0, 10),
+        Status: 'Available',
+        Staff_ID: staffId
+      })
+
+      res.status(HTTP_STATUS.CREATED).json({
+        success: true,
+        data: newBloodUnit,
+        message: 'Blood unit created successfully'
+      })
+    } catch (error: any) {
+      console.error('Error in createBloodUnit:', error)
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: 'Failed to create blood unit',
+        error: error.message || 'Internal Server Error'
+      })
+    }
+  }
+  public async updateBloodUnit(req: any, res: any): Promise<void> {
+    try {
+      const BloodUnit_ID = req.params.BloodUnit_ID
+      const { Status, Expiration_Date } = req.body // Lấy từ body
+
+      const staffId = req.user?.user_id // Lấy Staff_ID từ token
+      console.log('BloodUnit_ID:', BloodUnit_ID) // Debug giá trị
+      console.log('Request Body:', req.body)
+
+      if (!staffId) {
+        res.status(HTTP_STATUS.UNAUTHORIZED).json({
+          success: false,
+          message: 'Unauthorized: Staff ID is required'
+        })
+        return
+      }
+      if (!BloodUnit_ID) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: 'BloodUnit_ID  are required'
+        })
+        return
+      }
+      if (!Status && !Expiration_Date) {
+        res.status(HTTP_STATUS.BAD_REQUEST).json({
+          success: false,
+          message: 'At least one field (Status or Expiration_Date) is required'
+        })
+        return
+      }
+      const updatedBloodUnit = await this.staffServices.updateBloodUnitByStaff({
+        BloodUnit_ID,
+        Status,
+        Expiration_Date,
+        Staff_ID: staffId
+      })
+
+      res.status(HTTP_STATUS.OK).json({
+        success: true,
+        data: updatedBloodUnit,
+        message: 'Blood unit updated successfully'
+      })
+    } catch (error: any) {
+      console.error('Error in updateBloodUnit:', error)
+      res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        message: 'Failed to update blood unit',
+        error: error.message || 'Internal Server Error'
+      })
     }
   }
 }

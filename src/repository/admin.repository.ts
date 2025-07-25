@@ -185,6 +185,34 @@ class AdminRepository {
       throw new Error('Failed to get user list')
     }
   }
+  async getAllReportByAdmin(): Promise<any[]> {
+    try {
+      const query = ` SELECT U.User_Name,
+            SB.Title,
+            SB.Description,
+            SD.VolumeIn,
+            SD.VolumeOut, 
+            SD.Note, 
+            U.Phone, 
+            U.Email FROM SummaryBlood SB 
+            JOIN SummaryBlood_Detail  SD ON SB.SummaryBlood_ID = SD.SummaryBlood_ID 
+            JOIN Users U ON SB.Staff_ID = U.User_ID`;
+      const any = await databaseServices.query(query);
+      return  any.map((row: any) => ({
+        User_Name: row.User_Name,
+        Title: row.Title,
+        Description: row.Description,
+        VolumeIn: row.VolumeIn,
+        VolumeOut: row.VolumeOut,
+        Note: row.Note,
+        Phone: row.Phone,
+        Email: row.Email
+      }));
+      
+    } catch (error) {
+      throw new Error('Failed to retrieve reports');
+    }
+  }
 }
 
 export default AdminRepository

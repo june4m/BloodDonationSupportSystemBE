@@ -14,6 +14,7 @@ class AdminController {
     this.getAllUserList = this.getAllUserList.bind(this)
     this.bannedUser = this.bannedUser.bind(this)
     this.unbanUser = this.unbanUser.bind(this)
+    this.getAllReport = this.getAllReport.bind(this)
   }
 
   public async signupStaffAccount(req: Request<{}, {}, RegisterReqBody>, res: Response): Promise<void> {
@@ -94,6 +95,15 @@ class AdminController {
     } catch (error) {
       console.error('Error unbanning user:', error)
       ResponseHandle.responseError(res, error, 'Failed to unban user', 500)
+    }
+  }
+  public async getAllReport(req: Request, res: Response): Promise<void> {
+    try {
+      const reports = await this.adminService.getAllReport()
+      ResponseHandle.responseSuccess(res, reports, 'Reports retrieved successfully', 200)
+    } catch (error) {
+      console.error('Error retrieving reports:', error)
+      ResponseHandle.responseError(res, error, 'Failed to retrieve reports', 500)
     }
   }
 }

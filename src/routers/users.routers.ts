@@ -131,7 +131,7 @@ router.post(
   staffController.handleEmergencyRequest
 )
 
-router.get('/getBloodBank', verifyToken, authorize(['staff']), staffController.getBloodBank)
+router.get('/getBloodBank', verifyToken, authorize(['staff', 'admin']), staffController.getBloodBank)
 
 router.get('/blogs', blogController.getBlogs)
 router.get('/blogs/:blogId', blogController.getBlogById)
@@ -194,5 +194,30 @@ router.put(
   authorize(['staff', 'admin']),
   userController.updatePotentialStatus
 )
+
+router.get('/users/member', verifyToken, authorize(['admin', 'staff']), staffController.getAllActiveMembers)
+router.post('/potential/:userId', verifyToken, authorize(['staff']), userController.addPotential)
+router.put(
+  '/potential/:potentialId/status',
+  verifyToken,
+  authorize(['staff', 'admin']),
+  userController.updatePotentialStatus
+)
+
+router.post('/createReport', verifyToken, authorize(['staff']), staffController.createReport)
+router.get('/getLatestReport', verifyToken, authorize(['staff']), staffController.getLatestReport)
+router.put(
+  '/updateReport/:summaryBlood_Id/:Report_Detail_ID',
+  verifyToken,
+  authorize(['staff']),
+  staffController.updateReport
+)
+router.get('/getAllBloodUnit', verifyToken, authorize(['staff', 'admin']), staffController.getAllBloodUnit)
+
+router.post('/createBloodUnit', verifyToken, authorize(['staff']), staffController.createBloodUnit)
+
+router.put('/updateBloodUnit/:BloodUnit_ID', verifyToken, authorize(['staff']), staffController.updateBloodUnit)
+
+router.get('/getAllReports', verifyToken, authorize(['admin']), adminController.getAllReport)
 
 export default router
