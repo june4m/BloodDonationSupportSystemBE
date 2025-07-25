@@ -187,23 +187,14 @@ router.put('/unbanUser/:userId', verifyToken, authorize(['admin']), adminControl
 router.put('/bannedUser/:userId', verifyToken, authorize(['admin']), adminController.bannedUser)
 
 router.get('/users/member', verifyToken, authorize(['admin', 'staff']), staffController.getAllActiveMembers)
-router.post('/potential/:userId', verifyToken, authorize(['staff']), userController.addPotential)
+router.post('/potential/:userId', verifyToken, authorize(['admin']), userController.addPotential)
 router.put(
   '/potential/:potentialId/status',
   verifyToken,
   authorize(['staff', 'admin']),
   userController.updatePotentialStatus
 )
-
-router.get('/users/member', verifyToken, authorize(['admin', 'staff']), staffController.getAllActiveMembers)
-router.post('/potential/:userId', verifyToken, authorize(['staff']), userController.addPotential)
-router.put(
-  '/potential/:potentialId/status',
-  verifyToken,
-  authorize(['staff', 'admin']),
-  userController.updatePotentialStatus
-)
-router.get('/potential/approved', verifyToken, authorize(['staff', 'admin']), userController.getAllPotentialApproved)
+router.get('/potential', verifyToken, authorize(['staff', 'admin']), userController.getAllPotential)
 
 router.post('/createReport', verifyToken, authorize(['staff']), staffController.createReport)
 router.get('/getLatestReport', verifyToken, authorize(['staff']), staffController.getLatestReport)

@@ -24,7 +24,7 @@ class UserController {
     this.confirmBloodByStaff = this.confirmBloodByStaff.bind(this)
     this.addPotential = this.addPotential.bind(this)
     this.updatePotentialStatus = this.updatePotentialStatus.bind(this)
-    this.getAllPotentialApproved = this.getAllPotentialApproved.bind(this)
+    this.getAllPotential = this.getAllPotential.bind(this)
   }
   public async login(req: Request<{}, {}, LoginReqBody>, res: Response): Promise<any> {
     console.log('Call Login')
@@ -230,9 +230,9 @@ class UserController {
     try {
       const userId = req.params.userId
       const { Note } = req.body
-      const staffId = req.user?.user_id
+      const adminId = req.user?.user_id
 
-      if (!userId || !staffId) {
+      if (!userId || !adminId) {
         ResponseHandle.responseError(res, null, 'Missing required fields', 400)
         return
       }
@@ -240,7 +240,7 @@ class UserController {
       const result = await this.userService.addPotential({
         User_ID: userId,
         Note,
-        Staff_ID: staffId
+        Admin_ID: adminId
       })
 
       if (result.success) {
@@ -277,25 +277,20 @@ class UserController {
     }
   }
 
-  public async getAllPotentialApproved(req: Request, res: Response): Promise<void> {
-    console.log('getAllPotentialApproved Controller')
+  public async getAllPotential(req: Request, res: Response): Promise<void> {
+    console.log('getAllPotential Controller')
     try {
-      const result = await this.userService.getAllPotentialApproved()
-      console.log('Controller result: ', result)
+      const result = await this.userService.getAllPotential()
+      console.log('Controller result:', result)
 
       if (result.success) {
-        ResponseHandle.responseSuccess(
-          res,
-          result.data,
-          'Lấy danh sách người hiến máu tiềm năng đã được chấp thuận thành công!',
-          200
-        )
+        ResponseHandle.responseSuccess(res, result.data, 'Lấy danh sách người hiến máu tiềm năng thành công!', 200)
       } else {
         ResponseHandle.responseError(res, null, result.message, 404)
       }
     } catch (error: any) {
-      console.error('getAllPotentialApproved Controller Error:', error)
-      ResponseHandle.responseError(res, error, 'Lỗi lấy danh sách người hiến máu tiềm năng đã được chấp thuận!', 500)
+      console.error('getAllPotential Controller Error:', error)
+      ResponseHandle.responseError(res, error, 'Lỗi lấy danh sách người hiến máu tiềm năng!', 500)
     }
   }
 }
