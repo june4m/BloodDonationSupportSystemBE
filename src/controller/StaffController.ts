@@ -596,7 +596,7 @@ class StaffController{
                     message: 'Unauthorized: Staff ID is required'
                 });
             }
-            if (!BloodType_ID || !Volume || !Expiration_Date || !staffId) {
+            if (!BloodType_ID || !Volume || !Expiration_Date) {
                 res.status(HTTP_STATUS.BAD_REQUEST).json({
                     success: false,
                     message: 'BloodType_ID, Volume, Expiration_Date are required'
@@ -608,6 +608,7 @@ class StaffController{
                 Volume,
                 Expiration_Date,
                 Collected_Date: new Date().toISOString().slice(0, 10), 
+                Status: 'Available',
                 Staff_ID: staffId
             });
     
@@ -627,10 +628,13 @@ class StaffController{
     }
     public async updateBloodUnit(req: any, res: any): Promise<void> {
         try {
+            const BloodUnit_ID = req.params.BloodUnit_ID;
             const { Status, Expiration_Date } = req.body; // Lấy từ body
-            const BloodUnit_ID = req.params.BloodUnit_ID; // Lấy từ params
+
             const staffId = req.user?.user_id; // Lấy Staff_ID từ token
-    
+            console.log('BloodUnit_ID:', BloodUnit_ID); // Debug giá trị
+            console.log('Request Body:', req.body); 
+            
             if(!staffId){
                 res.status(HTTP_STATUS.UNAUTHORIZED).json({
                     success: false,
@@ -645,16 +649,13 @@ class StaffController{
                 });
                 return;
             }
-    
             if (!Status && !Expiration_Date) {
                 res.status(HTTP_STATUS.BAD_REQUEST).json({
                     success: false,
                     message: 'At least one field (Status or Expiration_Date) is required'
                 });
                 return;
-            }
-    
-          
+            }      
             const updatedBloodUnit = await this.staffServices.updateBloodUnitByStaff({
                 BloodUnit_ID,
                 Status,
@@ -676,7 +677,6 @@ class StaffController{
             });
         }
     }
-      
-    
+
 }
 export default StaffController;

@@ -209,8 +209,10 @@ router.post('/createBloodUnit',
   verifyToken,
   authorize(['staff']),
   staffController.createBloodUnit)
-router.put('/updateBloodUnit/:bloodUnitId',
+
+router.put('/updateBloodUnit/:BloodUnit_ID',
   verifyToken,
   authorize(['staff']),
   staffController.updateBloodUnit)
+
 export default router
