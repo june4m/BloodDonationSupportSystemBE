@@ -104,11 +104,12 @@ export class SlotRepository {
     return null
   }
 
-  async getLastDonationByUserId(userId: string): Promise<{ donation_date: string } | null> {
+  async getLastDonationByUserId(userId: string): Promise<{ donation_date: string; Status: string } | null> {
     const query = `
     SELECT TOP 1
       AG.Appointment_ID,
-      S.Slot_Date AS donation_date
+      S.Slot_Date AS donation_date,
+      AG.Status
     FROM AppointmentGiving AG
     JOIN Slot S ON AG.Slot_ID = S.Slot_ID
     WHERE AG.User_ID = ?

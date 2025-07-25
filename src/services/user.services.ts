@@ -5,6 +5,7 @@ import { USERS_MESSAGES } from '~/constant/message'
 import { error } from 'console'
 import bcrypt from 'bcrypt'
 import { body } from 'express-validator'
+import { PotentialDonor } from '~/models/schemas/potentialDonor.schema'
 export class UserService {
   public userRepository: UserRepository
 
@@ -85,7 +86,7 @@ export class UserService {
         user_id: user.user_id,
         user_name: user.user_name,
         user_role: user.user_role || 'member',
-        isDelete: user.isDelete,
+        isDelete: user.isDelete
       } as User
     }
     return null
@@ -183,5 +184,72 @@ export class UserService {
 
     const result = await this.userRepository.updateUserBloodType(userId, bloodType.BloodType_ID)
     return result
+  }
+
+  public async addPotential(potentialData: Omit<PotentialDonor, 'Potential_ID' | 'Status'>): Promise<any> {
+    try {
+      if (!potentialData.User_ID || !potentialData.Staff_ID) {
+        throw new Error('Missing required fields')
+      }
+
+      const isDuplicate = await this.userRepository.checkDuplicatePotential(potentialData.User_ID)
+      if (isDuplicate) {
+        throw new Error('Người dùng này đã tồn tại trong danh sách người hiến tiềm năng và chưa bị từ chối.')
+      }
+
+      const insertResult = await this.userRepository.addPotential({
+        Potential_ID: '',
+        ...potentialData
+      })
+      console.log('insertResult: ', insertResult)
+
+      return { success: true, data: insertResult, message: 'Thêm người hiến máu tiềm năng thành công!' }
+    } catch (error: any) {
+      console.error('addPotential Service Error:', error)
+      return { success: false, message: error.message }
+    }
+  }
+
+  public async updatePotentialStatus(potentialId: string, newStatus: string): Promise<any> {
+    try {
+      if (!potentialId || !newStatus) {
+        throw new Error('Missing required fields')
+      }
+
+      const allowedStatuses = ['Approved', 'Rejected']
+      if (!allowedStatuses.includes(newStatus)) {
+        throw new Error('Chỉ được cập nhật thành Approved hoặc Rejected')
+      }
+
+      const potential = await this.userRepository.getPotentialById(potentialId)
+      console.log('potential: ', potential)
+
+      if (!potential) {
+        throw new Error('Không tìm người hiến tiềm năng cần cập nhật')
+      }
+
+      const result = await this.userRepository.updatePotentialStatus(potentialId, newStatus)
+      return { success: true, data: result, message: 'Cập nhật trạng thái thành công!' }
+    } catch (error: any) {
+      console.error('updatePotentialStatus Service Error:', error)
+      return { success: false, message: error.message }
+    }
+  }
+
+  public async getAllPotentialApproved(): Promise<any> {
+    console.log('getAllPotentialApproved Services')
+    try {
+      const list = await this.userRepository.getAllPotentialApproved()
+      console.log('list: ', list)
+
+      if (!list || list.length === 0) {
+        return { success: false, message: 'Không có người hiến máu tiềm năng nào được duyệt.' }
+      }
+
+      return { success: true, data: list }
+    } catch (error: any) {
+      console.error('getAllPotentialApproved Service Error:', error)
+      return { success: false, message: error.message }
+    }
   }
 }

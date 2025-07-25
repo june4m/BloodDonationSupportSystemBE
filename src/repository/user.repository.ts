@@ -6,6 +6,7 @@ import { RegisterReqBody } from '~/models/schemas/requests/user.requests'
 import databaseServices from '../services/database.services'
 import { parse } from 'path'
 import { log } from 'console'
+import { PotentialDonor } from '~/models/schemas/potentialDonor.schema'
 
 /**
  * Repository class for user-related with database
@@ -215,5 +216,99 @@ export class UserRepository {
     const result = await Database.query(query, [patientId, userId])
     console.log('updatePatientId result: ', result)
     return result
+  }
+
+  public async getUserByAppointmentId(appointmentId: string): Promise<any> {
+    console.log('getUserByAppointmentId Repo')
+    const query = `
+    SELECT U.*
+    FROM AppointmentGiving AG
+    JOIN Users U ON AG.User_ID = U.User_ID
+    WHERE AG.Appointment_ID = ? AND U.isDelete = '1'
+  `
+    const result = await databaseServices.queryParam(query, [appointmentId])
+    console.log('result repo: ', result)
+    return result.recordset.length > 0 ? result.recordset[0] : null
+  }
+
+  public async checkDuplicatePotential(userId: string): Promise<boolean> {
+    console.log('checkDuplicatePotential Repo')
+
+    const query = `
+    SELECT 1
+    FROM PotentialDonor
+    WHERE User_ID = ? AND Status != 'Reject'
+    `
+    const result = await databaseServices.queryParam(query, [userId])
+
+    console.log('checkDuplicate Repo result: ', result)
+    return result.recordset.length > 0
+  }
+
+  public async addPotential(potential: PotentialDonor): Promise<any> {
+    console.log('addPotential UserRepo')
+    console.log('CreateSlot Repository')
+    let newPotentialId = 'PD001'
+    const lastId = `
+          SELECT TOP 1 Potential_ID
+          FROM PotentialDonor
+          ORDER BY CAST(SUBSTRING(Potential_ID, 3, LEN(Potential_ID) - 1) AS INT) DESC
+          `
+
+    const lastIdResult = await Database.query(lastId)
+    if (lastIdResult.length > 0) {
+      const lastPotentialId = lastIdResult[0].Potential_ID
+      const numericPart = parseInt(lastPotentialId.slice(2))
+      const nextId = numericPart + 1
+      newPotentialId = 'PD' + String(nextId).padStart(3, '0')
+    }
+
+    const insertQuery = `
+    INSERT INTO PotentialDonor (Potential_ID, User_ID, Status, Note, Staff_ID)
+    VALUES (?, ?, 'Approved', ?, ?)
+    `
+    const params = [newPotentialId, potential.User_ID, potential.Note ?? null, potential.Staff_ID]
+
+    const insertResult = await databaseServices.queryParam(insertQuery, params)
+    return insertResult
+  }
+
+  public async updatePotentialStatus(potentialId: string, newStatus: string): Promise<any> {
+    console.log('updatePotentialStatus Repo')
+    const query = `
+    UPDATE PotentialDonor
+    SET Status = ?
+    WHERE Potential_ID = ?
+  `
+    const result = await databaseServices.queryParam(query, [newStatus, potentialId])
+    console.log('repo result: ', result)
+    return result
+  }
+
+  public async getPotentialById(potentialId: string): Promise<any | null> {
+    console.log('getPotentialById')
+    const query = `
+    SELECT *
+    FROM PotentialDonor
+    WHERE Potential_ID = ?
+  `
+    const result = await databaseServices.queryParam(query, [potentialId])
+    console.log('repo result: ', result)
+    return result?.recordset?.length > 0 ? result.recordset[0] : null
+  }
+
+  public async getAllPotentialApproved(): Promise<any[]> {
+    console.log('getAllPotentialApproved Repo')
+    const query = `
+    SELECT *
+    FROM PotentialDonor
+    WHERE Status = 'Approved'
+    `
+    const result = await databaseServices.query(query)
+    console.log('repo result: ', result)
+    if (Array.isArray(result)) {
+      return result
+    }
+    return result?.recordset ?? []
   }
 }
