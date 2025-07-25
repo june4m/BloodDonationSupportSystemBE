@@ -215,4 +215,9 @@ router.put('/updateBloodUnit/:BloodUnit_ID',
   authorize(['staff']),
   staffController.updateBloodUnit)
 
+router.get('/getAllReports',
+  verifyToken,
+  authorize(['admin']),
+  adminController.getAllReport)
+
 export default router
