@@ -955,69 +955,78 @@ export class StaffRepository {
     }
   }
   public async updateBloodUnitByStaff(data: {
-    BloodUnit_ID: string
-    Status?: string
-    Expiration_Date?: string
-    Staff_ID: string
-  }): Promise<any> {
+    BloodUnit_ID: string;
+    Status?: string;
+    Expiration_Date?: string;
+    Staff_ID: string;
+}): Promise<any> {
     try {
-      // Kiểm tra xem lô máu có tồn tại hay không
-      const checkQuery = `
-                SELECT COUNT(*) AS count
-                FROM BloodUnit
-                WHERE BloodUnit_ID = ?
-            `
-      const checkResult = await databaseServices.query(checkQuery, [data.BloodUnit_ID])
+        const checkQuery = `
+            SELECT Status
+            FROM BloodUnit
+            WHERE BloodUnit_ID = ?
+        `;
+        const checkResult = await databaseServices.query(checkQuery, [data.BloodUnit_ID]);
 
-      if (checkResult[0].count === 0) {
-        throw new Error('Blood unit not found.')
-      }
-
-      // Cập nhật thông tin lô máu
-      const fieldsToUpdate: string[] = []
-      const values: any[] = []
-
-      if (data.Status !== undefined) {
-        fieldsToUpdate.push('Status = ?')
-        values.push(data.Status)
-      }
-      if (data.Expiration_Date !== undefined) {
-        fieldsToUpdate.push('Expiration_Date = ?')
-        values.push(data.Expiration_Date)
-      }
-      if (data.Staff_ID !== undefined) {
-        fieldsToUpdate.push('Staff_ID = ?')
-        values.push(data.Staff_ID)
-      }
-
-      if (fieldsToUpdate.length === 0) {
-        throw new Error('No fields provided for update.')
-      }
-
-      const updateQuery = `
-                UPDATE BloodUnit
-                SET ${fieldsToUpdate.join(', ')}
-                WHERE BloodUnit_ID = ?
-            `
-      values.push(data.BloodUnit_ID)
-
-      await databaseServices.query(updateQuery, values)
-
-      return {
-        success: true,
-        message: 'Blood unit updated successfully',
-        data: {
-          BloodUnit_ID: data.BloodUnit_ID,
-          Status: data.Status,
-          Expiration_Date: data.Expiration_Date,
-          Staff_ID: data.Staff_ID
+        if (checkResult.length === 0) {
+            throw new Error('Không tìm thấy lô máu.');
         }
-      }
+
+        const currentStatus = checkResult[0].Status;
+
+        if (currentStatus === 'Used' || currentStatus === 'Expired') {
+            if (data.Status === 'Available') {
+                throw new Error('Không thể chuyển trạng thái từ Used hoặc Expired sang Available.');
+            }
+        } else if (currentStatus === 'Available') {
+            if (data.Status !== 'Used' && data.Status !== 'Expired') {
+                throw new Error('Trạng thái Available chỉ có thể chuyển sang Used hoặc Expired.');
+            }
+        }
+        const fieldsToUpdate: string[] = [];
+        const values: any[] = [];
+
+        if (data.Status !== undefined) {
+            fieldsToUpdate.push('Status = ?');
+            values.push(data.Status);
+        }
+        if (data.Expiration_Date !== undefined) {
+            fieldsToUpdate.push('Expiration_Date = ?');
+            values.push(data.Expiration_Date);
+        }
+        if (data.Staff_ID !== undefined) {
+            fieldsToUpdate.push('Staff_ID = ?');
+            values.push(data.Staff_ID);
+        }
+
+        if (fieldsToUpdate.length === 0) {
+            throw new Error('Không có trường nào được cung cấp để cập nhật.');
+        }
+
+        const updateQuery = `
+            UPDATE BloodUnit
+            SET ${fieldsToUpdate.join(', ')}
+            WHERE BloodUnit_ID = ?
+        `;
+        values.push(data.BloodUnit_ID);
+
+        await databaseServices.query(updateQuery, values);
+
+        return {
+            success: true,
+            message: 'Cập nhật lô máu thành công',
+            data: {
+                BloodUnit_ID: data.BloodUnit_ID,
+                Status: data.Status,
+                Expiration_Date: data.Expiration_Date,
+                Staff_ID: data.Staff_ID,
+            },
+        };
     } catch (error) {
-      console.error('Error in updateBloodUnitByStaff:', error)
-      throw error
+        console.error('Error in updateBloodUnitByStaff:', error);
+        throw error;
     }
-  }
+}
 
   public async getAllActiveMembers(): Promise<any[]> {
     console.log('getAllActiveMember Repo')
