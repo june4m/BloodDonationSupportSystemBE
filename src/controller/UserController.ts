@@ -25,6 +25,9 @@ class UserController {
     this.addPotential = this.addPotential.bind(this)
     this.updatePotentialStatus = this.updatePotentialStatus.bind(this)
     this.getAllPotential = this.getAllPotential.bind(this)
+    this.forgotPassword = this.forgotPassword.bind(this)
+    this.resetPassword = this.resetPassword.bind(this)
+    this.changePassword = this.changePassword.bind(this)
   }
   public async login(req: Request<{}, {}, LoginReqBody>, res: Response): Promise<any> {
     console.log('Call Login')
@@ -291,6 +294,141 @@ class UserController {
     } catch (error: any) {
       console.error('getAllPotential Controller Error:', error)
       ResponseHandle.responseError(res, error, 'Lỗi lấy danh sách người hiến máu tiềm năng!', 500)
+    }
+  }
+
+  // Gửi OTP
+  // public forgotPassword = async (req: Request, res: Response): Promise<void> => {
+  //   console.log('forgotPassword User Controller')
+  //   try {
+  //     const { email } = req.body
+
+  //     // Validate input
+  //     if (!email) {
+  //       res.status(400).json({ msg: 'Email là bắt buộc!' })
+  //       return
+  //     }
+
+  //     // Gọi service
+  //     const result = await this.userService.handleForgotPassword(email)
+
+  //     if (!result.success) {
+  //       res.status(404).json({ msg: result.message })
+  //       return
+  //     }
+
+  //     res.status(200).json({ msg: result.message })
+  //   } catch (error) {
+  //     console.error('forgotPassword error:', error)
+  //     res.status(500).json({ msg: 'Có lỗi xảy ra, vui lòng thử lại!' })
+  //   }
+  // }
+  public forgotPassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { email } = req.body
+      if (!email) {
+        res.status(400).json({ msg: 'Email là bắt buộc!' })
+        return
+      }
+
+      const result = await this.userService.handleForgotPassword(email)
+      if (!result.success) {
+        res.status(404).json({ msg: result.message })
+        return
+      }
+
+      res.status(200).json({ msg: result.message })
+    } catch (error) {
+      console.error('forgotPassword error:', error)
+      res.status(500).json({ msg: 'Có lỗi xảy ra, vui lòng thử lại!' })
+    }
+  }
+
+  // Reset mật khẩu
+  // public resetPassword = async (req: Request, res: Response): Promise<void> => {
+  //   console.log('resetPassword User Controller')
+  //   try {
+  //     const { email, otp, newPassword, confirmPassword } = req.body
+
+  //     // Check input có đầy đủ không
+  //     if (!email || !otp || !newPassword || !confirmPassword) {
+  //       res.status(400).json({ msg: 'Email, OTP, mật khẩu mới và confirmPassword là bắt buộc!' })
+  //       return
+  //     }
+
+  //     // Gọi service
+  //     const result = await this.userService.handleResetPassword(email, otp, newPassword, confirmPassword)
+
+  //     if (!result.success) {
+  //       res.status(400).json({ msg: result.message })
+  //       return
+  //     }
+
+  //     res.status(200).json({ msg: result.message })
+  //   } catch (error) {
+  //     console.error('resetPassword error:', error)
+  //     res.status(500).json({ msg: 'Có lỗi xảy ra, vui lòng thử lại!' })
+  //   }
+  // }
+  public resetPassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { otp, newPassword, confirmPassword } = req.body
+
+      if (!otp || !newPassword || !confirmPassword) {
+        res.status(400).json({ msg: 'OTP, mật khẩu mới và confirmPassword là bắt buộc!' })
+        return
+      }
+
+      // Lấy email từ verifyOtp
+      const verify = this.userService.verifyOtp(otp)
+      if (!verify.success || !verify.email) {
+        res.status(400).json({ msg: 'OTP không đúng hoặc đã hết hạn!' })
+        return
+      }
+      console.log(`Reset password cho email: ${verify.email}`)
+
+      // Gọi service resetPassword (chỉ cần email, newPassword, confirmPassword)
+      const result = await this.userService.handleResetPassword(verify.email, newPassword, confirmPassword)
+
+      if (!result.success) {
+        res.status(400).json({ msg: result.message })
+        console.log(`Đã reset mật khẩu cho email: ${result.email}`)
+        return
+      }
+
+      res.status(200).json({ msg: result.message })
+    } catch (error) {
+      console.error('resetPassword error:', error)
+      res.status(500).json({ msg: 'Có lỗi xảy ra, vui lòng thử lại!' })
+    }
+  }
+
+  public changePassword = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { currentPassword, newPassword, confirmPassword } = req.body
+      const userId = req.user?.user_id // Lấy từ token (middleware verifyToken)
+
+      if (!currentPassword || !newPassword || !confirmPassword) {
+        res.status(400).json({ msg: 'currentPassword, newPassword và confirmPassword là bắt buộc!' })
+        return
+      }
+
+      if (!userId) {
+        res.status(401).json({ msg: 'Unauthorized!' })
+        return
+      }
+
+      const result = await this.userService.handleChangePassword(userId, currentPassword, newPassword, confirmPassword)
+
+      if (!result.success) {
+        res.status(400).json({ msg: result.message })
+        return
+      }
+
+      res.status(200).json({ msg: result.message })
+    } catch (error) {
+      console.error('changePassword error:', error)
+      res.status(500).json({ msg: 'Có lỗi xảy ra, vui lòng thử lại!' })
     }
   }
 }

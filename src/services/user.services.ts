@@ -6,6 +6,11 @@ import { error } from 'console'
 import bcrypt from 'bcrypt'
 import { body } from 'express-validator'
 import { PotentialDonor } from '~/models/schemas/potentialDonor.schema'
+import { sendOtpEmail } from '~/utils/sendOtpEmail'
+
+// const otpStore = new Map<string, { otp: string; expiresAt: number }>()
+const otpStore = new Map<string, { email: string; expiresAt: number }>()
+
 export class UserService {
   public userRepository: UserRepository
 
@@ -261,5 +266,183 @@ export class UserService {
       console.error('getAllPotential Service Error:', error)
       return { success: false, message: error.message }
     }
+  }
+
+  // Lưu OTP vào cache
+  // public saveOtp(email: string, otp: string, expiresAt: number) {
+  //   console.log('saveOtp User Service')
+  //   otpStore.set(email, { otp, expiresAt })
+  // }
+  public saveOtp(email: string, otp: string, expiresAt: number) {
+    console.log('saveOtp User Service')
+    otpStore.set(otp, { email, expiresAt }) // key là OTP, value là email + expiresAt
+  }
+
+  // Kiểm tra OTP còn hạn và đúng
+  // public verifyOtp(email: string, otp: string): boolean {
+  //   console.log('verifyOtp User Service: email=', email, 'otp=', otp)
+  //   console.log('otpStore keys:', Array.from(otpStore.keys()))
+
+  //   const record = otpStore.get(email)
+  //   console.log('record: ', record)
+
+  //   if (!record) {
+  //     console.log('Không tìm thấy OTP trong otpStore cho email này')
+  //     return false
+  //   }
+
+  //   if (Date.now() > record.expiresAt) {
+  //     console.log('OTP đã hết hạn')
+  //     otpStore.delete(email)
+  //     return false
+  //   }
+
+  //   return record.otp === otp
+  // }
+  public verifyOtp(otp: string): { success: boolean; email?: string } {
+    console.log('verifyOtp User Service: otp=', otp)
+    console.log('otpStore keys:', Array.from(otpStore.keys()))
+
+    const record = otpStore.get(otp)
+    console.log('record: ', record)
+
+    if (!record) {
+      console.log('Không tìm thấy OTP trong otpStore')
+      return { success: false }
+    }
+
+    if (Date.now() > record.expiresAt) {
+      console.log('OTP đã hết hạn')
+      otpStore.delete(otp)
+      return { success: false }
+    }
+
+    // Nếu đúng, trả về email để reset password
+    return { success: true, email: record.email }
+  }
+
+  // Xóa OTP khi dùng xong hoặc hết hạn
+  public deleteOtp(email: string) {
+    console.log('deleteOtp User Service')
+    otpStore.delete(email)
+    console.log('Đã xóa OTP sau khi dùng.')
+  }
+
+  // Cập nhật password mới
+  async updatePassword(email: string, hash: string) {
+    console.log('updatePassword User Service')
+    return this.userRepository.updatePassword(email, hash)
+  }
+
+  public async handleForgotPassword(email: string): Promise<{ success: boolean; message: string }> {
+    // // Check email có tồn tại không
+    // const exists = await this.checkEmailExists(email)
+    // if (!exists) {
+    //   return { success: false, message: 'Email không tồn tại!' }
+    // }
+
+    // // Sinh OTP 6 số và lưu với thời hạn 5 phút
+    // const otp = Math.floor(100000 + Math.random() * 900000).toString()
+    // const expiresAt = Date.now() + 5 * 60 * 1000
+    // this.saveOtp(email, otp, expiresAt)
+
+    // // Gửi email
+    // await sendOtpEmail(email, otp)
+
+    // return { success: true, message: 'OTP đã được gửi qua email!' }
+    const exists = await this.checkEmailExists(email)
+    if (!exists) {
+      return { success: false, message: 'Email không tồn tại!' }
+    }
+
+    // Sinh OTP và lưu bằng OTP làm key
+    const otp = Math.floor(100000 + Math.random() * 900000).toString()
+    const expiresAt = Date.now() + 5 * 60 * 1000
+    otpStore.set(otp, { email, expiresAt })
+
+    await sendOtpEmail(email, otp)
+    return { success: true, message: 'OTP đã được gửi qua email!' }
+  }
+
+  // public async handleResetPassword(
+  //   email: string,
+  //   otp: string,
+  //   newPassword: string,
+  //   confirmPassword: string
+  // ): Promise<{ success: boolean; message: string }> {
+  //   console.log('handleResetPassword User Service')
+  //   // Validate confirmPassword
+  //   if (newPassword !== confirmPassword) {
+  //     return { success: false, message: 'Xác nhận mật khẩu không khớp!' }
+  //   }
+
+  //   // Validate OTP
+  //   const valid = this.verifyOtp(email, otp)
+  //   if (!valid) {
+  //     return { success: false, message: 'OTP không đúng hoặc đã hết hạn!' }
+  //   }
+
+  //   // Hash mật khẩu mới và cập nhật DB
+  //   const hash = await bcrypt.hash(newPassword, 10)
+  //   await this.updatePassword(email, hash)
+
+  //   // Xóa OTP để tránh dùng lại
+  //   this.deleteOtp(email)
+
+  //   return { success: true, message: 'Đổi mật khẩu thành công!' }
+  // }
+  public async handleResetPassword(
+    email: string,
+    newPassword: string,
+    confirmPassword: string
+  ): Promise<{ success: boolean; message: string; email?: string }> {
+    // Kiểm tra confirmPassword
+    if (newPassword !== confirmPassword) {
+      return { success: false, message: 'Xác nhận mật khẩu không khớp!' }
+    }
+
+    // Hash mật khẩu mới
+    const hash = await bcrypt.hash(newPassword, 10)
+    await this.updatePassword(email, hash)
+
+    // Xóa OTP đã dùng (lấy ra từ email)
+    for (const [otp, record] of otpStore.entries()) {
+      if (record.email === email) {
+        otpStore.delete(otp)
+        break
+      }
+    }
+
+    return { success: true, message: 'Đổi mật khẩu thành công!', email }
+  }
+
+  public async handleChangePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+    confirmPassword: string
+  ): Promise<{ success: boolean; message: string }> {
+    // Check newPassword vs confirmPassword
+    if (newPassword !== confirmPassword) {
+      return { success: false, message: 'Xác nhận mật khẩu không khớp!' }
+    }
+
+    // Lấy thông tin user
+    const user = await this.findById(userId)
+    if (!user || !user.password) {
+      return { success: false, message: 'Không tìm thấy tài khoản hoặc mật khẩu không hợp lệ!' }
+    }
+
+    // Kiểm tra mật khẩu hiện tại
+    const isValid = await bcrypt.compare(currentPassword, user.password)
+    if (!isValid) {
+      return { success: false, message: 'Mật khẩu hiện tại không đúng!' }
+    }
+
+    // Hash mật khẩu mới và update
+    const hash = await bcrypt.hash(newPassword, 10)
+    await this.updatePassword(user.email, hash)
+
+    return { success: true, message: 'Đổi mật khẩu thành công!' }
   }
 }

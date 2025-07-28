@@ -25,6 +25,10 @@ router.post('/signup', userController.register)
 
 router.post('/login', userController.login)
 
+router.post('/auth/forgot-password', userController.forgotPassword)
+router.post('/auth/reset-password', userController.resetPassword)
+router.post('/auth/change-password', verifyToken, userController.changePassword)
+
 router.post('/logout', verifyToken, userController.logout)
 
 router.get('/getMe', verifyToken, userController.getMe)
@@ -54,7 +58,7 @@ router.post(
   appointmentController.updateVolume
 )
 
-router.get('/appointment', verifyToken, authorize(['staff']), appointmentController.getAppointmentList)
+router.get('/appointment', verifyToken, authorize(['staff', 'admin']), appointmentController.getAppointmentList)
 
 router.put('/profile', verifyToken, authorize(['member', 'staff']), userController.updateProfile)
 

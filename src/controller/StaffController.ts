@@ -534,7 +534,7 @@ class StaffController {
       console.error('Error in getLatestReport:', error)
       res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).json({
         success: false,
-        message: 'Failed to retrieve latest report',
+        message: 'Bạn chưa tạo báo cáo nào trong ngày!',
         error: error.message || 'Internal Server Error'
       })
     }

@@ -925,14 +925,14 @@ export class StaffRepository {
                 INSERT INTO BloodUnit (
                     BloodUnit_ID, BloodType_ID, Volume, Collected_Date, Expiration_Date, Status, Staff_ID
                 )
-                VALUES (?, ?, ?, GETDATE(), ?, 'Available', ?)
+                VALUES (?, ?, ?, GETDATE(), ?, ?, ?)
             `
       await databaseServices.query(insertQuery, [
         newBloodUnitId,
         data.BloodType_ID,
         data.Volume,
         data.Expiration_Date || null,
-        data.Status,
+        data.Status || 'Available',
         data.Staff_ID
       ])
 

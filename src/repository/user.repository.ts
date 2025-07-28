@@ -322,4 +322,12 @@ export class UserRepository {
 
     return result?.recordset ?? []
   }
+
+  public async updatePassword(email: string, hash: string): Promise<any> {
+    console.log('updatePassword User Repo')
+    const query = `UPDATE Users SET Password = ? WHERE Email = ?`
+    const result = await databaseServices.queryParam(query, [hash, email])
+    console.log('updatePassword result: ', result)
+    return result
+  }
 }
