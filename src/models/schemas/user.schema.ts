@@ -1,5 +1,4 @@
-
-export interface User {  
+export interface User {
   user_id: string
   user_name: string
   yob?: string
@@ -12,21 +11,22 @@ export interface User {
   account_status?: string
   email: string
   password: string
-  user_role?: 'admin' | 'staff' | 'member',
+  user_role?: 'admin' | 'staff' | 'member'
   isDelete?: boolean
+  donation_count?: number
 }
-export interface Users {  
-    User_ID: string
-    User_Name: string
-    Email: string
-    Phone: string
-    Gender: string
-    YOB: string
-    BloodType_ID: string
-    Status: string
-    User_Role: string
-    isDeleted: string
-    Donation_Count: string
+export interface Users {
+  User_ID: string
+  User_Name: string
+  Email: string
+  Phone: string
+  Gender: string
+  YOB: string
+  BloodType_ID: string
+  Status: string
+  User_Role: string
+  isDeleted: string
+  Donation_Count: string
 }
 export interface Auth {
   success: boolean
@@ -39,14 +39,14 @@ export interface Auth {
   }
 }
 export interface CreateReportReqBody {
-  staff_id: string;
-  title?: string;
-  description?: string;
-  summaryBlood_Id?: string;
+  staff_id: string
+  title?: string
+  description?: string
+  summaryBlood_Id?: string
   details: {
-    Report_Detail_ID?: string;
-    volumeIn?: number;
-    volumeOut?: number;
-    note?: string;
-  }[];
+    Report_Detail_ID?: string
+    volumeIn?: number
+    volumeOut?: number
+    note?: string
+  }[]
 }

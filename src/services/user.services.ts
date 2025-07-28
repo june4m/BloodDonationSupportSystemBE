@@ -197,6 +197,16 @@ export class UserService {
         throw new Error('Người dùng này đã tồn tại trong danh sách người hiến tiềm năng và chưa bị từ chối.')
       }
 
+      const user = await this.userRepository.findById(potentialData.User_ID)
+      console.log('user.donation_count: ', user?.donation_count)
+      if (!user) {
+        throw new Error('Người dùng không tồn tại hoặc đã bị xóa.')
+      }
+
+      if ((user.donation_count ?? 0) < 3) {
+        throw new Error('Chỉ có thể thêm những người đã hiến máu 3 lần trở lên.')
+      }
+
       const insertResult = await this.userRepository.addPotential({
         Potential_ID: '',
         ...potentialData

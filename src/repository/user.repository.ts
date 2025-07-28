@@ -45,6 +45,7 @@ export class UserRepository {
         U.Address         AS address,
         CONVERT(VARCHAR(10), U.YOB, 23) AS date_of_birth,
         U.BloodType_ID    AS bloodtype_id,
+        U.Donation_Count AS donation_count,
         B.Blood_group     AS blood_group,
         (SELECT STRING_AGG(bg, ', ')
 		      FROM (
