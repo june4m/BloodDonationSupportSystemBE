@@ -150,14 +150,21 @@ export class AppointmentServices {
 
   public async cancelAppointmentForMember(appointmentId: string): Promise<any> {
     try {
-      const slotDateResult = await this.appointmentRepository.getSlotDateByAppointmentId(appointmentId)
-      console.log('slotDateResult:', slotDateResult)
+      const appointment = await this.appointmentRepository.getSlotDateByAppointmentId(appointmentId)
+      console.log('appointment: ', appointment)
 
-      if (!slotDateResult) {
+      if (!appointment) {
         return { success: false, message: 'Appointment not found' }
       }
 
-      const slotDate = new Date(slotDateResult.Slot_Date)
+      if (appointment.Status !== 'Pending') {
+        return {
+          success: false,
+          message: 'Chỉ có thể hủy những cuộc hẹn chưa được chấp thuận (Đang chờ xử lý)! '
+        }
+      }
+
+      const slotDate = new Date(appointment.Slot_Date)
       const today = new Date()
       // xóa phần time, chỉ so sánh ngày
       today.setHours(0, 0, 0, 0)
@@ -170,12 +177,9 @@ export class AppointmentServices {
         return { success: false, message: 'Bạn chỉ có thể hủy cuộc hẹn trước 1 ngày diễn ra cuộc hẹn!' }
       }
 
-      const patientDetail = await this.patientRepository.deletePatientDetail(appointmentId)
-      console.log('patientDetail Services: ', patientDetail)
-
-      const appointment = await this.appointmentRepository.deleteApointment(appointmentId)
-      console.log('appointment result Services: ', appointment)
-      if (!appointment) {
+      const appointmentTarget = await this.appointmentRepository.deleteApointment(appointmentId)
+      console.log('appointmentTarget result Services: ', appointmentTarget)
+      if (!appointmentTarget) {
         return { success: false, message: 'Failed to delete appointment' }
       }
 

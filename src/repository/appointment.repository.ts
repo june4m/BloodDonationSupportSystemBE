@@ -31,6 +31,7 @@ export class AppointmentRepository {
       throw error
     }
   }
+
   async deleteApointment(appointmentID: string) {
     console.log('Appointment repo delete')
     const query = `DELETE FROM AppointmentGiving WHERE Appointment_ID = ?`
@@ -42,6 +43,7 @@ export class AppointmentRepository {
       throw new Error('Appointment ID not existsent to delete')
     }
   }
+
   async findAppointmentByID(appointmentID: string) {
     console.log('Appointment repo find Appointment')
     const query = `select * from AppointmentGiving WHERE Appointment_ID = ?`
@@ -245,7 +247,7 @@ export class AppointmentRepository {
 
   public async getSlotDateByAppointmentId(appointmentId: string): Promise<any> {
     const query = `
-    SELECT s.Slot_Date
+    SELECT ag.Status, s.Slot_Date
     FROM AppointmentGiving ag
     JOIN Slot s ON ag.Slot_ID = s.Slot_ID
     WHERE ag.Appointment_ID = ?

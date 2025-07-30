@@ -144,13 +144,6 @@ export class PatientDetailRepository {
     }
   }
 
-  public async deletePatientDetail(appointmentId: string): Promise<any> {
-    const query = `DELETE FROM Patient_Detail WHERE Appointment_ID = ?`
-    const result = await databaseServices.queryParam(query, [appointmentId])
-    console.log('Patient Repo Result: ', result)
-    return result
-  }
-
   public async getLatestPatientDetailOfUser(appointmentId: string): Promise<PatientDetailV2 | null> {
     console.log('getLatestPatientDetailOfUser Repo')
     const query = `
